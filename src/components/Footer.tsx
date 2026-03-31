@@ -5,9 +5,9 @@ export function Footer() {
     <footer className="siteFooter">
       <div className="container footerInner">
         <div className="footerLeft">
-          <div className="footerBrand">CallieTools</div>
+          <div className="footerBrand">Callie</div>
           <div className="footerMini">
-            School and personal calendars—synced by Callie ✨
+            Your school calendar, synced ✨
           </div>
         </div>
 
