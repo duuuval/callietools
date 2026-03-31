@@ -5,7 +5,7 @@ import Image from "next/image";
 export const metadata: Metadata = {
   title: "Home",
   description:
-    "Add your school's calendar to your phone in seconds. Holidays, early releases, teacher workdays — all synced automatically.",
+    "Add your school's calendar to your phone in one tap. Holidays, early releases, teacher workdays — Callie keeps everything organized.",
 };
 
 const SCHOOLS = [
