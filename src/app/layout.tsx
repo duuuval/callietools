@@ -5,8 +5,8 @@ import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: {
-    default: "CallieTools",
-    template: "%s — CallieTools",
+    default: "Callie",
+    template: "%s — Callie",
   },
   description:
     "Sync school and personal calendars to your phone or computer. No logins, no clutter.",
