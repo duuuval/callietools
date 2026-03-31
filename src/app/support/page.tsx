@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Support CallieTools",
+  title: "Support Callie",
   description:
-    "CallieTools is free for personal use. Tips help cover hosting and maintenance.",
+    "Callie is free for personal use. Tips help cover hosting and maintenance.",
 };
 
 export default function SupportPage() {
@@ -13,10 +13,10 @@ export default function SupportPage() {
         {/* Top split section */}
         <div className="supportWrap">
           <div className="supportCopy">
-            <h1>Support CallieTools 💜</h1>
+            <h1>Support Callie 💜</h1>
 
             <p className="supportIntro">
-              CallieTools was built by a parent to make school (and other)
+              Callie was built by a parent to make school (and other)
               calendars simple for other busy parents.
             </p>
             <p className="supportIntro">
@@ -54,7 +54,7 @@ export default function SupportPage() {
             rel="noopener noreferrer"
             className="btn btnPrimary"
           >
-            Support CallieTools
+            Support Callie
           </a>
         </div>
       </div>
