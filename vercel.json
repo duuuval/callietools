@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/ics/:id.ics",
+      "destination": "/api/ics/:id.ics"
+    },
+    {
+      "source": "/ics/:id",
+      "destination": "/api/ics/:id"
+    }
+  ]
+}

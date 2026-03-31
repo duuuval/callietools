@@ -1,0 +1,772 @@
+:root{
+  /* Brand colors */
+  --bg: #F6F6F8;
+  --card: #FFFFFF;
+  --text: #111318;
+  --muted: #5B616E;
+  --border: #E6E8EF;
+
+  --primary: #4F6BED;        /* buttons, key actions */
+  --primaryHover: #3E57C4;   /* hover state */
+  --primarySoft: rgba(79, 107, 237, 0.14);
+
+  --accent: #F2C94C;         /* links, highlights */
+  --accentSoft: rgba(242, 201, 76, 0.25);
+
+  --guide: #553ca9;          /* hat shadow purple */
+  --guideSoft: rgba(85, 60, 169, 0.22);
+
+  /* Typography */
+  --fontDisplay: "Outfit", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --fontBody: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+  /* Layout */
+  --container: 920px;
+  --radiusLg: 18px;
+  --radiusMd: 12px;
+  --shadow: 0 10px 22px rgba(17, 19, 24, .08);
+
+  /* Mobile menu */
+  --menuW: 320px;            /* max width for dropdown */
+  --menuGap: 10px;           /* gap below header row */
+  --overlay: rgba(17,19,24,.08);
+}
+
+*{ box-sizing: border-box; }
+html, body { height: 100%; }
+
+body{
+  margin:0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--fontBody);
+}
+
+a{ color: var(--accent); text-decoration: none; }
+a:hover{ text-decoration: underline; }
+
+a:focus, .btn:focus, button:focus{
+  outline: none;
+  box-shadow: 0 0 0 4px var(--primarySoft);
+  border-radius: 12px;
+}
+
+.container{
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 18px;
+}
+
+/* =========================
+  Header / Brand
+========================= */
+
+.siteHeader{
+  position: sticky;
+  top:0;
+  z-index: 50;
+  background: rgba(246,246,248,.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.headerInner{
+  position: relative; /* allows mobile dropdown to anchor to this row */
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  padding: 14px 0;
+  gap: 14px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color: var(--text);
+  text-decoration:none;
+}
+.brand:hover{ text-decoration:none; }
+
+.brandMark{
+  width: 34px;
+  height: 34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius: 12px;
+  background: var(--guideSoft);
+  font-size: 18px;
+}
+
+.brandName{
+  font-family: var(--fontDisplay);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  font-size: 18px;
+}
+
+/* =========================
+  Navigation (Desktop)
+========================= */
+
+.nav{
+  display:flex;
+  gap:14px;
+  align-items:center;
+  justify-content:flex-end;
+}
+
+.navLink{
+  color: var(--muted);
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.navLink:hover{
+  color: var(--text);
+  background: rgba(17,19,24,.06);
+  text-decoration:none;
+}
+
+/* =========================
+  Hamburger Toggle
+========================= */
+
+.navToggle{
+  display:none; /* only shows on mobile */
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:#fff;
+  cursor:pointer;
+  align-items:center;
+  justify-content:center;
+}
+
+.navToggleBars{
+  position:relative;
+  width:20px;
+  height:2px;
+  background: var(--text);
+  border-radius:2px;
+}
+
+.navToggleBars::before,
+.navToggleBars::after{
+  content:"";
+  position:absolute;
+  left:0;
+  width:20px;
+  height:2px;
+  background: var(--text);
+  border-radius:2px;
+  transition: transform .18s ease, top .18s ease;
+}
+
+.navToggleBars::before{ top:-6px; }
+.navToggleBars::after{ top:6px; }
+
+/* =========================
+  Overlay (mobile menu state)
+========================= */
+
+.navOverlay{
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  z-index: 40; /* below header (50), above page */
+}
+
+/* =========================
+  Main / Card / Buttons
+========================= */
+
+.main{
+  padding: 28px 0 56px;
+}
+
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radiusLg);
+  box-shadow: var(--shadow);
+  padding: 26px;
+}
+
+.row{
+  display:flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items:center;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 12px 16px;
+  border-radius: var(--radiusMd);
+  font-weight: 800;
+  border: 2px solid var(--primary);
+  text-decoration:none;
+  cursor:pointer;
+  transition: background-color .15s ease, border-color .15s ease, transform .15s ease;
+}
+.btn:hover{ text-decoration:none; }
+
+.btnPrimary{
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.btnPrimary:hover{
+  background: var(--primaryHover);
+  border-color: var(--primaryHover);
+  transform: translateY(-1px);
+}
+
+.btnSecondary{
+  background: #fff;
+  color: var(--primary);
+  border-color: var(--border);
+}
+.btnSecondary:hover{
+  background: var(--primarySoft);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.sectionTitle{
+  font-family: var(--fontDisplay);
+  font-weight: 800;
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.sectionBox{
+  background: rgba(17, 19, 24, 0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radiusLg);
+  padding: 14px;
+}
+
+.meta{
+  color: var(--muted);
+  margin: 6px 0 18px;
+}
+
+.helper{
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.code{
+  display:block;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #F2F3F7;
+  border: 1px solid var(--border);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  overflow:auto;
+}
+
+.mini{
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.divider{
+  height: 1px;
+  background: var(--border);
+  margin: 18px 0;
+}
+
+.error{
+  color: #b00020;
+  background:#fff0f0;
+  border:1px solid #ffd3d3;
+  padding:12px 14px;
+  border-radius:12px;
+}
+
+/* =========================
+  Hero (Homepage)
+========================= */
+
+.hero{
+  padding: 64px 0;
+}
+
+.heroInner{
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 18px;
+  display: grid;
+  grid-template-columns: 0.75fr 1.65fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.heroImage img{
+  width: 100%;
+  max-width: 440px; /* desktop size */
+  height: auto;
+}
+
+.heroCopy{
+  text-align: left;
+}
+
+.heroCopy h1{
+  font-family: var(--fontDisplay);
+  font-weight: 900;
+  letter-spacing: -1px;
+  margin: 0 0 16px;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  line-height: 1.05;
+}
+
+.heroSub{
+  margin: 0 0 24px;
+  max-width: 520px;
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.scrollHint{
+  margin-top: 28px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--guide);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.heroNote{
+  margin-top: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color:#666;
+}
+
+/* =========================
+  Schools section
+========================= */
+
+.schools{
+  padding: 24px 24px 0;
+  margin-bottom: 40px;
+}
+
+.schools .sectionTitle{
+  margin: 0 0 12px;
+  font-size: 1.4rem;
+}
+
+/* District callout card */
+.districtCard{
+  margin: 0 0 24px;
+  padding: 20px;
+  border-radius: 16px;
+  background: #f6f6f6;
+}
+
+.districtName{
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+}
+
+.districtSub{
+  margin: 0 0 12px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.districtLink{
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--primary);
+}
+.districtLink:hover{
+  text-decoration: underline;
+}
+
+/* Multi-column school list */
+.schoolList{
+  column-count: 3;
+  column-gap: 32px;
+  font-size: 0.95rem;
+  color: var(--text);
+  margin-top: 24px;
+  padding-left: 20px;
+}
+
+.schoolList span{
+  display: block;
+  margin: 0 0 8px;
+  break-inside: avoid;
+}
+
+@media (max-width: 900px){
+  .schoolList{ column-count: 2; }
+}
+
+
+/* =========================
+  Support
+========================= */
+
+.support {
+  padding: 60px 0;
+}
+
+.supportIntro {
+  font-size: 18px;
+  margin-bottom: 18px;
+}
+
+.supportCard {
+  margin-top: 30px;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #faf9ff; /* subtle purple tint */
+  text-align: center;
+}
+
+.supportCard h2 {
+  margin-bottom: 10px;
+}
+
+.supportNote {
+  margin-top: 24px;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.supportWrap{
+  display:flex;
+  gap: 24px;
+  align-items:flex-start;
+}
+
+.supportCopy{
+  flex: 1 1 520px;
+  min-width: 0;
+}
+
+.supportMascot{
+  flex: 0 0 260px;
+  display:flex;
+  justify-content:center;
+}
+
+.supportMascot img{
+  max-width: 200px;
+  margin-top: 10px;
+  width: 100%;
+  height: auto;
+}
+
+.fullWidthCard {
+  text-align: center;
+  margin-top: 6px;
+  padding: 24px;  
+}
+
+.fullWidthCard h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 10px;  
+}
+
+.fullWidthCard p {
+  margin: 0 0 18px;  
+}
+
+.supportDivider {
+  margin: 16px 0;  
+}
+
+.supportTight {
+  margin-bottom: 10px;  
+}
+
+
+/* =========================
+  Footer
+========================= */
+
+.siteFooter{
+  border-top: 1px solid var(--border);
+  background: #fff;
+}
+
+.footerInner{
+  display:flex;
+  justify-content: space-between;
+  align-items:flex-start;
+  gap: 18px;
+  padding: 18px 0;
+  flex-wrap: wrap;
+}
+
+.footerBrand{
+  font-family: var(--fontDisplay);
+  font-weight: 900;
+}
+
+.footerMini{
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.footerRight{
+  color: var(--muted);
+  font-size: 13px;
+  display:flex;
+  gap: 10px;
+  align-items:center;
+  flex-wrap: wrap;
+}
+
+.footerLink{ color: var(--muted); font-weight: 600; }
+.footerLink:hover{ color: var(--text); text-decoration:none; }
+.footerDot{ opacity: .5; }
+
+.tipsList{
+  margin: 10px 0 0 18px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);   
+}
+
+.tipsList li{
+  margin-bottom: 6px;  
+}
+
+
+
+
+
+/* =========================
+ Mobile (best-practice nav)
+========================= */
+
+@media (max-width: 768px){
+  .main{ padding: 14px 0 28px; }
+
+  /* keep spacing off edges */
+  .container{ padding: 0 16px; }
+  .headerInner{ padding: 12px 16px; }
+
+  /* IMPORTANT: allow absolute nav to anchor to header */
+  .siteHeader{ position: relative; }
+
+  /* show hamburger */
+  .navToggle{ display:inline-flex; }
+
+  /* =========================
+     Mobile nav: full-width panel
+     ========================= */
+  .nav{
+    display:none;                 /* hidden until open */
+    position:absolute;
+    left: 0;
+    right: 0;
+    top: 100%;                    /* attaches directly under header */
+    width: 100%;
+    background: #fff;
+    border-top: 1px solid var(--border);
+    box-shadow: 0 14px 30px rgba(17,19,24,.12);
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    z-index: 60;                  /* above header */
+    border-radius: 0;             /* kills “popover card” feel */
+    text-align: center;
+  }
+
+  .nav.isOpen{ display:flex; }
+
+  .navLink{
+    width:100%;
+    padding: 16px 12px;
+    color: var(--text);
+    font-weight: 700;
+    border-radius: 12px;
+    display: block;
+  }
+
+  .navLink:hover{
+    background: rgba(17,19,24,.04);
+    text-decoration: none;
+  }
+
+  /* remove the “list divider” look */
+  .navLink + .navLink{
+    border-top: 0;
+    margin-top: 6px;
+  }
+
+  /* hamburger -> X */
+  .navToggle.isOpen .navToggleBars{ background:transparent; }
+  .navToggle.isOpen .navToggleBars::before{ top:0; transform:rotate(45deg); }
+  .navToggle.isOpen .navToggleBars::after{ top:0; transform:rotate(-45deg); }
+
+  /* hero stack */
+  .hero{ padding: 18px 0 10px; }
+  .heroInner{
+    grid-template-columns: 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .heroImage img{
+    max-width: 240px;
+    margin: 6px auto 8px;
+    display:block;
+  }
+
+  .heroCopy{ text-align:left; }
+  .heroCopy h1{
+    font-size: 34px;
+    letter-spacing: -0.8px;
+  }
+
+  .heroSub{
+    font-size: 15px;
+    line-height: 1.45;
+    max-width: 36ch;
+  }
+
+  .hero .row{
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .btn{
+    width:100%;
+    justify-content:center;
+    padding: 12px 14px;
+  }
+
+  .schools{ padding: 28px 16px; }
+  .schoolList{ column-count: 1; }
+
+  footer {
+    padding-top: 24px;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+
+  /* stack + center the top support section */
+  .supportWrap{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: left; /* keep your copy readable */
+    gap: 4px;
+  }
+
+  /* make sure the image can’t overflow */
+  .supportMascot{
+    order: -1;
+    width: 100%;
+    display:flex;
+    justify-content:center;
+    align-items: center;
+    margin: 0;
+    padding: 0;  
+  }
+
+  .supportMascot img{
+    display: block;
+    width: min(220px, 70vw);
+    height: auto !important;
+    max-width: 220px;
+    object-fit: contain;
+    object-poistion: center;
+    margin: 0;
+  }
+
+  /* if you have a dedicated image column/div, kill the desktop spacing */
+  .supportImage{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+
+  /* Reduce mobile title size */
+  .supportCopy h1{
+   font-size: 28px;
+   line-height: 1.15;
+   margin: 0 0 10px;
+  }
+
+  /* If heart is on its own line, reduce that gap */
+  .supportCopy h1 + span,
+  .supportCopy .heart{
+    display: inline-block;
+    margin-left: 6px;
+  }
+
+  /* Tighten space before first paragraph */
+  .supportIntro{
+    margin-top: 6px;
+  }
+
+  .supportCopy{
+    flex: 0 0 auto;      /* overrides flex: 1 1 520px */
+    width: 100%;
+  }
+
+    /* tighten the “optional tip” paragraph so divider sits closer */
+  .supportTight{
+    margin-bottom: 6px;
+  }
+
+  /* (optional) tighten divider itself */
+  .divider{
+    margin: 20px 0 25px;    
+  }
+}
+
+
+.troubleshoot summary {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.troubleshoot summary, 
+.troubleshoot summary * {
+    cursor: pointer;
+}
+
+.navLinkPrimary {
+    background: var(--primarySoft);
+    color: var(--primary);
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 8px 14px;
+}
+.navLinkPrimary:hover{
+    background: var(--primary);
+    color: #fff;
+}
+
+
