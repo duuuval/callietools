@@ -5,7 +5,7 @@ import Image from "next/image";
 export const metadata: Metadata = {
   title: "Home",
   description:
-    "Callie helps you sync important dates into your calendar, without the hassle.",
+    "Add your school's calendar to your phone in seconds. Holidays, early releases, teacher workdays — all synced automatically.",
 };
 
 const SCHOOLS = [
@@ -38,16 +38,15 @@ export default function HomePage() {
           </picture>
 
           <div className="heroCopy">
-            <h1>Meet Callie, your calendar helper.</h1>
+            <h1>Your school calendar, synced to your phone.</h1>
             <p className="heroSub">
-              Callie helps you sync important dates into your calendar, without
-              the hassle. Start with ready-to-use school calendars—then see how
-              she can help organize the rest.
+              No more checking the district website or guessing when the next
+              half-day is. Add your school&apos;s calendar once and every date
+              shows up automatically — holidays, early releases, teacher
+              workdays, all of it.
             </p>
             <p className="heroNote">
-              Free for personal use.
-              <br />
-              Optional support keeps it running.
+              Free. No logins. No app to install.
             </p>
             <div className="scrollHint">
               Find your school below <span aria-hidden="true">↓</span>
