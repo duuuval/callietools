@@ -41,9 +41,8 @@ export default function HomePage() {
             <h1>Your school calendar, synced to your phone.</h1>
             <p className="heroSub">
               No more checking the district website or guessing when the next
-              half-day is. Add your school&apos;s calendar once and Callie
-              keeps every date synced automatically — holidays, early releases,
-              teacher workdays, all of it.
+              half-day is. Add your school&apos;s calendar to your phone in one
+              tap, and Callie keeps everything organized.
             </p>
             <p className="heroNote">
               Free. No logins. No app to install.
