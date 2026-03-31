@@ -34,6 +34,7 @@ Without Google credentials configured, the app uses mock data automatically. Vis
 4. Click into the service account → Keys → Add Key → Create new key → JSON
 5. Download the JSON file — you'll need `client_email` and `private_key`
 
+
 ### 3. Share your spreadsheet
 
 1. Open your Google Sheet
