@@ -33,7 +33,7 @@ export function Header() {
             <span className="brandMark" aria-hidden="true">
               ✨
             </span>
-            <span className="brandName">CallieTools</span>
+            <span className="brandName">Callie</span>
           </Link>
 
           <button
@@ -58,7 +58,7 @@ export function Header() {
               href="/support"
               onClick={() => setOpen(false)}
             >
-              Support CallieTools
+              Support Callie
             </Link>
             <Link
               className="navLink navLinkPrimary"
