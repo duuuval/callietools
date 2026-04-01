@@ -18,6 +18,7 @@ export interface CalendarMeta {
   name: string;
   tier: string;
   last_updated: string;
+  timezone: string;
 }
 
 export interface CalendarEvent {
@@ -92,7 +93,7 @@ async function fetchAllCalendars(): Promise<CalendarMeta[]> {
   const sheetName = process.env.CALENDARS_SHEET_NAME || "Calendars";
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID!,
-    range: `${sheetName}!A:D`, // id, name, tier, last_updated
+    range: `${sheetName}!A:E`, // id, name, tier, last_updated, timezone
   });
 
   const rows = res.data.values || [];
@@ -102,6 +103,7 @@ async function fetchAllCalendars(): Promise<CalendarMeta[]> {
     name: (row[1] || "").trim(),
     tier: (row[2] || "").trim(),
     last_updated: (row[3] || "").trim(),
+    timezone: (row[4] || "America/New_York").trim(),
   }));
 
   setCache(cacheKey, calendars);
@@ -162,6 +164,7 @@ const MOCK_CALENDARS: CalendarMeta[] = [
     name: "CCPS Traditional Calendar 2025-2026",
     tier: "free",
     last_updated: "2025-06-01",
+    timezone: "America/New_York",
   },
 ];
 
