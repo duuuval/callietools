@@ -2,11 +2,8 @@
  * ICS feed generator.
  * Ported from ics.php — same output format, same UID strategy.
  */
-
 import { CalendarEvent } from "./sheets";
 import crypto from "crypto";
-
-const TZID = "America/New_York";
 
 function icsEscape(s: string): string {
   return s
@@ -55,7 +52,8 @@ function buildUid(calId: string, e: CalendarEvent): string {
 export function generateIcs(
   calId: string,
   displayName: string,
-  events: CalendarEvent[]
+  events: CalendarEvent[],
+  timezone: string = "America/New_York"
 ): string {
   const nowUtc = new Date()
     .toISOString()
@@ -69,26 +67,7 @@ export function generateIcs(
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     `X-WR-CALNAME:${icsEscape(displayName)}`,
-    `X-WR-TIMEZONE:${TZID}`,
-    // Timezone definition (America/New_York)
-    "BEGIN:VTIMEZONE",
-    `TZID:${TZID}`,
-    `X-LIC-LOCATION:${TZID}`,
-    "BEGIN:DAYLIGHT",
-    "TZOFFSETFROM:-0500",
-    "TZOFFSETTO:-0400",
-    "TZNAME:EDT",
-    "DTSTART:19700308T020000",
-    "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU",
-    "END:DAYLIGHT",
-    "BEGIN:STANDARD",
-    "TZOFFSETFROM:-0400",
-    "TZOFFSETTO:-0500",
-    "TZNAME:EST",
-    "DTSTART:19701101T020000",
-    "RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU",
-    "END:STANDARD",
-    "END:VTIMEZONE",
+    `X-WR-TIMEZONE:${timezone}`,
   ];
 
   for (const e of events) {
@@ -112,8 +91,8 @@ export function generateIcs(
       lines.push(`DTSTART;VALUE=DATE:${dtAllDay(sd)}`);
       lines.push(`DTEND;VALUE=DATE:${dtAllDay(addOneDay(ed))}`);
     } else {
-      lines.push(`DTSTART;TZID=${TZID}:${dtLocal(sd, st)}`);
-      lines.push(`DTEND;TZID=${TZID}:${dtLocal(ed, et)}`);
+      lines.push(`DTSTART;TZID=${timezone}:${dtLocal(sd, st)}`);
+      lines.push(`DTEND;TZID=${timezone}:${dtLocal(ed, et)}`);
     }
 
     const loc = (e.location || "").trim();
