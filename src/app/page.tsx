@@ -68,7 +68,7 @@ export default function HomePage() {
                 This calendar includes all 2025-2026 CCPS Traditional Calendar
                 dates.
               </p>
-              <Link className="districtLink" href="/calendar/CCPS25-26">
+              <Link className="districtLink" href="/CCPS25-26">
                 Open CCPS 2025-2026 calendar →
               </Link>
             </div>
