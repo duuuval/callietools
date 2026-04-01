@@ -27,7 +27,7 @@ export async function GET(
       ? `${cal.name} (CallieTools)`
       : `CallieTools - ${id}`;
 
-    const icsContent = generateIcs(id, displayName, events);
+    const icsContent = generateIcs(id, displayName, events, cal.timezone);
 
     return new Response(icsContent, {
       status: 200,
