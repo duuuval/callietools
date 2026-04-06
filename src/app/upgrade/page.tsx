@@ -63,28 +63,26 @@ export default function UpgradePage() {
           </p>
         </div>
 
-        <div className="upgradeHow">
-          <h2>How to get started</h2>
-          <ol>
-            <li>Create your free calendar at callietools.com/create</li>
-            <li>Share it with your group and start using it</li>
-            <li>
-              When you&apos;re ready for your own branding, email us
-              with your calendar name and we&apos;ll set you up
-            </li>
-          </ol>
-        </div>
-
         <div className="upgradeCtas">
           <Link className="btn btnPrimary heroBtn" href="/create">
             Create your calendar &mdash; free
           </Link>
-          <p className="upgradeSecondary">
-            Already have a calendar?{" "}
-            <a href="mailto:hello@callietools.com?subject=Upgrade%20my%20calendar">
-              Email us to upgrade
-            </a>
+          <p style={{ color: "var(--muted)", fontSize: "0.85rem", margin: 0 }}>
+            Start free, upgrade when you&apos;re ready.
           </p>
+        </div>
+
+        <div className="upgradeDivider" />
+
+        <div className="upgradeAlready">
+          <p>
+            Already have a Callie calendar and want to add
+            your branding? Email us your calendar name and
+            we&apos;ll get you set up.
+          </p>
+          <a href="mailto:hello@callietools.com?subject=Upgrade%20my%20calendar">
+            hello@callietools.com
+          </a>
         </div>
       </div>
     </div>
