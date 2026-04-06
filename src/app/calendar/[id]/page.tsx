@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCalendar } from "@/lib/sheets";
+import { getCalendar, getEvents, CalendarEvent } from "@/lib/sheets";
 import { CalendarClient } from "./CalendarClient";
 
 interface Props {
@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: cal?.name || "Calendar",
     description: cal
-      ? `Sync "${cal.name}" to your phone or computer.`
+      ? `Subscribe to "${cal.name}" — events sync to your phone automatically.`
       : "Calendar not found",
   };
 }
@@ -24,135 +24,202 @@ export default async function CalendarPage({ params }: Props) {
     notFound();
   }
 
+  const [events] = await Promise.all([getEvents(cal.id)]);
+
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://callietools.com";
   const httpsIcs = `${siteUrl}/api/ics/${encodeURIComponent(cal.id)}.ics`;
-  // webcal:// uses the host without protocol
   const host = siteUrl.replace(/^https?:\/\//, "");
   const webcalIcs = `webcal://${host}/api/ics/${encodeURIComponent(cal.id)}.ics`;
+  const vanityUrl = `${siteUrl}/${encodeURIComponent(cal.id)}`;
+
+  // Split events into upcoming and past
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const upcoming: CalendarEvent[] = [];
+  const past: CalendarEvent[] = [];
+
+  for (const e of events) {
+    const eventDate = new Date(e.start_date + "T00:00:00");
+    if (eventDate >= today) {
+      upcoming.push(e);
+    } else {
+      past.push(e);
+    }
+  }
+
+  // Sort upcoming chronologically
+  upcoming.sort(
+    (a, b) =>
+      new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+  );
+
+  // Sort past reverse-chronologically
+  past.sort(
+    (a, b) =>
+      new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
+  );
+
+  // Group upcoming events by month
+  const groupedUpcoming = groupByMonth(upcoming);
 
   return (
     <div className="container">
       <div className="card">
-        <h1
-          className="heroTitle"
-          style={{ fontSize: 29, margin: 0 }}
-        >
-          {cal.name || cal.id}
-        </h1>
+        {/* Header */}
+        <h1 className="calPageTitle">{cal.name || cal.id}</h1>
+        <p className="calPageSubtitle">Subscribable calendar by Callie</p>
 
-        <div className="meta" style={{ marginTop: 6 }}>
-          Last updated: {cal.last_updated || "—"}
-        </div>
-
-        <p className="heroNote" style={{ marginTop: 10 }}>
-          Choose your calendar app below to sync this schedule to your phone or
-          computer.
-        </p>
-
+        {/* Events List */}
         <div className="divider" />
+
+        {upcoming.length > 0 ? (
+          <div className="eventsSection">
+            {groupedUpcoming.map(({ month, events: monthEvents }) => (
+              <div key={month} className="eventsMonth">
+                <div className="eventsMonthHeader">{month}</div>
+                {monthEvents.map((e, i) => (
+                  <EventRow key={`${e.start_date}-${e.title}-${i}`} event={e} />
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="eventsEmpty">
+            <p>
+              No upcoming events — subscribe to get notified when new ones are
+              added.
+            </p>
+          </div>
+        )}
+
+        {/* Subscribe Section */}
+        <div className="divider" />
+
+        <p className="calSubscribeIntro">
+          Add this calendar to your phone — events update automatically.
+        </p>
 
         {/* Apple */}
         <div className="section">
-          <div className="sectionTitle">🍎 Apple Calendar (iPhone / iPad / Mac)</div>
+          <div className="sectionTitle">
+            🍎 Apple Calendar (iPhone / iPad / Mac)
+          </div>
           <div className="sectionBox">
-            <div className="helper">
-              <strong>Best option for Apple devices.</strong>
-            </div>
-            <div className="row" style={{ marginTop: 10 }}>
+            <div className="row">
               <a className="btn btnPrimary" href={webcalIcs} rel="noopener">
                 Sync to Apple Calendar
               </a>
             </div>
-            <div className="mini" style={{ marginTop: 12 }}>
-              The calendar should open in Apple Calendar.
+            <div className="mini" style={{ marginTop: 10 }}>
+              Opens in Apple Calendar — tap Subscribe to add it.
             </div>
           </div>
         </div>
 
-        {/* Google / Android — needs client interactivity for copy */}
-        <CalendarClient httpsIcs={httpsIcs} webcalIcs={webcalIcs} />
+        {/* Google / Other — client component for interactivity */}
+        <CalendarClient
+          httpsIcs={httpsIcs}
+          webcalIcs={webcalIcs}
+          vanityUrl={vanityUrl}
+          calendarName={cal.name || cal.id}
+          pastEvents={past}
+        />
+      </div>
 
-        {/* Other apps */}
-        <div className="section" style={{ marginTop: 18 }}>
-          <div className="sectionTitle">💻 Other calendar apps</div>
-          <div className="sectionBox">
-            <div className="helper">
-              For desktop apps or calendars that don&apos;t support links.
-            </div>
-            <div className="row" style={{ marginTop: 10 }}>
-              <a className="btn btnPrimary" href={httpsIcs} rel="noopener">
-                Download calendar file
-              </a>
-            </div>
-            <div className="mini">
-              You can import the file into most calendar apps.
-            </div>
-          </div>
-        </div>
-
-        <br />
-
-        {/* Troubleshooting */}
-        <details className="troubleshoot" style={{ marginTop: 18 }}>
-          <summary>Having trouble adding the calendar? Tap for help.</summary>
-          <div className="troubleshootBody">
-            <div className="divider" />
-
-            <div className="sectionBox" style={{ marginTop: 10 }}>
-              <div className="helper" style={{ fontWeight: 800, marginBottom: 6 }}>
-                Apple devices
-              </div>
-              <div className="helper">
-                If tapping the button doesn&apos;t open Apple Calendar, copy the
-                calendar link below and add it manually using{" "}
-                <strong>Calendar → File → New Calendar Subscription</strong>.
-              </div>
-              <span className="code">{webcalIcs}</span>
-            </div>
-
-            <div className="sectionBox" style={{ marginTop: 12 }}>
-              <div className="helper" style={{ fontWeight: 800, marginBottom: 6 }}>
-                Google Calendar
-              </div>
-              <div className="helper">
-                If the link opens the Google Calendar app, return here and open
-                Google Calendar in a browser instead (type or copy + paste:
-                calendar.google.com).
-                <br />
-                You&apos;ll need to use Google Calendar&apos;s{" "}
-                <strong>Add by URL</strong> option on the web.
-                <br />
-                <br />
-                Use this URL to sync the calendar:
-              </div>
-              <span className="code">{httpsIcs}</span>
-            </div>
-
-            <div className="sectionBox" style={{ marginTop: 12 }}>
-              <div className="helper" style={{ fontWeight: 800, marginBottom: 6 }}>
-                Other calendar apps
-              </div>
-              <div className="helper">
-                If your calendar app doesn&apos;t support calendar links,
-                download the calendar file above and import it manually.
-                Downloaded calendars usually don&apos;t update automatically.
-              </div>
-            </div>
-
-            <div className="sectionBox" style={{ marginTop: 12 }}>
-              <div className="helper" style={{ fontWeight: 800, marginBottom: 6 }}>
-                Still stuck?
-              </div>
-              <div className="helper">
-                Email us at{" "}
-                <a href="mailto:hello@callietools.com">hello@callietools.com</a>{" "}
-                and tell us what device or calendar app you&apos;re using.
-              </div>
-            </div>
-          </div>
-        </details>
+      {/* Footer CTAs */}
+      <div className="calFooter">
+        <p className="calFooterBrand">Subscribable calendar by Callie</p>
+        <p className="calFooterCta">
+          Run a group or class?{" "}
+          <a href="/create">Create your own calendar — free</a>
+        </p>
+        <p className="calFooterCta calFooterUpgrade">
+          Want your logo and colors on this page?{" "}
+          <a href="mailto:hello@callietools.com">Make it yours — $10/month</a>
+        </p>
+        <p className="calFooterEmail">
+          <a href="mailto:hello@callietools.com">hello@callietools.com</a>
+        </p>
       </div>
     </div>
   );
+}
+
+/* ─── Helpers ──────────────────────────────────────────────── */
+
+function EventRow({ event }: { event: CalendarEvent }) {
+  const date = new Date(event.start_date + "T00:00:00");
+  const formatted = date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+
+  const isMultiDay =
+    event.end_date &&
+    event.end_date !== event.start_date;
+
+  let dateDisplay = formatted;
+  if (isMultiDay) {
+    const end = new Date(event.end_date + "T00:00:00");
+    const endFormatted = end.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+    dateDisplay = `${formatted} – ${endFormatted}`;
+  }
+
+  // Format time if present
+  let timeDisplay = "";
+  if (event.start_time) {
+    const [h, m] = event.start_time.split(":").map(Number);
+    const startDate = new Date(2000, 0, 1, h, m);
+    timeDisplay = startDate.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    if (event.end_time && event.end_time !== event.start_time) {
+      const [eh, em] = event.end_time.split(":").map(Number);
+      const endDate = new Date(2000, 0, 1, eh, em);
+      timeDisplay += ` – ${endDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      })}`;
+    }
+  }
+
+  return (
+    <div className="eventRow">
+      <div className="eventDate">{dateDisplay}</div>
+      <div className="eventDetails">
+        <div className="eventTitle">{event.title}</div>
+        {timeDisplay && <span className="eventTime">{timeDisplay}</span>}
+        {event.location && (
+          <span className="eventLocation">{event.location}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function groupByMonth(
+  events: CalendarEvent[]
+): { month: string; events: CalendarEvent[] }[] {
+  const groups: Map<string, CalendarEvent[]> = new Map();
+  for (const e of events) {
+    const d = new Date(e.start_date + "T00:00:00");
+    const key = d.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(e);
+  }
+  return Array.from(groups.entries()).map(([month, events]) => ({
+    month,
+    events,
+  }));
 }
