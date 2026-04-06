@@ -28,7 +28,8 @@ export default function HomePage() {
             <h1>
               Everyone has a calendar app.
               <br />
-              Nobody has your events on it&nbsp;&mdash;&nbsp;yet.
+              Nobody has <span className="heroHighlight">your events</span> on
+              it&nbsp;&mdash;&nbsp;yet.
             </h1>
             <p className="heroSub">
               Create a free calendar page your group can subscribe to.
@@ -57,8 +58,8 @@ export default function HomePage() {
                 <span className="stepNum">1</span>
                 <h3 className="stepTitle">Add your events</h3>
                 <p className="stepDesc">
-                  Enter them manually or upload a flyer and let Callie
-                  pull them out for you.
+                  Enter them manually or upload an image or schedule
+                  and we&apos;ll pull the events out for you.
                 </p>
               </div>
 
@@ -73,10 +74,10 @@ export default function HomePage() {
 
               <div className="stepCard">
                 <span className="stepNum">3</span>
-                <h3 className="stepTitle">They&apos;re subscribed</h3>
+                <h3 className="stepTitle">They subscribe</h3>
                 <p className="stepDesc">
-                  Events show up on their phone. You update, they
-                  see it automatically.
+                  One tap and your events are on their phone. You
+                  update, they see it automatically.
                 </p>
               </div>
             </div>
@@ -84,9 +85,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Perfect For (recognition moment) ─────────────── */}
-      <section className="homeSection homeSectionNarrow">
+      {/* ── Who's it for? ────────────────────────────────── */}
+      <section className="homeSection homeSectionWho">
         <div className="container">
+          <h2 className="homeSectionTitleCenter">Who&apos;s it for?</h2>
           <p className="recognitionLine">
             Teams, classes, scout troops, church groups, PTAs, community
             orgs&nbsp;&mdash; if you&apos;re the one everyone asks{" "}
@@ -99,7 +101,7 @@ export default function HomePage() {
       <section className="homeSection">
         <div className="container">
           <div className="card">
-            <h2 className="homeSectionTitle">Same work. Different outcome.</h2>
+            <h2 className="homeSectionTitle">Same work. Better outcome.</h2>
 
             <div className="compareTable">
               <div className="compareHeader">
@@ -112,9 +114,9 @@ export default function HomePage() {
                 <div className="compareCell compareCellRight">Plan your events</div>
               </div>
               <div className="compareRow">
-                <div className="compareCell">Post in the group chat</div>
+                <div className="compareCell">Share your schedule</div>
                 <div className="compareCell compareCellRight">
-                  Post&nbsp;&mdash; <strong>with your calendar link</strong>
+                  Share your schedule&nbsp;&mdash; <strong>with your calendar link</strong>
                 </div>
               </div>
               <div className="compareRow">
@@ -144,7 +146,7 @@ export default function HomePage() {
       <section className="homeSection homeSectionCta">
         <div className="container" style={{ textAlign: "center" }}>
           <p className="midCtaLine">
-            Ready to get your schedule out of the group&nbsp;chat?
+            Get your events on their phones.
           </p>
           <Link className="btn btnPrimary heroBtn" href="/create">
             Create your calendar
@@ -171,9 +173,14 @@ export default function HomePage() {
                 Traditional calendar for all CCPS schools. Includes holidays,
                 half-days, early releases, teacher workdays, and breaks.
               </p>
-              <Link className="btn btnPrimary" href="/CCPS25-26">
-                View &amp; subscribe
-              </Link>
+              <div className="row" style={{ gap: 12 }}>
+                <Link className="btn btnPrimary" href="/CCPS25-26">
+                  View &amp; subscribe
+                </Link>
+                <Link className="btn btnSecondary" href="/schools">
+                  Browse all schools
+                </Link>
+              </div>
             </div>
           </div>
         </div>
