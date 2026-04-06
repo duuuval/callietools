@@ -40,9 +40,6 @@ export default function HomePage() {
                 Create your calendar &mdash; free
               </Link>
             </div>
-            <Link className="heroAnchor" href="/schools">
-              Looking for a school calendar? <span aria-hidden="true">↓</span>
-            </Link>
           </div>
         </div>
       </section>
