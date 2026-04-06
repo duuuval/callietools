@@ -55,17 +55,17 @@ export function Header() {
           >
             <Link
               className="navLink"
-              href="/support"
+              href="/#school-calendars"
               onClick={() => setOpen(false)}
             >
-              Support Callie
+              School Calendars
             </Link>
             <Link
               className="navLink navLinkPrimary"
-              href="/calendar-concierge"
+              href="/create"
               onClick={() => setOpen(false)}
             >
-              Calendar Concierge
+              Create Calendar
             </Link>
           </nav>
         </div>
