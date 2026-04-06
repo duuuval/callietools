@@ -15,12 +15,12 @@ export function Footer() {
           <a className="footerLink" href="mailto:hello@callietools.com">
             hello@callietools.com
           </a>
-          <span className="footerDot">•</span>
-          <span className="footerLink footerUpgrade">
+          <span className="footerDot">&middot;</span>
+          <span className="footerUpgrade">
             Want your own logo and colors?{" "}
-            <a href="mailto:hello@callietools.com?subject=Callie%20Paid%20Upgrade">
-              Make it yours — $10/mo
-            </a>
+            <Link href="/upgrade">
+              Make it yours &mdash; $10/mo
+            </Link>
           </span>
         </div>
       </div>
