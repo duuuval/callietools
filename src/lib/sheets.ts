@@ -8,7 +8,6 @@
  * serverless function instance. On Vercel, cold starts will re-fetch.
  * This is fine at your scale — if you outgrow it, swap in Vercel KV.
  */
-
 import { google } from "googleapis";
 import { randomUUID } from "crypto";
 
