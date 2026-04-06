@@ -19,9 +19,9 @@ export default function UpgradePage() {
           </p>
         </div>
 
-        <div className="upgradeFeatures">
-          <div className="upgradeFeature">
-            <div className="upgradeFeatureIcon">🎨</div>
+        <div className="upgradeGrid">
+          <div className="upgradeCard">
+            <span className="upgradeCardIcon" aria-hidden="true">🎨</span>
             <h3>Your colors</h3>
             <p>
               Choose an accent color that matches your brand.
@@ -29,24 +29,24 @@ export default function UpgradePage() {
               to match.
             </p>
           </div>
-          <div className="upgradeFeature">
-            <div className="upgradeFeatureIcon">🏷️</div>
+          <div className="upgradeCard">
+            <span className="upgradeCardIcon" aria-hidden="true">🏷️</span>
             <h3>Your logo</h3>
             <p>
               Your logo at the top of your calendar page instead
               of Callie branding. Your group sees your brand, not ours.
             </p>
           </div>
-          <div className="upgradeFeature">
-            <div className="upgradeFeatureIcon">🌗</div>
+          <div className="upgradeCard">
+            <span className="upgradeCardIcon" aria-hidden="true">🌗</span>
             <h3>Light or dark theme</h3>
             <p>
               Pick the look that fits your style. Dark for a bold,
               modern feel. Light for something clean and bright.
             </p>
           </div>
-          <div className="upgradeFeature">
-            <div className="upgradeFeatureIcon">✨</div>
+          <div className="upgradeCard">
+            <span className="upgradeCardIcon" aria-hidden="true">✨</span>
             <h3>Clean footer</h3>
             <p>
               Callie branding moves to a small &ldquo;Powered
@@ -63,7 +63,7 @@ export default function UpgradePage() {
           </p>
         </div>
 
-        <div className="upgradeSteps">
+        <div className="upgradeHow">
           <h2>How to get started</h2>
           <ol>
             <li>Create your free calendar at callietools.com/create</li>
