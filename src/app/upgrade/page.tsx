@@ -14,8 +14,8 @@ export default function UpgradePage() {
         <div className="upgradeHero">
           <h1>Make your calendar page yours</h1>
           <p>
-            Everything in the free plan, plus your branding
-            front and center.
+            Unlimited calendars, unlimited events, unlimited
+            subscribers&nbsp;&mdash; plus your branding front and center.
           </p>
         </div>
 
