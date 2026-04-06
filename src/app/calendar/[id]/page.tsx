@@ -4,6 +4,7 @@ import { getCalendar, getEvents } from "@/lib/sheets";
 import type { CalendarEvent } from "@/lib/sheets";
 import { CalendarClient } from "./CalendarClient";
 
+
 interface Props {
   params: { id: string };
 }
