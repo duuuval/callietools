@@ -2,10 +2,12 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { CopyButton } from "@/components/CopyButton";
 
 function SuccessContent() {
   const params = useSearchParams();
   const slug = params.get("slug") || "";
+  const name = params.get("name") || "";
   const email = params.get("email") || "";
   const token = params.get("token") || "";
 
@@ -14,10 +16,15 @@ function SuccessContent() {
     ? `https://callietools.com/manage/${token}`
     : "";
 
+  const shareTitle = name || "Check out our calendar";
+  const shareText = name
+    ? `Subscribe to ${name} — events sync to your phone automatically: ${calendarUrl}`
+    : `Subscribe once and every event shows up on your phone: ${calendarUrl}`;
+
   const handleShare = async () => {
     const shareData = {
-      title: "Check out our calendar",
-      text: `Subscribe once and every event shows up on your phone: ${calendarUrl}`,
+      title: shareTitle,
+      text: shareText,
       url: calendarUrl,
     };
 
@@ -34,15 +41,6 @@ function SuccessContent() {
     try {
       await navigator.clipboard.writeText(calendarUrl);
       alert("Link copied!");
-    } catch {
-      window.prompt("Copy this link:", calendarUrl);
-    }
-  };
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(calendarUrl);
-      // Brief visual feedback handled by the button text swap below
     } catch {
       window.prompt("Copy this link:", calendarUrl);
     }
@@ -91,14 +89,12 @@ function SuccessContent() {
           Share your calendar with your group
         </button>
 
-        <button
-          type="button"
+        <CopyButton
+          text={calendarUrl}
+          label="Copy link"
+          copiedLabel="Copied!"
           className="btn btnSecondary createSubmit"
-          onClick={handleCopy}
-          style={{ marginTop: 8 }}
-        >
-          Copy link
-        </button>
+        />
 
         <p className="formHelper" style={{ textAlign: "center", marginTop: 12 }}>
           Send this to your people — they subscribe once and stay updated
