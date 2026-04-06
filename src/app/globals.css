@@ -771,6 +771,322 @@ a:focus, .btn:focus, button:focus{
 }
 
 /* =========================
+   Create form
+========================= */
+
+.createHeader{
+  font-family: var(--fontDisplay);
+  font-weight: 900;
+  font-size: 1.6rem;
+  letter-spacing: -0.5px;
+  margin: 0 0 8px;
+  text-align: center;
+}
+
+.createSubhead{
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0 0 4px;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ── Flyer upload shell ─────────────────────────── */
+
+.flyerUpload{
+  margin: 4px 0;
+  padding: 28px 20px;
+  border: 2px dashed var(--border);
+  border-radius: 16px;
+  background: #fafafa;
+  text-align: center;
+}
+
+.flyerUploadInner{
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.flyerIcon{
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.flyerHeadline{
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0 0 4px;
+  color: var(--text);
+}
+
+.flyerFormats{
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+.createOrDivider{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.createOrDivider::before,
+.createOrDivider::after{
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Form fields ────────────────────────────────── */
+
+.formGroup{
+  margin-bottom: 20px;
+}
+
+.formLabel{
+  display: block;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.formLabelSmall{
+  display: block;
+  font-weight: 600;
+  font-size: 0.75rem;
+  margin-bottom: 4px;
+  color: var(--muted);
+}
+
+.formInput{
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+}
+
+.formInput:focus{
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primarySoft);
+}
+
+.formInput::placeholder{
+  color: #aaa;
+}
+
+.formTextarea{
+  resize: vertical;
+  min-height: 70px;
+  margin-top: 8px;
+}
+
+.formHelper{
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.slugPreview{
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  word-break: break-all;
+}
+
+.slugPreview strong{
+  color: var(--primary);
+}
+
+/* ── Event cards ────────────────────────────────── */
+
+.eventCard{
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.eventCard .formInput{
+  margin-bottom: 8px;
+}
+
+.eventCard .formInput:last-child{
+  margin-bottom: 0;
+}
+
+.eventCardHeader{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.eventCardNum{
+  font-weight: 800;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.eventCardRemove{
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.eventCardRemove:hover{
+  color: #b00020;
+  background: #fff0f0;
+}
+
+/* Date + time row */
+
+.eventTimeRow{
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.eventTimeField{
+  flex: 1;
+  min-width: 0;
+}
+
+.eventDateField{
+  flex: 1.5;
+}
+
+.eventTimeField .formInput{
+  margin-bottom: 0;
+}
+
+/* Details toggle */
+
+.eventDetailsToggle{
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 2px;
+}
+
+.eventDetailsToggle:hover{
+  text-decoration: underline;
+}
+
+/* Add event link */
+
+.addEventLink{
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+.addEventLink:hover{
+  text-decoration: underline;
+}
+
+/* Submit button */
+
+.createSubmit{
+  display: block;
+  width: 100%;
+  font-size: 1rem;
+  padding: 14px;
+}
+
+.createSubmit:disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================
+   Success page
+========================= */
+
+.successLinkBox{
+  text-align: center;
+  margin: 16px 0 20px;
+  padding: 16px;
+  background: #f0f7ff;
+  border-radius: 12px;
+  border: 1px solid #d0e4f7;
+}
+
+.successLink{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.successLink:hover{
+  text-decoration: underline;
+}
+
+.successManageLink{
+  display: inline-block;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.successManageLink:hover{
+  text-decoration: underline;
+}
+
+.successUpgrade{
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.successUpgrade a{
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.successUpgrade a:hover{
+  text-decoration: underline;
+}
+
+/* =========================
  Mobile (best-practice nav)
 ========================= */
 
@@ -870,5 +1186,18 @@ a:focus, .btn:focus, button:focus{
 
   .eventTitle{
     font-size: 0.9rem;
+  }
+}
+
+/* ── Mobile adjustments for create form ─────────── */
+
+@media (max-width: 480px) {
+  .eventTimeRow{
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .eventDateField{
+    flex: 1;
   }
 }
