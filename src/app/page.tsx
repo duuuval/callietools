@@ -40,9 +40,9 @@ export default function HomePage() {
                 Create your calendar &mdash; free
               </Link>
             </div>
-            <a className="heroAnchor" href="#school-calendars">
+            <Link className="heroAnchor" href="/schools">
               Looking for a school calendar? <span aria-hidden="true">↓</span>
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -58,8 +58,8 @@ export default function HomePage() {
                 <span className="stepNum">1</span>
                 <h3 className="stepTitle">Add your events</h3>
                 <p className="stepDesc">
-                  Enter them manually or upload an image or schedule
-                  and we&apos;ll pull the events out for you.
+                  Enter them manually or upload an image or
+                  schedule and we&apos;ll pull them out for you.
                 </p>
               </div>
 
@@ -76,8 +76,8 @@ export default function HomePage() {
                 <span className="stepNum">3</span>
                 <h3 className="stepTitle">They subscribe</h3>
                 <p className="stepDesc">
-                  One tap and your events are on their phone. You
-                  update, they see it automatically.
+                  One tap and your events are on their phone.
+                  You update, they see it automatically.
                 </p>
               </div>
             </div>
@@ -85,10 +85,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Who's it for? ────────────────────────────────── */}
+      {/* ── Who it's for ─────────────────────────────────── */}
       <section className="homeSection homeSectionWho">
         <div className="container">
-          <h2 className="homeSectionTitleCenter">Who&apos;s it for?</h2>
+          <h2 className="homeSectionTitleCenter">Who it&apos;s for</h2>
           <p className="recognitionLine">
             Teams, classes, scout troops, church groups, PTAs, community
             orgs&nbsp;&mdash; if you&apos;re the one everyone asks{" "}
@@ -154,34 +154,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── School Calendars (secondary) ─────────────────── */}
-      <section className="homeSection" id="school-calendars">
+      {/* ── School Calendars (teaser) ────────────────────── */}
+      <section className="homeSection">
         <div className="container">
-          <div className="card">
+          <div className="card schoolTeaser">
             <h2 className="homeSectionTitle">Looking for your school calendar?</h2>
-            <p className="schoolDesc">
-              Callie keeps school calendars synced to your phone&nbsp;&mdash;
-              subscribe once and every half-day, early release, and teacher
-              workday is already on your calendar.
+            <p className="schoolTeaserDesc">
+              Subscribe once and every half-day, early release, and teacher
+              workday is already on your calendar. Currently available for
+              Chesterfield County Public Schools.
             </p>
-
-            <div className="districtCard">
-              <h3 className="districtName">
-                Chesterfield County Public Schools (2025&ndash;2026)
-              </h3>
-              <p className="districtSub">
-                Traditional calendar for all CCPS schools. Includes holidays,
-                half-days, early releases, teacher workdays, and breaks.
-              </p>
-              <div className="row" style={{ gap: 12 }}>
-                <Link className="btn btnPrimary" href="/CCPS25-26">
-                  View &amp; subscribe
-                </Link>
-                <Link className="btn btnSecondary" href="/schools">
-                  Browse all schools
-                </Link>
-              </div>
-            </div>
+            <Link className="btn btnSecondary" href="/schools">
+              Browse school calendars &rarr;
+            </Link>
           </div>
         </div>
       </section>
