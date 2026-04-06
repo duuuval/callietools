@@ -27,8 +27,8 @@
   --shadow: 0 10px 22px rgba(17, 19, 24, .08);
 
   /* Mobile menu */
-  --menuW: 320px;            /* max width for dropdown */
-  --menuGap: 10px;           /* gap below header row */
+  --menuW: 320px;
+  --menuGap: 10px;
   --overlay: rgba(17,19,24,.08);
 }
 
@@ -58,7 +58,7 @@ a:focus, .btn:focus, button:focus{
 }
 
 /* =========================
-  Header / Brand
+   Header / Brand
 ========================= */
 
 .siteHeader{
@@ -107,7 +107,7 @@ a:focus, .btn:focus, button:focus{
 }
 
 /* =========================
-  Navigation (Desktop)
+   Navigation (Desktop)
 ========================= */
 
 .nav{
@@ -131,7 +131,7 @@ a:focus, .btn:focus, button:focus{
 }
 
 /* =========================
-  Hamburger Toggle
+   Hamburger Toggle
 ========================= */
 
 .navToggle{
@@ -170,7 +170,7 @@ a:focus, .btn:focus, button:focus{
 .navToggleBars::after{ top:6px; }
 
 /* =========================
-  Overlay (mobile menu state)
+   Overlay (mobile menu state)
 ========================= */
 
 .navOverlay{
@@ -181,7 +181,7 @@ a:focus, .btn:focus, button:focus{
 }
 
 /* =========================
-  Main / Card / Buttons
+   Main / Card / Buttons
 ========================= */
 
 .main{
@@ -297,7 +297,7 @@ a:focus, .btn:focus, button:focus{
 }
 
 /* =========================
-  Hero (Homepage)
+   Hero (Homepage)
 ========================= */
 
 .hero{
@@ -360,7 +360,7 @@ a:focus, .btn:focus, button:focus{
 }
 
 /* =========================
-  Schools section
+   Schools section (legacy — used on /schools page)
 ========================= */
 
 .schools{
@@ -373,7 +373,6 @@ a:focus, .btn:focus, button:focus{
   font-size: 1.4rem;
 }
 
-/* District callout card */
 .districtCard{
   margin: 0 0 24px;
   padding: 20px;
@@ -401,7 +400,6 @@ a:focus, .btn:focus, button:focus{
   text-decoration: underline;
 }
 
-/* Multi-column school list */
 .schoolList{
   column-count: 3;
   column-gap: 32px;
@@ -422,87 +420,7 @@ a:focus, .btn:focus, button:focus{
 }
 
 /* =========================
-  Support
-========================= */
-
-.support {
-  padding: 60px 0;
-}
-
-.supportIntro {
-  font-size: 18px;
-  margin-bottom: 18px;
-}
-
-.supportCard {
-  margin-top: 30px;
-  padding: 28px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: #faf9ff;
-  text-align: center;
-}
-
-.supportCard h2 {
-  margin-bottom: 10px;
-}
-
-.supportNote {
-  margin-top: 24px;
-  font-size: 14px;
-  opacity: 0.7;
-}
-
-.supportWrap{
-  display:flex;
-  gap: 24px;
-  align-items:flex-start;
-}
-
-.supportCopy{
-  flex: 1 1 520px;
-  min-width: 0;
-}
-
-.supportMascot{
-  flex: 0 0 260px;
-  display:flex;
-  justify-content:center;
-}
-
-.supportMascot img{
-  max-width: 200px;
-  margin-top: 10px;
-  width: 100%;
-  height: auto;
-}
-
-.fullWidthCard {
-  text-align: center;
-  margin-top: 6px;
-  padding: 24px;
-}
-
-.fullWidthCard h2 {
-  font-size: 22px;
-  font-weight: 700;
-  margin: 0 0 10px;
-}
-
-.fullWidthCard p {
-  margin: 0 0 18px;
-}
-
-.supportDivider {
-  margin: 16px 0;
-}
-
-.supportTight {
-  margin-bottom: 10px;
-}
-
-/* =========================
-  Footer
+   Footer
 ========================= */
 
 .siteFooter{
@@ -511,12 +429,19 @@ a:focus, .btn:focus, button:focus{
 }
 
 .footerInner{
-  display:flex;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 0;
+}
+
+.footerRow{
+  display: flex;
   justify-content: space-between;
-  align-items:flex-start;
-  gap: 18px;
-  padding: 18px 0;
+  align-items: center;
+  width: 100%;
   flex-wrap: wrap;
+  gap: 6px;
 }
 
 .footerBrand{
@@ -530,33 +455,25 @@ a:focus, .btn:focus, button:focus{
   margin-top: 6px;
 }
 
-.footerRight{
-  color: var(--muted);
-  font-size: 13px;
-  display:flex;
-  gap: 10px;
-  align-items:center;
-  flex-wrap: wrap;
-}
-
 .footerLink{ color: var(--muted); font-weight: 600; }
 .footerLink:hover{ color: var(--text); text-decoration:none; }
-.footerDot{ opacity: .5; }
 
-.tipsList{
-  margin: 10px 0 0 18px;
-  padding: 0;
-  font-size: 14px;
-  line-height: 1.45;
+.footerUpgrade{
+  font-size: 13px;
   color: var(--muted);
 }
 
-.tipsList li{
-  margin-bottom: 6px;
+.footerUpgrade a{
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.footerUpgrade a:hover{
+  text-decoration: underline;
 }
 
 /* =========================
-   Calendar Page — Upgraded
+   Calendar Page
 ========================= */
 
 .calPageTitle{
@@ -653,7 +570,6 @@ a:focus, .btn:focus, button:focus{
   opacity: 0.4;
 }
 
-/* When there's a time but no location, hide the dot */
 .eventTime:last-child::after{
   display: none;
 }
@@ -670,7 +586,7 @@ a:focus, .btn:focus, button:focus{
   margin-top: 8px;
 }
 
-/* ─── Accordion (Google steps, past events) ────── */
+/* ─── Accordion ─────────────────────────────────── */
 
 .accordionToggle{
   display: inline-flex;
@@ -771,7 +687,7 @@ a:focus, .btn:focus, button:focus{
 }
 
 /* =========================
-   Create form
+   Create Form
 ========================= */
 
 .createHeader{
@@ -793,8 +709,6 @@ a:focus, .btn:focus, button:focus{
   margin-left: auto;
   margin-right: auto;
 }
-
-/* ── Flyer upload shell ─────────────────────────── */
 
 .flyerUpload{
   margin: 4px 0;
@@ -845,8 +759,6 @@ a:focus, .btn:focus, button:focus{
   height: 1px;
   background: var(--border);
 }
-
-/* ── Form fields ────────────────────────────────── */
 
 .formGroup{
   margin-bottom: 20px;
@@ -964,8 +876,6 @@ a:focus, .btn:focus, button:focus{
   background: #fff0f0;
 }
 
-/* Date + time row */
-
 .eventTimeRow{
   display: flex;
   gap: 8px;
@@ -985,8 +895,6 @@ a:focus, .btn:focus, button:focus{
   margin-bottom: 0;
 }
 
-/* Details toggle */
-
 .eventDetailsToggle{
   background: none;
   border: none;
@@ -1002,8 +910,6 @@ a:focus, .btn:focus, button:focus{
   text-decoration: underline;
 }
 
-/* Add event link */
-
 .addEventLink{
   background: none;
   border: none;
@@ -1018,8 +924,6 @@ a:focus, .btn:focus, button:focus{
   text-decoration: underline;
 }
 
-/* Submit button */
-
 .createSubmit{
   display: block;
   width: 100%;
@@ -1033,7 +937,7 @@ a:focus, .btn:focus, button:focus{
 }
 
 /* =========================
-   Success page
+   Success Page
 ========================= */
 
 .successLinkBox{
@@ -1086,392 +990,11 @@ a:focus, .btn:focus, button:focus{
   text-decoration: underline;
 }
 
-/* =========================
- Mobile (best-practice nav)
-========================= */
-
-@media (max-width: 768px){
-  .main{ padding: 14px 0 28px; }
-
-  /* keep spacing off edges */
-  .container{ padding: 0 16px; }
-  .headerInner{ padding: 12px 16px; }
-
-  /* IMPORTANT: allow absolute nav to anchor to header */
-  .siteHeader{ position: relative; }
-
-  /* show hamburger */
-  .navToggle{ display:inline-flex; }
-
-  /* =========================
-     Mobile nav: full-width panel
-     ========================= */
-  .nav{
-    display:none;
-    position:absolute;
-    left: 0;
-    right: 0;
-    top: 100%;
-    width: 100%;
-    background: #fff;
-    border-top: 1px solid var(--border);
-    box-shadow: 0 14px 30px rgba(17,19,24,.12);
-    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    z-index: 60;
-    border-radius: 0;
-    text-align: center;
-  }
-
-  .nav.isOpen{ display:flex; }
-
-  .navLink{
-    width:100%;
-    padding: 16px 12px;
-    color: var(--text);
-    font-weight: 700;
-    border-radius: 12px;
-    display: block;
-  }
-
-  .navLink:hover{
-    background: rgba(17,19,24,.04);
-    text-decoration: none;
-  }
-
-  .navLink + .navLink{
-    border-top: 0;
-    margin-top: 6px;
-  }
-
-  /* hamburger -> X */
-  .navToggle.isOpen .navToggleBars{ background:transparent; }
-  .navToggle.isOpen .navToggleBars::before{ top:0; transform:rotate(45deg); }
-  .navToggle.isOpen .navToggleBars::after{ top:0; transform:rotate(-45deg); }
-
-  /* hero stack */
-  .hero{ padding: 18px 0 10px; }
-  .heroInner{
-    grid-template-columns: 1fr;
-    gap: 16px;
-    align-items: start;
-  }
-
-  .heroImage img{
-    max-width: 240px;
-    margin: 6px auto 8px;
-    display:block;
-  }
-
-  .heroCopy{ text-align:left; }
-
-  /* Calendar page mobile */
-  .calPageTitle{
-    font-size: 1.4rem;
-  }
-
-  .eventRow{
-    flex-direction: column;
-    gap: 2px;
-    padding: 10px 0;
-  }
-
-  .eventDate{
-    min-width: auto;
-    font-size: 0.8rem;
-    color: var(--muted);
-  }
-
-  .eventTitle{
-    font-size: 0.9rem;
-  }
-}
-
-/* ── Mobile adjustments for create form ─────────── */
-
-@media (max-width: 480px) {
-  .eventTimeRow{
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .eventDateField{
-    flex: 1;
-  }
-}
-
 /* ==========================================================
-   Homepage Redesign — additions
+   Homepage Redesign
    ========================================================== */
 
-/* ── Hero (redesign overrides) ──────────────────── */
-
-.heroInnerRedesign{
-  grid-template-columns: 1fr;
-  max-width: 680px;
-  text-align: center;
-  gap: 0;
-}
-
-.heroInnerRedesign .heroCopy{
-  text-align: center;
-}
-
-.heroInnerRedesign .heroSub{
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 540px;
-}
-
-.heroCtas{
-  margin-top: 28px;
-}
-
-.heroBtn{
-  font-size: 1.05rem;
-  padding: 16px 32px;
-}
-
-.heroAnchor{
-  display: inline-block;
-  margin-top: 16px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-decoration: none;
-}
-
-.heroAnchor:hover{
-  color: var(--primary);
-  text-decoration: underline;
-}
-
-/* ── Generic home sections ──────────────────────── */
-
-.homeSection{
-  padding: 0 0 28px;
-}
-
-.homeSectionNarrow{
-  padding: 8px 0 20px;
-}
-
-.homeSectionTitle{
-  font-family: var(--fontDisplay);
-  font-weight: 800;
-  font-size: 1.3rem;
-  margin: 0 0 20px;
-  letter-spacing: -0.3px;
-}
-
-/* ── How It Works (steps) ───────────────────────── */
-
-.stepsRow{
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-.stepCard{
-  text-align: center;
-  padding: 8px 4px;
-}
-
-.stepNum{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--primarySoft);
-  color: var(--primary);
-  font-family: var(--fontDisplay);
-  font-weight: 800;
-  font-size: 0.95rem;
-  margin-bottom: 10px;
-}
-
-.stepTitle{
-  font-family: var(--fontDisplay);
-  font-weight: 700;
-  font-size: 1rem;
-  margin: 0 0 6px;
-}
-
-.stepDesc{
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin: 0;
-}
-
-/* ── Recognition line ───────────────────────────── */
-
-.recognitionLine{
-  text-align: center;
-  font-size: 1.05rem;
-  line-height: 1.6;
-  color: var(--muted);
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.recognitionLine em{
-  font-style: italic;
-  color: var(--text);
-}
-
-/* ── Comparison table ───────────────────────────── */
-
-.compareTable{
-  width: 100%;
-}
-
-.compareHeader{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  margin-bottom: 4px;
-}
-
-.compareColLabel{
-  font-family: var(--fontDisplay);
-  font-weight: 700;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-  padding: 8px 14px;
-}
-
-.compareColRight{
-  background: var(--primarySoft);
-  border-radius: 8px 8px 0 0;
-  color: var(--primary);
-}
-
-.compareRow{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  border-top: 1px solid var(--border);
-}
-
-.compareCell{
-  padding: 12px 14px;
-  font-size: 0.92rem;
-  line-height: 1.45;
-  color: var(--muted);
-}
-
-.compareCellRight{
-  background: rgba(79, 107, 237, 0.06);
-  color: var(--text);
-}
-
-.compareRowFinal .compareCell{
-  color: var(--text);
-  font-size: 0.95rem;
-}
-
-.compareRowFinal .compareCellRight{
-  background: var(--primarySoft);
-  color: var(--primary);
-  border-radius: 0 0 8px 0;
-}
-
-.compareRowFinal .compareCell:first-child{
-  color: var(--muted);
-}
-
-/* ── Mid-page CTA ───────────────────────────────── */
-
-.homeSectionCta{
-  padding: 16px 0 36px;
-}
-
-.midCtaLine{
-  font-family: var(--fontDisplay);
-  font-weight: 700;
-  font-size: 1.2rem;
-  margin: 0 0 18px;
-  color: var(--text);
-}
-
-/* ── School calendars (secondary section) ───────── */
-
-.schoolDesc{
-  color: var(--muted);
-  line-height: 1.6;
-  margin: 0 0 20px;
-  font-size: 0.95rem;
-}
-
-/* ── Mobile overrides for homepage redesign ─────── */
-
-@media (max-width: 768px){
-  .heroInnerRedesign{
-    padding: 0 16px;
-  }
-
-  .stepsRow{
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .stepCard{
-    text-align: left;
-    display: grid;
-    grid-template-columns: 36px 1fr;
-    grid-template-rows: auto auto;
-    gap: 0 12px;
-    align-items: start;
-    padding: 0;
-  }
-
-  .stepNum{
-    grid-row: 1 / 3;
-    margin-bottom: 0;
-    margin-top: 2px;
-  }
-
-  .stepTitle{
-    margin: 0;
-  }
-
-  .stepDesc{
-    grid-column: 2;
-  }
-
-  .compareColLabel{
-    font-size: 0.75rem;
-    padding: 8px 10px;
-  }
-
-  .compareCell{
-    font-size: 0.82rem;
-    padding: 10px;
-  }
-
-  .heroBtn{
-    width: 100%;
-    text-align: center;
-  }
-
-  .midCtaLine{
-    font-size: 1.1rem;
-  }
-}
-
-/* ==========================================================
-   Homepage Redesign — additions
-   ========================================================== */
-
-/* ── Hero (redesign overrides) ──────────────────── */
+/* ── Hero overrides ─────────────────────────────── */
 
 .heroInnerRedesign{
   grid-template-columns: 1fr;
@@ -1504,24 +1027,10 @@ a:focus, .btn:focus, button:focus{
   padding: 16px 32px;
 }
 
-.heroAnchor{
-  display: inline-block;
-  margin-top: 16px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-decoration: none;
-}
-
-.heroAnchor:hover{
-  color: var(--primary);
-  text-decoration: underline;
-}
-
-/* ── Generic home sections ──────────────────────── */
+/* ── Home sections ──────────────────────────────── */
 
 .homeSection{
-  padding: 0 0 28px;
+  padding: 32px 0 64px;
 }
 
 .homeSectionTitle{
@@ -1542,7 +1051,7 @@ a:focus, .btn:focus, button:focus{
   color: var(--text);
 }
 
-/* ── How It Works (steps) ───────────────────────── */
+/* ── How It Works ───────────────────────────────── */
 
 .stepsRow{
   display: grid;
@@ -1584,321 +1093,10 @@ a:focus, .btn:focus, button:focus{
   margin: 0;
 }
 
-/* ── Who's it for? ──────────────────────────────── */
+/* ── Who it's for ───────────────────────────────── */
 
 .homeSectionWho{
-  padding: 12px 0 32px;
-}
-
-.recognitionLine{
-  text-align: center;
-  font-size: 1.05rem;
-  line-height: 1.7;
-  color: var(--muted);
-  max-width: 560px;
-  margin: 0 auto;
-}
-
-.recognitionLine em{
-  font-style: italic;
-  color: var(--text);
-}
-
-/* ── Comparison table ───────────────────────────── */
-
-.compareTable{
-  width: 100%;
-}
-
-.compareHeader{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  margin-bottom: 4px;
-}
-
-.compareColLabel{
-  font-family: var(--fontDisplay);
-  font-weight: 700;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-  padding: 8px 14px;
-}
-
-.compareColRight{
-  background: var(--primarySoft);
-  border-radius: 8px 8px 0 0;
-  color: var(--primary);
-}
-
-.compareRow{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  border-top: 1px solid var(--border);
-}
-
-.compareCell{
-  padding: 12px 14px;
-  font-size: 0.92rem;
-  line-height: 1.45;
-  color: var(--muted);
-}
-
-.compareCellRight{
-  background: rgba(79, 107, 237, 0.06);
-  color: var(--text);
-}
-
-.compareRowFinal .compareCell{
-  color: var(--text);
-  font-size: 0.95rem;
-}
-
-.compareRowFinal .compareCellRight{
-  background: var(--primarySoft);
-  color: var(--primary);
-  border-radius: 0 0 8px 0;
-}
-
-.compareRowFinal .compareCell:first-child{
-  color: var(--muted);
-}
-
-/* ── Mid-page CTA ───────────────────────────────── */
-
-.homeSectionCta{
-  padding: 16px 0 36px;
-}
-
-.midCtaLine{
-  font-family: var(--fontDisplay);
-  font-weight: 700;
-  font-size: 1.2rem;
-  margin: 0 0 18px;
-  color: var(--text);
-}
-
-/* ── School calendars (secondary section) ───────── */
-
-.schoolDesc{
-  color: var(--muted);
-  line-height: 1.6;
-  margin: 0 0 20px;
-  font-size: 0.95rem;
-}
-
-/* ── Footer — restructured layout ───────────────── */
-
-.footerUpgrade{
-  font-weight: 400;
-}
-
-.footerUpgrade a{
-  color: var(--primary);
-  font-weight: 600;
-}
-
-.footerUpgrade a:hover{
-  text-decoration: underline;
-}
-
-/* ── Mobile overrides for homepage redesign ─────── */
-
-@media (max-width: 768px){
-  .heroInnerRedesign{
-    padding: 0 16px;
-  }
-
-  .stepsRow{
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .stepCard{
-    text-align: left;
-    display: grid;
-    grid-template-columns: 36px 1fr;
-    grid-template-rows: auto auto;
-    gap: 0 12px;
-    align-items: start;
-    padding: 0;
-  }
-
-  .stepNum{
-    grid-row: 1 / 3;
-    margin-bottom: 0;
-    margin-top: 2px;
-  }
-
-  .stepTitle{
-    margin: 0;
-  }
-
-  .stepDesc{
-    grid-column: 2;
-  }
-
-  .compareColLabel{
-    font-size: 0.75rem;
-    padding: 8px 10px;
-  }
-
-  .compareCell{
-    font-size: 0.82rem;
-    padding: 10px;
-  }
-
-  .heroBtn{
-    width: 100%;
-    text-align: center;
-  }
-
-  .midCtaLine{
-    font-size: 1.1rem;
-  }
-
-  /* Footer stacks on mobile */
-  .footerInner{
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .footerRight{
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-
-  .footerDot{
-    display: none;
-  }
-}
-
-/* ==========================================================
-   Homepage Redesign — additions
-   ========================================================== */
-
-/* ── Hero (redesign overrides) ──────────────────── */
-
-.heroInnerRedesign{
-  grid-template-columns: 1fr;
-  max-width: 680px;
-  text-align: center;
-  gap: 0;
-}
-
-.heroInnerRedesign .heroCopy{
-  text-align: center;
-}
-
-.heroInnerRedesign .heroSub{
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 540px;
-}
-
-.heroHighlight{
-  color: var(--guide);
-}
-
-.heroCtas{
-  margin-top: 28px;
-}
-
-.heroBtn{
-  font-size: 1.05rem;
-  padding: 16px 32px;
-}
-
-.heroAnchor{
-  display: inline-block;
-  margin-top: 16px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-decoration: none;
-}
-
-.heroAnchor:hover{
-  color: var(--primary);
-  text-decoration: underline;
-}
-
-/* ── Generic home sections ──────────────────────── */
-
-.homeSection{
-  padding: 0 0 28px;
-}
-
-.homeSectionTitle{
-  font-family: var(--fontDisplay);
-  font-weight: 800;
-  font-size: 1.3rem;
-  margin: 0 0 20px;
-  letter-spacing: -0.3px;
-}
-
-.homeSectionTitleCenter{
-  font-family: var(--fontDisplay);
-  font-weight: 800;
-  font-size: 1.2rem;
-  margin: 0 0 12px;
-  letter-spacing: -0.3px;
-  text-align: center;
-  color: var(--text);
-}
-
-/* ── How It Works (steps) ───────────────────────── */
-
-.stepsRow{
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-.stepCard{
-  text-align: center;
-  padding: 8px 4px;
-}
-
-.stepNum{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--primarySoft);
-  color: var(--primary);
-  font-family: var(--fontDisplay);
-  font-weight: 800;
-  font-size: 0.95rem;
-  margin-bottom: 10px;
-}
-
-.stepTitle{
-  font-family: var(--fontDisplay);
-  font-weight: 700;
-  font-size: 1rem;
-  margin: 0 0 6px;
-}
-
-.stepDesc{
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin: 0;
-}
-
-/* ── "Who it's for" section ─────────────────────── */
-
-.homeSectionWho{
-  padding: 20px 0 36px;
+  padding: 40px 0 72px;
 }
 
 .recognitionLine{
@@ -1981,7 +1179,7 @@ a:focus, .btn:focus, button:focus{
 /* ── Mid-page CTA ───────────────────────────────── */
 
 .homeSectionCta{
-  padding: 16px 0 36px;
+  padding: 24px 0 72px;
 }
 
 .midCtaLine{
@@ -2034,527 +1232,6 @@ a:focus, .btn:focus, button:focus{
 }
 
 .schoolListToggle:hover{
-  text-decoration: underline;
-}
-
-/* ── Footer override ────────────────────────────── */
-
-.footerInner{
-  flex-direction: column;
-  gap: 10px;
-  padding: 20px 0;
-}
-
-.footerRow{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.footerUpgrade{
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.footerUpgrade a{
-  color: var(--primary);
-  font-weight: 600;
-}
-
-.footerUpgrade a:hover{
-  text-decoration: underline;
-}
-
-/* ── Upgrade page ───────────────────────────────── */
-
-.upgradeHero{
-  text-align: center;
-  margin-bottom: 28px;
-}
-
-.upgradeHero h1{
-  font-family: var(--fontDisplay);
-  font-weight: 900;
-  font-size: 1.6rem;
-  letter-spacing: -0.5px;
-  margin: 0 0 10px;
-}
-
-.upgradeHero p{
-  color: var(--muted);
-  font-size: 1rem;
-  margin: 0;
-  max-width: 480px;
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 1.5;
-}
-
-.upgradeGrid{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 28px;
-}
-
-.upgradeCard{
-  padding: 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radiusMd);
-  background: #fafafa;
-}
-
-.upgradeCardIcon{
-  font-size: 1.5rem;
-  margin-bottom: 10px;
-  display: block;
-}
-
-.upgradeCard h3{
-  font-family: var(--fontDisplay);
-  font-weight: 700;
-  font-size: 0.95rem;
-  margin: 0 0 6px;
-}
-
-.upgradeCard p{
-  color: var(--muted);
-  font-size: 0.85rem;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.upgradePrice{
-  text-align: center;
-  padding: 24px;
-  background: var(--primarySoft);
-  border-radius: var(--radiusMd);
-  margin-bottom: 24px;
-}
-
-.upgradePriceAmount{
-  font-family: var(--fontDisplay);
-  font-weight: 900;
-  font-size: 2rem;
-  color: var(--primary);
-  margin: 0;
-}
-
-.upgradePriceNote{
-  color: var(--muted);
-  font-size: 0.85rem;
-  margin: 4px 0 0;
-}
-
-.upgradeHow{
-  text-align: center;
-  margin-bottom: 28px;
-}
-
-.upgradeHow h2{
-  font-family: var(--fontDisplay);
-  font-weight: 800;
-  font-size: 1.1rem;
-  margin: 0 0 14px;
-}
-
-.upgradeHow ol{
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.92rem;
-  line-height: 2.2;
-}
-
-.upgradeHow li{
-  counter-increment: step;
-}
-
-.upgradeHow li::before{
-  content: counter(step) ". ";
-  font-weight: 700;
-  color: var(--primary);
-}
-
-.upgradeCtas{
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.upgradeSecondary{
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.upgradeSecondary a{
-  color: var(--primary);
-  font-weight: 600;
-}
-
-.upgradeSecondary a:hover{
-  text-decoration: underline;
-}
-
-/* ── Mobile overrides for homepage redesign ─────── */
-
-@media (max-width: 768px){
-  .heroInnerRedesign{
-    padding: 0 16px;
-  }
-
-  .stepsRow{
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .stepCard{
-    text-align: left;
-    display: grid;
-    grid-template-columns: 36px 1fr;
-    grid-template-rows: auto auto;
-    gap: 0 12px;
-    align-items: start;
-    padding: 0;
-  }
-
-  .stepNum{
-    grid-row: 1 / 3;
-    margin-bottom: 0;
-    margin-top: 2px;
-  }
-
-  .stepTitle{
-    margin: 0;
-  }
-
-  .stepDesc{
-    grid-column: 2;
-  }
-
-  .compareColLabel{
-    font-size: 0.75rem;
-    padding: 8px 10px;
-  }
-
-  .compareCell{
-    font-size: 0.82rem;
-    padding: 10px;
-  }
-
-  .heroBtn{
-    width: 100%;
-    text-align: center;
-  }
-
-  .midCtaLine{
-    font-size: 1.1rem;
-  }
-
-  .upgradeGrid{
-    grid-template-columns: 1fr;
-  }
-
-  .footerRow{
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-}
-
-/* ==========================================================
-   Homepage Redesign — additions
-   ========================================================== */
-
-/* ── Hero (redesign overrides) ──────────────────── */
-
-.heroInnerRedesign{
-  grid-template-columns: 1fr;
-  max-width: 680px;
-  text-align: center;
-  gap: 0;
-}
-
-.heroInnerRedesign .heroCopy{
-  text-align: center;
-}
-
-.heroInnerRedesign .heroSub{
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 540px;
-}
-
-.heroHighlight{
-  color: var(--guide);
-}
-
-.heroCtas{
-  margin-top: 28px;
-}
-
-.heroBtn{
-  font-size: 1.05rem;
-  padding: 16px 32px;
-}
-
-.heroAnchor{
-  display: inline-block;
-  margin-top: 16px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-decoration: none;
-}
-
-.heroAnchor:hover{
-  color: var(--primary);
-  text-decoration: underline;
-}
-
-/* ── Generic home sections ──────────────────────── */
-
-.homeSection{
-  padding: 20px 0 48px;
-}
-
-.homeSectionTitle{
-  font-family: var(--fontDisplay);
-  font-weight: 800;
-  font-size: 1.3rem;
-  margin: 0 0 20px;
-  letter-spacing: -0.3px;
-}
-
-.homeSectionTitleCenter{
-  font-family: var(--fontDisplay);
-  font-weight: 800;
-  font-size: 1.2rem;
-  margin: 0 0 12px;
-  letter-spacing: -0.3px;
-  text-align: center;
-  color: var(--text);
-}
-
-/* ── How It Works (steps) ───────────────────────── */
-
-.stepsRow{
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-.stepCard{
-  text-align: center;
-  padding: 8px 4px;
-}
-
-.stepNum{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--primarySoft);
-  color: var(--primary);
-  font-family: var(--fontDisplay);
-  font-weight: 800;
-  font-size: 0.95rem;
-  margin-bottom: 10px;
-}
-
-.stepTitle{
-  font-family: var(--fontDisplay);
-  font-weight: 700;
-  font-size: 1rem;
-  margin: 0 0 6px;
-}
-
-.stepDesc{
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin: 0;
-}
-
-/* ── "Who it's for" section ─────────────────────── */
-
-.homeSectionWho{
-  padding: 28px 0 52px;
-}
-
-.recognitionLine{
-  text-align: center;
-  font-size: 1.05rem;
-  line-height: 1.6;
-  color: var(--muted);
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.recognitionLine em{
-  font-style: italic;
-  color: var(--text);
-}
-
-/* ── Comparison table ───────────────────────────── */
-
-.compareTable{
-  width: 100%;
-}
-
-.compareHeader{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  margin-bottom: 4px;
-}
-
-.compareColLabel{
-  font-family: var(--fontDisplay);
-  font-weight: 700;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-  padding: 8px 14px;
-}
-
-.compareColRight{
-  background: var(--primarySoft);
-  border-radius: 8px 8px 0 0;
-  color: var(--primary);
-}
-
-.compareRow{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  border-top: 1px solid var(--border);
-}
-
-.compareCell{
-  padding: 12px 14px;
-  font-size: 0.92rem;
-  line-height: 1.45;
-  color: var(--muted);
-}
-
-.compareCellRight{
-  background: rgba(79, 107, 237, 0.06);
-  color: var(--text);
-}
-
-.compareRowFinal .compareCell{
-  color: var(--text);
-  font-size: 0.95rem;
-}
-
-.compareRowFinal .compareCellRight{
-  background: var(--primarySoft);
-  color: var(--primary);
-  border-radius: 0 0 8px 0;
-}
-
-.compareRowFinal .compareCell:first-child{
-  color: var(--muted);
-}
-
-/* ── Mid-page CTA ───────────────────────────────── */
-
-.homeSectionCta{
-  padding: 16px 0 52px;
-}
-
-.midCtaLine{
-  font-family: var(--fontDisplay);
-  font-weight: 700;
-  font-size: 1.2rem;
-  margin: 0 0 18px;
-  color: var(--text);
-}
-
-/* ── School calendars teaser (homepage) ─────────── */
-
-.schoolTeaser{
-  text-align: center;
-}
-
-.schoolTeaserDesc{
-  color: var(--muted);
-  line-height: 1.6;
-  margin: 0 0 20px;
-  font-size: 0.95rem;
-  max-width: 520px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.schoolTeaser .homeSectionTitle{
-  text-align: center;
-}
-
-/* ── Schools page ───────────────────────────────── */
-
-.schoolsIntro{
-  color: var(--muted);
-  line-height: 1.6;
-  margin: 0 0 24px;
-  font-size: 0.95rem;
-}
-
-.schoolListToggle{
-  background: none;
-  border: none;
-  color: var(--primary);
-  font-weight: 700;
-  font-size: 0.9rem;
-  cursor: pointer;
-  padding: 0;
-  margin-top: 16px;
-  display: block;
-}
-
-.schoolListToggle:hover{
-  text-decoration: underline;
-}
-
-/* ── Footer override ────────────────────────────── */
-
-.footerInner{
-  flex-direction: column;
-  gap: 10px;
-  padding: 20px 0;
-}
-
-.footerRow{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.footerUpgrade{
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.footerUpgrade a{
-  color: var(--primary);
-  font-weight: 600;
-}
-
-.footerUpgrade a:hover{
   text-decoration: underline;
 }
 
@@ -2675,30 +1352,88 @@ a:focus, .btn:focus, button:focus{
   text-decoration: underline;
 }
 
-/* ── Mobile overrides for homepage redesign ─────── */
+/* ==========================================================
+   Mobile
+   ========================================================== */
 
 @media (max-width: 768px){
-  .heroInnerRedesign{
-    padding: 0 16px;
+  .main{ padding: 14px 0 28px; }
+  .container{ padding: 0 16px; }
+  .headerInner{ padding: 12px 16px; }
+
+  .siteHeader{ position: relative; }
+  .navToggle{ display:inline-flex; }
+
+  .nav{
+    display:none;
+    position:absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    width: 100%;
+    background: #fff;
+    border-top: 1px solid var(--border);
+    box-shadow: 0 14px 30px rgba(17,19,24,.12);
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    z-index: 60;
+    border-radius: 0;
+    text-align: center;
   }
 
-  .homeSection{
-    padding: 12px 0 36px;
+  .nav.isOpen{ display:flex; }
+
+  .navLink{
+    width:100%;
+    padding: 16px 12px;
+    color: var(--text);
+    font-weight: 700;
+    border-radius: 12px;
+    display: block;
   }
 
-  .homeSectionWho{
-    padding: 16px 0 40px;
+  .navLink:hover{
+    background: rgba(17,19,24,.04);
+    text-decoration: none;
   }
 
-  .homeSectionCta{
-    padding: 8px 0 40px;
+  .navLink + .navLink{
+    border-top: 0;
+    margin-top: 6px;
   }
 
-  .stepsRow{
+  .navToggle.isOpen .navToggleBars{ background:transparent; }
+  .navToggle.isOpen .navToggleBars::before{ top:0; transform:rotate(45deg); }
+  .navToggle.isOpen .navToggleBars::after{ top:0; transform:rotate(-45deg); }
+
+  /* Hero */
+  .hero{ padding: 18px 0 10px; }
+  .heroInner{
     grid-template-columns: 1fr;
     gap: 16px;
+    align-items: start;
+  }
+  .heroInnerRedesign{ padding: 0 16px; }
+  .heroImage img{
+    max-width: 240px;
+    margin: 6px auto 8px;
+    display:block;
+  }
+  .heroCopy{ text-align:left; }
+  .heroBtn{
+    width: 100%;
+    text-align: center;
   }
 
+  /* Home sections */
+  .homeSection{ padding: 20px 0 44px; }
+  .homeSectionWho{ padding: 24px 0 52px; }
+  .homeSectionCta{ padding: 12px 0 48px; }
+
+  /* Steps */
+  .stepsRow{ grid-template-columns: 1fr; gap: 16px; }
   .stepCard{
     text-align: left;
     display: grid;
@@ -2708,47 +1443,39 @@ a:focus, .btn:focus, button:focus{
     align-items: start;
     padding: 0;
   }
+  .stepNum{ grid-row: 1 / 3; margin-bottom: 0; margin-top: 2px; }
+  .stepTitle{ margin: 0; }
+  .stepDesc{ grid-column: 2; }
 
-  .stepNum{
-    grid-row: 1 / 3;
-    margin-bottom: 0;
-    margin-top: 2px;
-  }
+  /* Comparison table */
+  .compareColLabel{ font-size: 0.75rem; padding: 8px 10px; }
+  .compareCell{ font-size: 0.82rem; padding: 10px; }
 
-  .stepTitle{
-    margin: 0;
-  }
+  .midCtaLine{ font-size: 1.1rem; }
 
-  .stepDesc{
-    grid-column: 2;
-  }
+  /* Calendar page */
+  .calPageTitle{ font-size: 1.4rem; }
+  .eventRow{ flex-direction: column; gap: 2px; padding: 10px 0; }
+  .eventDate{ min-width: auto; font-size: 0.8rem; color: var(--muted); }
+  .eventTitle{ font-size: 0.9rem; }
 
-  .compareColLabel{
-    font-size: 0.75rem;
-    padding: 8px 10px;
-  }
+  /* Upgrade */
+  .upgradeGrid{ grid-template-columns: 1fr; }
 
-  .compareCell{
-    font-size: 0.82rem;
-    padding: 10px;
-  }
-
-  .heroBtn{
-    width: 100%;
-    text-align: center;
-  }
-
-  .midCtaLine{
-    font-size: 1.1rem;
-  }
-
-  .upgradeGrid{
-    grid-template-columns: 1fr;
-  }
-
+  /* Footer */
   .footerRow{
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .eventTimeRow{
+    flex-direction: column;
+    gap: 8px;
+  }
+  .eventDateField{
+    flex: 1;
   }
 }
