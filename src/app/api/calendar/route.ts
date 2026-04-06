@@ -112,8 +112,19 @@ export async function POST(req: NextRequest) {
       email,
     });
 
-    // Write events
-    await appendEvents(slug, events);
+    // Write events — map to concrete strings for type safety
+    await appendEvents(
+      slug,
+      events.map((e) => ({
+        title: e.title,
+        start_date: e.start_date,
+        start_time: e.start_time || "",
+        end_date: e.end_date || e.start_date,
+        end_time: e.end_time || "",
+        location: e.location || "",
+        description: e.description || "",
+      }))
+    );
 
     // TODO: Send manage link email via Resend
     // When you're ready to wire this up:
