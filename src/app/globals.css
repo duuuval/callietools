@@ -71,7 +71,7 @@ a:focus, .btn:focus, button:focus{
 }
 
 .headerInner{
-  position: relative; /* allows mobile dropdown to anchor to this row */
+  position: relative;
   display:flex;
   align-items:center;
   justify-content: space-between;
@@ -135,7 +135,7 @@ a:focus, .btn:focus, button:focus{
 ========================= */
 
 .navToggle{
-  display:none; /* only shows on mobile */
+  display:none;
   width:44px;
   height:44px;
   border-radius:12px;
@@ -177,7 +177,7 @@ a:focus, .btn:focus, button:focus{
   position: fixed;
   inset: 0;
   background: var(--overlay);
-  z-index: 40; /* below header (50), above page */
+  z-index: 40;
 }
 
 /* =========================
@@ -316,7 +316,7 @@ a:focus, .btn:focus, button:focus{
 
 .heroImage img{
   width: 100%;
-  max-width: 440px; /* desktop size */
+  max-width: 440px;
   height: auto;
 }
 
@@ -421,7 +421,6 @@ a:focus, .btn:focus, button:focus{
   .schoolList{ column-count: 2; }
 }
 
-
 /* =========================
   Support
 ========================= */
@@ -440,7 +439,7 @@ a:focus, .btn:focus, button:focus{
   padding: 28px;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background: #faf9ff; /* subtle purple tint */
+  background: #faf9ff;
   text-align: center;
 }
 
@@ -481,27 +480,26 @@ a:focus, .btn:focus, button:focus{
 .fullWidthCard {
   text-align: center;
   margin-top: 6px;
-  padding: 24px;  
+  padding: 24px;
 }
 
 .fullWidthCard h2 {
   font-size: 22px;
   font-weight: 700;
-  margin: 0 0 10px;  
+  margin: 0 0 10px;
 }
 
 .fullWidthCard p {
-  margin: 0 0 18px;  
+  margin: 0 0 18px;
 }
 
 .supportDivider {
-  margin: 16px 0;  
+  margin: 16px 0;
 }
 
 .supportTight {
-  margin-bottom: 10px;  
+  margin-bottom: 10px;
 }
-
 
 /* =========================
   Footer
@@ -550,16 +548,227 @@ a:focus, .btn:focus, button:focus{
   padding: 0;
   font-size: 14px;
   line-height: 1.45;
-  color: var(--muted);   
+  color: var(--muted);
 }
 
 .tipsList li{
-  margin-bottom: 6px;  
+  margin-bottom: 6px;
 }
 
+/* =========================
+   Calendar Page — Upgraded
+========================= */
 
+.calPageTitle{
+  font-family: var(--fontDisplay);
+  font-weight: 900;
+  font-size: 1.75rem;
+  letter-spacing: -0.5px;
+  margin: 0;
+  line-height: 1.15;
+}
 
+.calPageSubtitle{
+  margin: 6px 0 0;
+  color: var(--guide);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
 
+.calSubscribeIntro{
+  font-weight: 700;
+  margin: 0 0 16px;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+/* ─── Events list ───────────────────────────────── */
+
+.eventsSection{
+  margin: 4px 0;
+}
+
+.eventsMonth{
+  margin-bottom: 20px;
+}
+
+.eventsMonth:last-child{
+  margin-bottom: 4px;
+}
+
+.eventsMonthHeader{
+  font-family: var(--fontDisplay);
+  font-weight: 800;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.eventRow{
+  display: flex;
+  gap: 14px;
+  padding: 10px 0;
+  align-items: baseline;
+}
+
+.eventRow + .eventRow{
+  border-top: 1px solid rgba(0,0,0,0.04);
+}
+
+.eventDate{
+  flex: 0 0 auto;
+  min-width: 120px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.eventDetails{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.eventTitle{
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.eventTime,
+.eventLocation{
+  display: inline-block;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.eventTime::after{
+  content: "·";
+  margin: 0 6px;
+  opacity: 0.4;
+}
+
+/* When there's a time but no location, hide the dot */
+.eventTime:last-child::after{
+  display: none;
+}
+
+.eventsEmpty{
+  text-align: center;
+  padding: 24px 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.eventsPast{
+  opacity: 0.6;
+  margin-top: 8px;
+}
+
+/* ─── Accordion (Google steps, past events) ────── */
+
+.accordionToggle{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.accordionToggle:hover{
+  text-decoration: underline;
+}
+
+.accordionToggle:focus{
+  outline: none;
+  box-shadow: 0 0 0 4px var(--primarySoft);
+  border-radius: 6px;
+}
+
+.accordionArrow{
+  font-size: 0.65rem;
+}
+
+.accordionContent{
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.googleSteps{
+  margin: 8px 0 0 18px;
+  padding: 0;
+}
+
+.googleSteps li{
+  margin-bottom: 12px;
+}
+
+.googleSteps li:last-child{
+  margin-bottom: 0;
+}
+
+/* ─── Share section ─────────────────────────────── */
+
+.shareSection{
+  text-align: center;
+  padding: 4px 0;
+}
+
+.shareBtn{
+  min-width: 200px;
+}
+
+/* ─── Calendar page footer CTAs ─────────────────── */
+
+.calFooter{
+  text-align: center;
+  padding: 28px 0 12px;
+}
+
+.calFooterBrand{
+  font-family: var(--fontDisplay);
+  font-weight: 800;
+  color: var(--guide);
+  font-size: 0.9rem;
+  margin: 0 0 12px;
+}
+
+.calFooterCta{
+  font-size: 0.9rem;
+  margin: 0 0 8px;
+  color: var(--muted);
+}
+
+.calFooterCta a{
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.calFooterUpgrade{
+  font-size: 0.85rem;
+}
+
+.calFooterEmail{
+  margin: 14px 0 0;
+  font-size: 0.8rem;
+}
+
+.calFooterEmail a{
+  color: var(--muted);
+  font-weight: 600;
+}
 
 /* =========================
  Mobile (best-practice nav)
@@ -582,11 +791,11 @@ a:focus, .btn:focus, button:focus{
      Mobile nav: full-width panel
      ========================= */
   .nav{
-    display:none;                 /* hidden until open */
+    display:none;
     position:absolute;
     left: 0;
     right: 0;
-    top: 100%;                    /* attaches directly under header */
+    top: 100%;
     width: 100%;
     background: #fff;
     border-top: 1px solid var(--border);
@@ -595,8 +804,8 @@ a:focus, .btn:focus, button:focus{
     flex-direction: column;
     align-items: stretch;
     gap: 0;
-    z-index: 60;                  /* above header */
-    border-radius: 0;             /* kills “popover card” feel */
+    z-index: 60;
+    border-radius: 0;
     text-align: center;
   }
 
@@ -616,7 +825,6 @@ a:focus, .btn:focus, button:focus{
     text-decoration: none;
   }
 
-  /* remove the “list divider” look */
   .navLink + .navLink{
     border-top: 0;
     margin-top: 6px;
@@ -642,131 +850,25 @@ a:focus, .btn:focus, button:focus{
   }
 
   .heroCopy{ text-align:left; }
-  .heroCopy h1{
-    font-size: 34px;
-    letter-spacing: -0.8px;
+
+  /* Calendar page mobile */
+  .calPageTitle{
+    font-size: 1.4rem;
   }
 
-  .heroSub{
-    font-size: 15px;
-    line-height: 1.45;
-    max-width: 36ch;
-  }
-
-  .hero .row{
+  .eventRow{
     flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
+    gap: 2px;
+    padding: 10px 0;
   }
 
-  .btn{
-    width:100%;
-    justify-content:center;
-    padding: 12px 14px;
+  .eventDate{
+    min-width: auto;
+    font-size: 0.8rem;
+    color: var(--muted);
   }
 
-  .schools{ padding: 28px 16px; }
-  .schoolList{ column-count: 1; }
-
-  footer {
-    padding-top: 24px;
-    padding-bottom: calc(24px + env(safe-area-inset-bottom));
-  }
-
-  /* stack + center the top support section */
-  .supportWrap{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: left; /* keep your copy readable */
-    gap: 4px;
-  }
-
-  /* make sure the image can’t overflow */
-  .supportMascot{
-    order: -1;
-    width: 100%;
-    display:flex;
-    justify-content:center;
-    align-items: center;
-    margin: 0;
-    padding: 0;  
-  }
-
-  .supportMascot img{
-    display: block;
-    width: min(220px, 70vw);
-    height: auto !important;
-    max-width: 220px;
-    object-fit: contain;
-    object-poistion: center;
-    margin: 0;
-  }
-
-  /* if you have a dedicated image column/div, kill the desktop spacing */
-  .supportImage{
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-
-
-  /* Reduce mobile title size */
-  .supportCopy h1{
-   font-size: 28px;
-   line-height: 1.15;
-   margin: 0 0 10px;
-  }
-
-  /* If heart is on its own line, reduce that gap */
-  .supportCopy h1 + span,
-  .supportCopy .heart{
-    display: inline-block;
-    margin-left: 6px;
-  }
-
-  /* Tighten space before first paragraph */
-  .supportIntro{
-    margin-top: 6px;
-  }
-
-  .supportCopy{
-    flex: 0 0 auto;      /* overrides flex: 1 1 520px */
-    width: 100%;
-  }
-
-    /* tighten the “optional tip” paragraph so divider sits closer */
-  .supportTight{
-    margin-bottom: 6px;
-  }
-
-  /* (optional) tighten divider itself */
-  .divider{
-    margin: 20px 0 25px;    
+  .eventTitle{
+    font-size: 0.9rem;
   }
 }
-
-
-.troubleshoot summary {
-    color: #6b7280;
-    font-size: 14px;
-}
-
-.troubleshoot summary, 
-.troubleshoot summary * {
-    cursor: pointer;
-}
-
-.navLinkPrimary {
-    background: var(--primarySoft);
-    color: var(--primary);
-    font-weight: 700;
-    border-radius: 999px;
-    padding: 8px 14px;
-}
-.navLinkPrimary:hover{
-    background: var(--primary);
-    color: #fff;
-}
-
-
