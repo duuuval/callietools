@@ -7,7 +7,7 @@ export function Footer() {
         <div className="footerLeft">
           <div className="footerBrand">Callie</div>
           <div className="footerMini">
-            Your school calendar, synced ✨
+            Your events, on everyone&apos;s phone&nbsp;✨
           </div>
         </div>
 
@@ -16,14 +16,12 @@ export function Footer() {
             hello@callietools.com
           </a>
           <span className="footerDot">•</span>
-          <a
-            className="footerLink"
-            href="https://www.buymeacoffee.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Buy Callie a Coffee
-          </a>
+          <span className="footerLink footerUpgrade">
+            Want your own logo and colors?{" "}
+            <a href="mailto:hello@callietools.com?subject=Callie%20Paid%20Upgrade">
+              Make it yours — $10/mo
+            </a>
+          </span>
         </div>
       </div>
     </footer>
