@@ -27,7 +27,7 @@ export function CalendarClient({
       title: calendarName,
       text: `Subscribe to ${calendarName} — events sync to your phone automatically.`,
       url: vanityUrl,
-    }
+    };
 
     if (navigator.share) {
       try {
@@ -95,7 +95,7 @@ export function CalendarClient({
                 <li>
                   Open Google Calendar in a browser
                   <div className="row" style={{ marginTop: 8 }}>
-                    
+                    <a
                       className="btn btnSecondary"
                       href="https://calendar.google.com/calendar/u/0/r/settings/addbyurl"
                       target="_blank"
