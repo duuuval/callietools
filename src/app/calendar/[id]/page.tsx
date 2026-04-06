@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCalendar, getEvents, CalendarEvent } from "@/lib/sheets";
+import { getCalendar, getEvents } from "@/lib/sheets";
+import type { CalendarEvent } from "@/lib/sheets";
 import { CalendarClient } from "./CalendarClient";
 
 interface Props {
