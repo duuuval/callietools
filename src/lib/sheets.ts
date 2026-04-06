@@ -10,6 +10,7 @@
  */
 
 import { google } from "googleapis";
+import { randomUUID } from "crypto";
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -19,6 +20,8 @@ export interface CalendarMeta {
   tier: string;
   last_updated: string;
   timezone: string;
+  email?: string;
+  manage_token?: string;
 }
 
 export interface CalendarEvent {
@@ -57,7 +60,13 @@ function setCache<T>(key: string, data: T): void {
   cache[key] = { data, ts: Date.now() };
 }
 
-// ─── Google Sheets client ────────────────────────────────────
+function clearCache(): void {
+  for (const key of Object.keys(cache)) {
+    delete cache[key];
+  }
+}
+
+// ─── Google Sheets client (read-only) ────────────────────────
 
 function isConfigured(): boolean {
   return !!(
@@ -80,6 +89,20 @@ function getSheets() {
   return google.sheets({ version: "v4", auth });
 }
 
+// ─── Google Sheets client (read/write) ───────────────────────
+
+function getWriteSheets() {
+  const auth = new google.auth.GoogleAuth({
+    credentials: {
+      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL!,
+      private_key: process.env.GOOGLE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
+    },
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+  });
+
+  return google.sheets({ version: "v4", auth });
+}
+
 // ─── Data fetchers ───────────────────────────────────────────
 
 async function fetchAllCalendars(): Promise<CalendarMeta[]> {
@@ -93,7 +116,7 @@ async function fetchAllCalendars(): Promise<CalendarMeta[]> {
   const sheetName = process.env.CALENDARS_SHEET_NAME || "Calendars";
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID!,
-    range: `${sheetName}!A:E`, // id, name, tier, last_updated, timezone
+    range: `${sheetName}!A:G`, // id, name, tier, last_updated, timezone, email, manage_token
   });
 
   const rows = res.data.values || [];
@@ -104,6 +127,8 @@ async function fetchAllCalendars(): Promise<CalendarMeta[]> {
     tier: (row[2] || "").trim(),
     last_updated: (row[3] || "").trim(),
     timezone: (row[4] || "America/New_York").trim(),
+    email: (row[5] || "").trim(),
+    manage_token: (row[6] || "").trim(),
   }));
 
   setCache(cacheKey, calendars);
@@ -140,7 +165,7 @@ async function fetchAllEvents(): Promise<CalendarEvent[]> {
   return events;
 }
 
-// ─── Public API ──────────────────────────────────────────────
+// ─── Public API (reads) ──────────────────────────────────────
 
 export async function getCalendar(id: string): Promise<CalendarMeta | null> {
   const all = await fetchAllCalendars();
@@ -154,6 +179,118 @@ export async function getCalendars(): Promise<CalendarMeta[]> {
 export async function getEvents(calendarId: string): Promise<CalendarEvent[]> {
   const all = await fetchAllEvents();
   return all.filter((e) => e.calendar_id === calendarId);
+}
+
+// ─── Public API (writes) ─────────────────────────────────────
+
+/**
+ * Slugify a calendar name for use as the URL path.
+ * e.g., "Crestwood Swim Team" → "crestwood-swim-team"
+ */
+export function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/['']/g, "") // remove apostrophes
+    .replace(/[^a-z0-9]+/g, "-") // non-alphanum → hyphens
+    .replace(/^-+|-+$/g, "") // trim leading/trailing hyphens
+    .slice(0, 60); // cap length
+}
+
+/**
+ * Find a unique slug, appending -2, -3, etc. on conflict.
+ */
+export async function findUniqueSlug(name: string): Promise<string> {
+  const base = slugify(name);
+  if (!base) throw new Error("Calendar name produces empty slug");
+
+  const existing = await getCalendar(base);
+  if (!existing) return base;
+
+  // Try suffixes
+  for (let i = 2; i <= 99; i++) {
+    const candidate = `${base}-${i}`;
+    const found = await getCalendar(candidate);
+    if (!found) return candidate;
+  }
+
+  // Fallback: append random chars
+  return `${base}-${randomUUID().slice(0, 6)}`;
+}
+
+/**
+ * Create a new calendar row in the Calendars sheet.
+ * Returns the manage token.
+ */
+export async function createCalendar(opts: {
+  id: string;
+  name: string;
+  email: string;
+  timezone?: string;
+}): Promise<{ manage_token: string }> {
+  const manage_token = randomUUID();
+  const now = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+  const sheets = getWriteSheets();
+  const sheetName = process.env.CALENDARS_SHEET_NAME || "Calendars";
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID!,
+    range: `${sheetName}!A:G`,
+    valueInputOption: "RAW",
+    requestBody: {
+      values: [
+        [
+          opts.id,
+          opts.name,
+          "free", // tier
+          now, // last_updated
+          opts.timezone || "America/New_York",
+          opts.email,
+          manage_token,
+        ],
+      ],
+    },
+  });
+
+  // Bust cache so the new calendar is immediately visible
+  clearCache();
+
+  return { manage_token };
+}
+
+/**
+ * Append event rows to the Events sheet.
+ */
+export async function appendEvents(
+  calendarId: string,
+  events: Omit<CalendarEvent, "calendar_id">[]
+): Promise<void> {
+  if (events.length === 0) return;
+
+  const sheets = getWriteSheets();
+  const sheetName = process.env.EVENTS_SHEET_NAME || "Events";
+
+  const rows = events.map((e) => [
+    calendarId,
+    e.title,
+    e.start_date,
+    e.start_time || "",
+    e.end_date || e.start_date, // default end_date = start_date
+    e.end_time || "",
+    e.location || "",
+    e.description || "",
+  ]);
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID!,
+    range: `${sheetName}!A:H`,
+    valueInputOption: "RAW",
+    requestBody: { values: rows },
+  });
+
+  // Bust cache so events show up immediately
+  clearCache();
 }
 
 // ─── Mock data (used when Google credentials aren't set) ─────
