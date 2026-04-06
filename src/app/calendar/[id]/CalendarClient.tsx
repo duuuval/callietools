@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CopyButton } from "@/components/CopyButton";
-import { CalendarEvent } from "@/lib/sheets";
+import type { CalendarEvent } from "@/lib/sheets";
 
 interface Props {
   httpsIcs: string;
@@ -32,7 +32,6 @@ export function CalendarClient({
       try {
         await navigator.share(shareData);
       } catch {
-        // User cancelled or share failed — fall back to copy
         fallbackCopy();
       }
     } else {
@@ -43,7 +42,6 @@ export function CalendarClient({
   const fallbackCopy = async () => {
     try {
       await navigator.clipboard.writeText(vanityUrl);
-      // Could add a toast here later
     } catch {
       window.prompt("Copy this link:", vanityUrl);
     }
@@ -96,7 +94,7 @@ export function CalendarClient({
                 <li>
                   Open Google Calendar in a browser
                   <div className="row" style={{ marginTop: 8 }}>
-                    <a
+                    
                       className="btn btnSecondary"
                       href="https://calendar.google.com/calendar/u/0/r/settings/addbyurl"
                       target="_blank"
