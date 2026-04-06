@@ -27,7 +27,7 @@ export function CalendarClient({
       title: calendarName,
       text: `Subscribe to ${calendarName} — events sync to your phone automatically.`,
       url: vanityUrl,
-    };
+    }
 
     if (navigator.share) {
       try {
