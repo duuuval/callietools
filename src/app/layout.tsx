@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     template: "%s — Callie",
   },
   description:
-    "Sync school and personal calendars to your phone or computer. No logins, no clutter.",
+    "Create a free subscribable calendar for your group. Events sync to their phone automatically. No app, no login.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://callietools.com"
   ),
@@ -23,13 +23,14 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
   themeColor: "#a17ef9",
   openGraph: {
-    title: "Callie - School calendars on your phone in seconds",
-    description: "Subscribe to your school's calendar in seconds. No app, no login, no manual entry.",
-    images: [{ url: "/og-image.png", width: 1200, height: 630}],
+    title: "Callie — Your events, on everyone's phone",
+    description:
+      "Create a free subscribable calendar for your group. Events sync to their phone automatically.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Callie - School calendars on your phone in seconds",
+    title: "Callie — Your events, on everyone's phone",
     images: ["/og-image.png"],
   },
 };
