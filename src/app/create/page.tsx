@@ -142,8 +142,9 @@ export default function CreatePage() {
 
       // Redirect to confirmation page
       router.push(
-        `/create/success?slug=${encodeURIComponent(data.slug)}&email=${encodeURIComponent(trimmedEmail)}&token=${encodeURIComponent(data.manage_token)}`
+        `/create/success?slug=${encodeURIComponent(data.slug)}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(trimmedEmail)}&token=${encodeURIComponent(data.manage_token)}`
       );
+
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Something went wrong. Please try again."
