@@ -4,7 +4,6 @@ import { useState } from "react";
 import { CopyButton } from "@/components/CopyButton";
 import type { CalendarEvent } from "@/lib/sheets";
 
-
 interface Props {
   httpsIcs: string;
   webcalIcs: string;
@@ -12,7 +11,6 @@ interface Props {
   calendarName: string;
   pastEvents: CalendarEvent[];
   remainingEvents: CalendarEvent[];
-  /** When true, renders only the "Show all events" toggle — used inside the events section */
   showEventsOnly?: boolean;
 }
 
@@ -33,7 +31,6 @@ export function CalendarClient({
       text: `Subscribe to ${calendarName} — events sync to your phone automatically.`,
       url: vanityUrl,
     };
-
     if (navigator.share) {
       try {
         await navigator.share(shareData);
@@ -53,20 +50,22 @@ export function CalendarClient({
     }
   };
 
-  // ── Events-only mode: just the "Show all" toggle ──────────────────────────
+  // ── Events-only mode: inline expand toggle ────────────────────────────────
   if (showEventsOnly) {
-    const grouped = groupByMonth(remainingEvents);
     return (
       <>
         {showAllEvents &&
-          grouped.map(({ month, events }) => (
-            <div key={month} className="eventsMonth">
-              <div className="eventsMonthHeader">{month}</div>
-              {events.map((e, i) => (
-                <EventRow key={`${e.start_date}-${e.title}-${i}`} event={e} />
-              ))}
-            </div>
-          ))}
+          remainingEvents.map((e, i) => {
+            const showMonthLabel =
+              i === 0 || monthOf(e) !== monthOf(remainingEvents[i - 1]);
+            return (
+              <EventRowClient
+                key={`${e.start_date}-${e.title}-${i}`}
+                event={e}
+                showMonthLabel={showMonthLabel}
+              />
+            );
+          })}
         <button
           type="button"
           className="btn btnSecondary"
@@ -81,14 +80,12 @@ export function CalendarClient({
     );
   }
 
-  // ── Full mode: Google, Other apps, Share, Past events ────────────────────
+  // ── Full mode: Google, Other, Share, Past ─────────────────────────────────
   return (
     <>
-      {/* Google Calendar — fully expanded */}
+      {/* Google Calendar — fully expanded, no accordion */}
       <div className="section" style={{ marginTop: 18 }}>
-        <div className="sectionTitle">
-          🤖 Google Calendar (Android / Gmail)
-        </div>
+        <div className="sectionTitle">🤖 Google Calendar (Android / Gmail)</div>
         <div className="sectionBox">
           <div
             className="helper"
@@ -101,11 +98,13 @@ export function CalendarClient({
               fontSize: 13,
             }}
           >
-            ⚠️ Google requires adding shared calendars from a browser — not the
-            app.
+            ⚠️ Google requires adding shared calendars from a browser — not the app.
           </div>
 
-          <ol className="helper googleSteps" style={{ margin: "0 0 14px 0", paddingLeft: 20 }}>
+          <ol
+            className="helper googleSteps"
+            style={{ margin: "0 0 14px 0", paddingLeft: 20 }}
+          >
             <li style={{ marginBottom: 10 }}>
               Copy the calendar link
               <div className="row" style={{ marginTop: 8 }}>
@@ -160,7 +159,7 @@ export function CalendarClient({
         </div>
       </div>
 
-      {/* Share section */}
+      {/* Share */}
       <div className="divider" />
 
       <div className="shareSection">
@@ -185,18 +184,27 @@ export function CalendarClient({
             style={{ fontSize: 13 }}
             onClick={() => setShowPast(!showPast)}
           >
-            {showPast ? "Hide past events" : `Show past events (${pastEvents.length})`}
+            {showPast
+              ? "Hide past events"
+              : `Show past events (${pastEvents.length})`}
           </button>
           {showPast && (
-            <div className="eventsSection" style={{ marginTop: 12, textAlign: "left" }}>
+            <div
+              className="eventsSection"
+              style={{ marginTop: 12, textAlign: "left" }}
+            >
               {pastEvents.map((e, i) => (
-                <div key={`${e.start_date}-${e.title}-${i}`} className="eventRow">
-                  <div className="eventDate">
-                    {new Date(e.start_date + "T00:00:00").toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                    })}
+                <div
+                  key={`${e.start_date}-${e.title}-${i}`}
+                  className="eventRow"
+                >
+                  <div className="eventDateCol">
+                    <span className="eventDate">
+                      {new Date(e.start_date + "T00:00:00").toLocaleDateString(
+                        "en-US",
+                        { month: "short", day: "numeric" }
+                      )}
+                    </span>
                   </div>
                   <div className="eventDetails">
                     <div className="eventTitle">{e.title}</div>
@@ -211,27 +219,37 @@ export function CalendarClient({
   );
 }
 
-/* ─── Shared helpers (needed in events-only mode) ───────────── */
+/* ─── Client-side EventRow (used in showEventsOnly expand) ─────────────────── */
 
-function EventRow({ event }: { event: CalendarEvent }) {
+function EventRowClient({
+  event,
+  showMonthLabel,
+}: {
+  event: CalendarEvent;
+  showMonthLabel: boolean;
+}) {
   const date = new Date(event.start_date + "T00:00:00");
-  const formatted = date.toLocaleDateString("en-US", {
-    weekday: "short",
+  const isMultiDay = event.end_date && event.end_date !== event.start_date;
+
+  const dateShort = date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
   });
 
-  const isMultiDay = event.end_date && event.end_date !== event.start_date;
-  let dateDisplay = formatted;
+  let dateDisplay = dateShort;
   if (isMultiDay) {
     const end = new Date(event.end_date + "T00:00:00");
-    const endFormatted = end.toLocaleDateString("en-US", {
-      weekday: "short",
+    dateDisplay = `${dateShort} – ${end.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-    });
-    dateDisplay = `${formatted} – ${endFormatted}`;
+    })}`;
   }
+
+  const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
+  const monthLabel = date.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
 
   let timeDisplay = "";
   if (event.start_time) {
@@ -252,34 +270,32 @@ function EventRow({ event }: { event: CalendarEvent }) {
   }
 
   return (
-    <div className="eventRow">
-      <div className="eventDate">{dateDisplay}</div>
-      <div className="eventDetails">
-        <div className="eventTitle">{event.title}</div>
-        {timeDisplay && <span className="eventTime">{timeDisplay}</span>}
-        {event.location && (
-          <span className="eventLocation">{event.location}</span>
-        )}
+    <>
+      {showMonthLabel && (
+        <div className="eventsMonthInline">{monthLabel}</div>
+      )}
+      <div className="eventRow">
+        <div className="eventDateCol">
+          <span className="eventWeekday">{weekday}</span>
+          <span className="eventDate">{dateDisplay}</span>
+        </div>
+        <div className="eventDetails">
+          <div className="eventTitle">{event.title}</div>
+          {timeDisplay && <span className="eventTime">{timeDisplay}</span>}
+          {event.location && (
+            <span className="eventLocation">{event.location}</span>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
-function groupByMonth(
-  events: CalendarEvent[]
-): { month: string; events: CalendarEvent[] }[] {
-  const groups: Map<string, CalendarEvent[]> = new Map();
-  for (const e of events) {
-    const d = new Date(e.start_date + "T00:00:00");
-    const key = d.toLocaleDateString("en-US", {
-      month: "long",
-      year: "numeric",
-    });
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(e);
-  }
-  return Array.from(groups.entries()).map(([month, events]) => ({
-    month,
-    events,
-  }));
+/* ─── Shared helpers ────────────────────────────────────────── */
+
+function monthOf(e: CalendarEvent): string {
+  return new Date(e.start_date + "T00:00:00").toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
 }
