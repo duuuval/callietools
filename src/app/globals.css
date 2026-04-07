@@ -1505,6 +1505,10 @@ a:focus, .btn:focus, button:focus{
   .upgradeGrid{ grid-template-columns: 1fr; }
 
   /* Footer */
+  .footerInner{
+    padding: 20px 0 40px;
+  }
+
   .footerRow{
     flex-direction: column;
     align-items: flex-start;
