@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CopyButton } from "@/components/CopyButton";
 import type { CalendarEvent } from "@/lib/sheets";
 
@@ -24,6 +24,23 @@ export function CalendarClient({
 }: Props) {
   const [showAllEvents, setShowAllEvents] = useState(false);
   const [showPast, setShowPast] = useState(false);
+  const [stickyVisible, setStickyVisible] = useState(false);
+
+  // Observe the subtitle sentinel — show sticky bar when it scrolls off screen
+  useEffect(() => {
+    const sentinel = document.getElementById("callie-sentinel");
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setStickyVisible(!entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
 
   const handleShare = async () => {
     const shareData = {
@@ -55,17 +72,12 @@ export function CalendarClient({
     return (
       <>
         {showAllEvents &&
-          remainingEvents.map((e, i) => {
-            const showMonthLabel =
-              i === 0 || monthOf(e) !== monthOf(remainingEvents[i - 1]);
-            return (
-              <EventRowClient
-                key={`${e.start_date}-${e.title}-${i}`}
-                event={e}
-                showMonthLabel={showMonthLabel}
-              />
-            );
-          })}
+          remainingEvents.map((e, i) => (
+            <EventRowClient
+              key={`${e.start_date}-${e.title}-${i}`}
+              event={e}
+            />
+          ))}
         <button
           type="button"
           className="btn btnSecondary"
@@ -80,10 +92,17 @@ export function CalendarClient({
     );
   }
 
-  // ── Full mode: Google, Other, Share, Past ─────────────────────────────────
+  // ── Full mode ─────────────────────────────────────────────────────────────
   return (
     <>
-      {/* Google Calendar — fully expanded, no accordion */}
+      {/* Sticky bar — appears when "A Callie calendar" scrolls off screen */}
+      <div className={`callieSticky ${stickyVisible ? "callieSticky--visible" : ""}`}>
+        <a href="/create" className="callieStickyLink">
+          Like what you see? Build your own — free.
+        </a>
+      </div>
+
+      {/* Google Calendar — fully expanded */}
       <div className="section" style={{ marginTop: 18 }}>
         <div className="sectionTitle">🤖 Google Calendar (Android / Gmail)</div>
         <div className="sectionBox">
@@ -194,16 +213,16 @@ export function CalendarClient({
               style={{ marginTop: 12, textAlign: "left" }}
             >
               {pastEvents.map((e, i) => (
-                <div
-                  key={`${e.start_date}-${e.title}-${i}`}
-                  className="eventRow"
-                >
+                <div key={`${e.start_date}-${e.title}-${i}`} className="eventRow">
                   <div className="eventDateCol">
+                    <span className="eventWeekday">
+                      {new Date(e.start_date + "T00:00:00").toLocaleDateString("en-US", { weekday: "short" })}
+                    </span>
                     <span className="eventDate">
-                      {new Date(e.start_date + "T00:00:00").toLocaleDateString(
-                        "en-US",
-                        { month: "short", day: "numeric" }
-                      )}
+                      {new Date(e.start_date + "T00:00:00").toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
                     </span>
                   </div>
                   <div className="eventDetails">
@@ -219,15 +238,9 @@ export function CalendarClient({
   );
 }
 
-/* ─── Client-side EventRow (used in showEventsOnly expand) ─────────────────── */
+/* ─── Client-side EventRow (used in showEventsOnly expand) ─── */
 
-function EventRowClient({
-  event,
-  showMonthLabel,
-}: {
-  event: CalendarEvent;
-  showMonthLabel: boolean;
-}) {
+function EventRowClient({ event }: { event: CalendarEvent }) {
   const date = new Date(event.start_date + "T00:00:00");
   const isMultiDay = event.end_date && event.end_date !== event.start_date;
 
@@ -246,10 +259,6 @@ function EventRowClient({
   }
 
   const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
-  const monthLabel = date.toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
 
   let timeDisplay = "";
   if (event.start_time) {
@@ -270,32 +279,18 @@ function EventRowClient({
   }
 
   return (
-    <>
-      {showMonthLabel && (
-        <div className="eventsMonthInline">{monthLabel}</div>
-      )}
-      <div className="eventRow">
-        <div className="eventDateCol">
-          <span className="eventWeekday">{weekday}</span>
-          <span className="eventDate">{dateDisplay}</span>
-        </div>
-        <div className="eventDetails">
-          <div className="eventTitle">{event.title}</div>
-          {timeDisplay && <span className="eventTime">{timeDisplay}</span>}
-          {event.location && (
-            <span className="eventLocation">{event.location}</span>
-          )}
-        </div>
+    <div className="eventRow">
+      <div className="eventDateCol">
+        <span className="eventWeekday">{weekday}</span>
+        <span className="eventDate">{dateDisplay}</span>
       </div>
-    </>
+      <div className="eventDetails">
+        <div className="eventTitle">{event.title}</div>
+        {timeDisplay && <span className="eventTime">{timeDisplay}</span>}
+        {event.location && (
+          <span className="eventLocation">{event.location}</span>
+        )}
+      </div>
+    </div>
   );
-}
-
-/* ─── Shared helpers ────────────────────────────────────────── */
-
-function monthOf(e: CalendarEvent): string {
-  return new Date(e.start_date + "T00:00:00").toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
 }
