@@ -1526,6 +1526,15 @@ a:focus, .btn:focus, button:focus{
   }
 }
 
+.footerLink{
+  margin-top: 8px;
+}
+
+.footerUpgrade a{
+  display: block;
+  margin-top: 4px;
+}
+
 @media (max-width: 480px) {
   .eventTimeRow{
     flex-direction: column;
