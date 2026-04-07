@@ -14,10 +14,22 @@ export default function UpgradePage() {
         <div className="upgradeHero">
           <h1>Make your calendar page yours</h1>
           <p>
-            Unlimited calendars, unlimited events, unlimited
-            subscribers&nbsp;&mdash; plus your branding front and center.
+            Everything Callie offers is already free &mdash; no limits,
+            no expiration. The upgrade is about one thing: making the
+            page look like yours instead of ours.
           </p>
         </div>
+
+        <div className="upgradeFreeBlock">
+          <p>
+            <strong>Always free:</strong> Create your calendar, share
+            your page, add events (including our upload an image or
+            schedule tool), update anytime &mdash; your group gets
+            every change automatically.
+          </p>
+        </div>
+
+        <div className="upgradePaidLabel">$10/mo adds:</div>
 
         <div className="upgradeGrid">
           <div className="upgradeCard">
@@ -49,9 +61,8 @@ export default function UpgradePage() {
             <span className="upgradeCardIcon" aria-hidden="true">✨</span>
             <h3>Clean footer</h3>
             <p>
-              Callie branding moves to a small &ldquo;Powered
-              by&rdquo; credit in the footer. The page feels like
-              yours because it is.
+              Callie branding steps back to a small &ldquo;Powered
+              by&rdquo; credit. The rest of the page is all you.
             </p>
           </div>
         </div>
