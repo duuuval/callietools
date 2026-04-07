@@ -366,15 +366,7 @@ export default function CreatePage() {
         >
           {submitting ? "Creating…" : "Create my calendar"}
         </button>
-      </div>
-
-      {/* ── Page footer ─────────────────────────────────── */}
-      <div className="calFooter">
-        <p className="calFooterBrand">Callie</p>
-        <p className="calFooterEmail">
-          <a href="mailto:hello@callietools.com">hello@callietools.com</a>
-        </p>
-      </div>
+      </div>      
     </div>
   );
 }
