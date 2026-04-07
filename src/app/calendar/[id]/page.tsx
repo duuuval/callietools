@@ -69,29 +69,28 @@ export default async function CalendarPage({ params }: Props) {
   const remainingEvents = upcoming.slice(EVENTS_PREVIEW_COUNT);
   const hasMore = remainingEvents.length > 0;
 
-  // Group preview events by month
-  const groupedPreview = groupByMonth(previewEvents);
-
   return (
     <div className="container">
+
+      {/* ── Card 1: Header + Events ── */}
       <div className="card">
-        {/* Header */}
         <h1 className="calPageTitle">{cal.name || cal.id}</h1>
         <p className="calPageSubtitle">A Callie calendar</p>
 
-        {/* Events List */}
         <div className="divider" />
 
         {upcoming.length > 0 ? (
           <div className="eventsSection">
-            {groupedPreview.map(({ month, events: monthEvents }) => (
-              <div key={month} className="eventsMonth">
-                <div className="eventsMonthHeader">{month}</div>
-                {monthEvents.map((e, i) => (
-                  <EventRow key={`${e.start_date}-${e.title}-${i}`} event={e} />
-                ))}
-              </div>
-            ))}
+            {previewEvents.map((e, i) => {
+              const showMonthLabel = i === 0 || monthOf(e) !== monthOf(previewEvents[i - 1]);
+              return (
+                <EventRow
+                  key={`${e.start_date}-${e.title}-${i}`}
+                  event={e}
+                  showMonthLabel={showMonthLabel}
+                />
+              );
+            })}
 
             {hasMore && (
               <CalendarClient
@@ -113,20 +112,18 @@ export default async function CalendarPage({ params }: Props) {
             </p>
           </div>
         )}
+      </div>
 
-        {/* Inline Callie CTA — between events and subscribe */}
-        <div className="callieCta">
-          <p className="callieCtaText">
-            Run a group, class, or team?{" "}
-            <a href="/create" className="callieCtaLink">
-              Make your own calendar — free
-            </a>
-          </p>
-        </div>
+      {/* ── Inline Callie CTA — between cards ── */}
+      <div className="callieCta">
+        <p className="callieCtaHeadline">Like what you see? Build your own — free.</p>
+        <a href="/create" className="btn btnPrimary callieCtaBtn">
+          Create your calendar — free
+        </a>
+      </div>
 
-        {/* Subscribe Section */}
-        <div className="divider" />
-
+      {/* ── Card 2: Subscribe ── */}
+      <div className="card">
         <p className="calSubscribeIntro">
           Add this calendar to your phone — events update automatically.
         </p>
@@ -148,7 +145,7 @@ export default async function CalendarPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Google / Other — client component for interactivity */}
+        {/* Google / Other / Share / Past — client component */}
         <CalendarClient
           httpsIcs={httpsIcs}
           webcalIcs={webcalIcs}
@@ -180,28 +177,46 @@ export default async function CalendarPage({ params }: Props) {
 
 /* ─── Helpers ──────────────────────────────────────────────── */
 
-function EventRow({ event }: { event: CalendarEvent }) {
+function monthOf(e: CalendarEvent): string {
+  const d = new Date(e.start_date + "T00:00:00");
+  return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+function EventRow({
+  event,
+  showMonthLabel,
+}: {
+  event: CalendarEvent;
+  showMonthLabel: boolean;
+}) {
   const date = new Date(event.start_date + "T00:00:00");
-  const formatted = date.toLocaleDateString("en-US", {
-    weekday: "short",
+
+  const isMultiDay = event.end_date && event.end_date !== event.start_date;
+
+  // Inline date: "May 25" — short, no weekday (space is tight now)
+  const dateShort = date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
   });
 
-  const isMultiDay =
-    event.end_date &&
-    event.end_date !== event.start_date;
-
-  let dateDisplay = formatted;
+  let dateDisplay = dateShort;
   if (isMultiDay) {
     const end = new Date(event.end_date + "T00:00:00");
-    const endFormatted = end.toLocaleDateString("en-US", {
-      weekday: "short",
+    const endShort = end.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
     });
-    dateDisplay = `${formatted} – ${endFormatted}`;
+    dateDisplay = `${dateShort} – ${endShort}`;
   }
+
+  // Weekday as subtle label above the date
+  const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
+
+  // Month label shown on first event of each month
+  const monthLabel = date.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
 
   // Format time if present
   let timeDisplay = "";
@@ -223,35 +238,23 @@ function EventRow({ event }: { event: CalendarEvent }) {
   }
 
   return (
-    <div className="eventRow">
-      <div className="eventDate">{dateDisplay}</div>
-      <div className="eventDetails">
-        <div className="eventTitle">{event.title}</div>
-        {timeDisplay && <span className="eventTime">{timeDisplay}</span>}
-        {event.location && (
-          <span className="eventLocation">{event.location}</span>
-        )}
+    <>
+      {showMonthLabel && (
+        <div className="eventsMonthInline">{monthLabel}</div>
+      )}
+      <div className="eventRow">
+        <div className="eventDateCol">
+          <span className="eventWeekday">{weekday}</span>
+          <span className="eventDate">{dateDisplay}</span>
+        </div>
+        <div className="eventDetails">
+          <div className="eventTitle">{event.title}</div>
+          {timeDisplay && <span className="eventTime">{timeDisplay}</span>}
+          {event.location && (
+            <span className="eventLocation">{event.location}</span>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
-}
-
-function groupByMonth(
-  events: CalendarEvent[]
-): { month: string; events: CalendarEvent[] }[] {
-  const groups: Map<string, CalendarEvent[]> = new Map();
-  for (const e of events) {
-    const d = new Date(e.start_date + "T00:00:00");
-    const key = d.toLocaleDateString("en-US", {
-      month: "long",
-      year: "numeric",
-    });
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(e);
-  }
-  return Array.from(groups.entries()).map(([month, events]) => ({
-    month,
-    events,
-  }));
-  
 }
