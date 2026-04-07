@@ -301,7 +301,7 @@ a:focus, .btn:focus, button:focus{
 ========================= */
 
 .hero{
-  padding: 64px 0;
+  padding: 64px 0 32px;
 }
 
 .heroInner{
