@@ -71,7 +71,7 @@ export default async function CalendarPage({ params }: Props) {
       <div className="card">
         {/* Header */}
         <h1 className="calPageTitle">{cal.name || cal.id}</h1>
-        <p className="calPageSubtitle">Subscribable calendar by Callie</p>
+        <p className="calPageSubtitle">A Callie calendar</p>
 
         {/* Events List */}
         <div className="divider" />
@@ -132,7 +132,6 @@ export default async function CalendarPage({ params }: Props) {
 
       {/* Footer CTAs */}
       <div className="calFooter">
-        <p className="calFooterBrand">Subscribable calendar by Callie</p>
         <p className="calFooterCta">
           Run a group or class?{" "}
           <a href="/create">Create your own calendar — free</a>
