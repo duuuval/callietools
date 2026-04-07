@@ -650,7 +650,7 @@ a:focus, .btn:focus, button:focus{
 
 .calFooter{
   text-align: center;
-  padding: 28px 0 12px;
+  padding: 28px 0 40px;
 }
 
 .calFooterBrand{
@@ -658,12 +658,12 @@ a:focus, .btn:focus, button:focus{
   font-weight: 800;
   color: var(--guide);
   font-size: 0.9rem;
-  margin: 0 0 12px;
+  margin: 0 0 16px;
 }
 
 .calFooterCta{
   font-size: 0.9rem;
-  margin: 0 0 8px;
+  margin: 0 0 12px;
   color: var(--muted);
 }
 
@@ -677,7 +677,7 @@ a:focus, .btn:focus, button:focus{
 }
 
 .calFooterEmail{
-  margin: 14px 0 0;
+  margin: 18px 0 0;
   font-size: 0.8rem;
 }
 
