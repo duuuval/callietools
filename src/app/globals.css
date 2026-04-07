@@ -512,7 +512,7 @@ a:focus, .btn:focus, button:focus{
   right: 0;
   z-index: 100;
   background: var(--primary);
-  height: 62px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
