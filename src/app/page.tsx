@@ -39,6 +39,11 @@ export default function HomePage() {
               <Link className="btn btnPrimary heroBtn" href="/create">
                 Create your calendar &mdash; free
               </Link>
+              <p className="heroConfidence">
+                Completely free &mdash; create your calendar, share it with
+                your group, update it anytime. Upgrade only if you want your
+                own logo and colors.
+              </p>
             </div>
           </div>
         </div>
@@ -103,22 +108,29 @@ export default function HomePage() {
             <div className="compareTable">
               <div className="compareHeader">
                 <div className="compareColLabel">Now</div>
-                <div className="compareColLabel compareColRight">With Callie</div>
+                <div className="compareColLabel compareColRight">
+                  With Callie
+                </div>
               </div>
 
               <div className="compareRow">
                 <div className="compareCell">Plan your events</div>
-                <div className="compareCell compareCellRight">Plan your events</div>
+                <div className="compareCell compareCellRight">
+                  Plan your events
+                </div>
               </div>
               <div className="compareRow">
                 <div className="compareCell">Share your schedule</div>
                 <div className="compareCell compareCellRight">
-                  Share your schedule&nbsp;&mdash; <strong>with your calendar link</strong>
+                  Share your schedule&nbsp;&mdash;{" "}
+                  <strong>with your calendar link</strong>
                 </div>
               </div>
               <div className="compareRow">
                 <div className="compareCell">Fight for attention</div>
-                <div className="compareCell compareCellRight">Capture subscribers</div>
+                <div className="compareCell compareCellRight">
+                  Capture subscribers
+                </div>
               </div>
               <div className="compareRow">
                 <div className="compareCell">Hope they remember</div>
@@ -142,29 +154,27 @@ export default function HomePage() {
       {/* ── Mid-page CTA ─────────────────────────────────── */}
       <section className="homeSection homeSectionCta">
         <div className="container" style={{ textAlign: "center" }}>
-          <p className="midCtaLine">
-            Get your events on their phones.
-          </p>
+          <p className="midCtaLine">Get your events on their phones.</p>
           <Link className="btn btnPrimary heroBtn" href="/create">
             Create your calendar
           </Link>
         </div>
       </section>
 
-      {/* ── School Calendars (teaser) ────────────────────── */}
+      {/* ── School Calendars ─────────────────────────────── */}
       <section className="homeSection">
-        <div className="container">
-          <div className="card schoolTeaser">
-            <h2 className="homeSectionTitle">Looking for your school calendar?</h2>
-            <p className="schoolTeaserDesc">
-              Subscribe once and every half-day, early release, and teacher
-              workday is already on your calendar. Currently available for
-              Chesterfield County Public Schools.
-            </p>
-            <Link className="btn btnSecondary" href="/schools">
-              Browse school calendars &rarr;
-            </Link>
-          </div>
+        <div className="container schoolTeaser">
+          <h2 className="homeSectionTitle">
+            Looking for your school calendar?
+          </h2>
+          <p className="schoolTeaserDesc">
+            Subscribe once and every half-day, early release, and teacher
+            workday is already on your calendar. Currently available for
+            Chesterfield County Public Schools.
+          </p>
+          <Link className="btn btnSecondary" href="/schools">
+            Browse school calendars &rarr;
+          </Link>
         </div>
       </section>
     </>
