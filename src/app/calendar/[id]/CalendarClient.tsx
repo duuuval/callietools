@@ -11,6 +11,9 @@ interface Props {
   vanityUrl: string;
   calendarName: string;
   pastEvents: CalendarEvent[];
+  remainingEvents: CalendarEvent[];
+  /** When true, renders only the "Show all events" toggle — used inside the events section */
+  showEventsOnly?: boolean;
 }
 
 export function CalendarClient({
@@ -18,7 +21,10 @@ export function CalendarClient({
   vanityUrl,
   calendarName,
   pastEvents,
+  remainingEvents,
+  showEventsOnly = false,
 }: Props) {
+  const [showAllEvents, setShowAllEvents] = useState(false);
   const [showPast, setShowPast] = useState(false);
 
   const handleShare = async () => {
@@ -47,9 +53,38 @@ export function CalendarClient({
     }
   };
 
+  // ── Events-only mode: just the "Show all" toggle ──────────────────────────
+  if (showEventsOnly) {
+    const grouped = groupByMonth(remainingEvents);
+    return (
+      <>
+        {showAllEvents &&
+          grouped.map(({ month, events }) => (
+            <div key={month} className="eventsMonth">
+              <div className="eventsMonthHeader">{month}</div>
+              {events.map((e, i) => (
+                <EventRow key={`${e.start_date}-${e.title}-${i}`} event={e} />
+              ))}
+            </div>
+          ))}
+        <button
+          type="button"
+          className="btn btnSecondary"
+          style={{ fontSize: 13, marginTop: 12 }}
+          onClick={() => setShowAllEvents(!showAllEvents)}
+        >
+          {showAllEvents
+            ? "Show fewer events"
+            : `Show all events (+${remainingEvents.length} more)`}
+        </button>
+      </>
+    );
+  }
+
+  // ── Full mode: Google, Other apps, Share, Past events ────────────────────
   return (
     <>
-      {/* Google Calendar — fully expanded, no accordion */}
+      {/* Google Calendar — fully expanded */}
       <div className="section" style={{ marginTop: 18 }}>
         <div className="sectionTitle">
           🤖 Google Calendar (Android / Gmail)
@@ -174,4 +209,77 @@ export function CalendarClient({
       )}
     </>
   );
+}
+
+/* ─── Shared helpers (needed in events-only mode) ───────────── */
+
+function EventRow({ event }: { event: CalendarEvent }) {
+  const date = new Date(event.start_date + "T00:00:00");
+  const formatted = date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+
+  const isMultiDay = event.end_date && event.end_date !== event.start_date;
+  let dateDisplay = formatted;
+  if (isMultiDay) {
+    const end = new Date(event.end_date + "T00:00:00");
+    const endFormatted = end.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+    dateDisplay = `${formatted} – ${endFormatted}`;
+  }
+
+  let timeDisplay = "";
+  if (event.start_time) {
+    const [h, m] = event.start_time.split(":").map(Number);
+    const startDate = new Date(2000, 0, 1, h, m);
+    timeDisplay = startDate.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    if (event.end_time && event.end_time !== event.start_time) {
+      const [eh, em] = event.end_time.split(":").map(Number);
+      const endDate = new Date(2000, 0, 1, eh, em);
+      timeDisplay += ` – ${endDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      })}`;
+    }
+  }
+
+  return (
+    <div className="eventRow">
+      <div className="eventDate">{dateDisplay}</div>
+      <div className="eventDetails">
+        <div className="eventTitle">{event.title}</div>
+        {timeDisplay && <span className="eventTime">{timeDisplay}</span>}
+        {event.location && (
+          <span className="eventLocation">{event.location}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function groupByMonth(
+  events: CalendarEvent[]
+): { month: string; events: CalendarEvent[] }[] {
+  const groups: Map<string, CalendarEvent[]> = new Map();
+  for (const e of events) {
+    const d = new Date(e.start_date + "T00:00:00");
+    const key = d.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(e);
+  }
+  return Array.from(groups.entries()).map(([month, events]) => ({
+    month,
+    events,
+  }));
 }
