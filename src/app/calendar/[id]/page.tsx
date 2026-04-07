@@ -4,6 +4,7 @@ import { getCalendar, getEvents } from "@/lib/sheets";
 import type { CalendarEvent } from "@/lib/sheets";
 import { CalendarClient } from "./CalendarClient";
 
+const EVENTS_PREVIEW_COUNT = 5;
 
 interface Props {
   params: { id: string };
@@ -63,8 +64,13 @@ export default async function CalendarPage({ params }: Props) {
       new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
   );
 
-  // Group upcoming events by month
-  const groupedUpcoming = groupByMonth(upcoming);
+  // Cap preview to first N upcoming events
+  const previewEvents = upcoming.slice(0, EVENTS_PREVIEW_COUNT);
+  const remainingEvents = upcoming.slice(EVENTS_PREVIEW_COUNT);
+  const hasMore = remainingEvents.length > 0;
+
+  // Group preview events by month
+  const groupedPreview = groupByMonth(previewEvents);
 
   return (
     <div className="container">
@@ -78,7 +84,7 @@ export default async function CalendarPage({ params }: Props) {
 
         {upcoming.length > 0 ? (
           <div className="eventsSection">
-            {groupedUpcoming.map(({ month, events: monthEvents }) => (
+            {groupedPreview.map(({ month, events: monthEvents }) => (
               <div key={month} className="eventsMonth">
                 <div className="eventsMonthHeader">{month}</div>
                 {monthEvents.map((e, i) => (
@@ -86,6 +92,18 @@ export default async function CalendarPage({ params }: Props) {
                 ))}
               </div>
             ))}
+
+            {hasMore && (
+              <CalendarClient
+                httpsIcs={httpsIcs}
+                webcalIcs={webcalIcs}
+                vanityUrl={vanityUrl}
+                calendarName={cal.name || cal.id}
+                pastEvents={past}
+                remainingEvents={remainingEvents}
+                showEventsOnly
+              />
+            )}
           </div>
         ) : (
           <div className="eventsEmpty">
@@ -95,6 +113,16 @@ export default async function CalendarPage({ params }: Props) {
             </p>
           </div>
         )}
+
+        {/* Inline Callie CTA — between events and subscribe */}
+        <div className="callieCta">
+          <p className="callieCtaText">
+            Run a group, class, or team?{" "}
+            <a href="/create" className="callieCtaLink">
+              Make your own calendar — free
+            </a>
+          </p>
+        </div>
 
         {/* Subscribe Section */}
         <div className="divider" />
@@ -127,6 +155,8 @@ export default async function CalendarPage({ params }: Props) {
           vanityUrl={vanityUrl}
           calendarName={cal.name || cal.id}
           pastEvents={past}
+          remainingEvents={remainingEvents}
+          showEventsOnly={false}
         />
       </div>
 
