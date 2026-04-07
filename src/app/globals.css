@@ -432,7 +432,7 @@ a:focus, .btn:focus, button:focus{
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 20px 0;
+  padding: 20px 18px;
 }
 
 .footerRow{
@@ -1512,7 +1512,7 @@ a:focus, .btn:focus, button:focus{
 
   /* Footer */
   .footerInner{
-    padding: 20px 0 40px;
+    padding: 20px 16px 40px;
   }
 
   .footerRow{
