@@ -163,7 +163,7 @@ export default function CreatePage() {
         {/* ── Confidence block ──────────────────────────── */}
         <h1 className="createHeader">Create your calendar</h1>
         <p className="createSubhead">
-          Add your events, share the link — your group subscribes once and stays
+          Add your events, share the link — your people subscribe once and stay
           updated automatically.
         </p>
 
