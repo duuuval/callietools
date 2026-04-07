@@ -4,11 +4,11 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Callie — Your events, on everyone's phone",
   description:
-    "Create a free calendar page your group can subscribe to. They add it once — every update shows up automatically. Perfect for teams, classes, PTAs, and community groups.",
+    "Create a free calendar page your people can subscribe to. They add it once — every update shows up automatically. Perfect for teams, classes, PTAs, and community groups.",
   openGraph: {
     title: "Callie — Your events, on everyone's phone",
     description:
-      "Create a free calendar page your group can subscribe to. They add it once — every update shows up automatically.",
+      "Create a free calendar page your people can subscribe to. They add it once — every update shows up automatically.",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
@@ -32,7 +32,7 @@ export default function HomePage() {
               it&nbsp;&mdash;&nbsp;yet.
             </h1>
             <p className="heroSub">
-              Create a free calendar page your group can subscribe to.
+              Create a free calendar page your people can subscribe to.
               They add it once&nbsp;&mdash; every update shows up automatically.
             </p>
             <div className="heroCtas">
@@ -41,7 +41,7 @@ export default function HomePage() {
               </Link>
               <p className="heroConfidence">
                 Completely free &mdash; create your calendar, share it with
-                your group, update it anytime. Upgrade only if you want your
+                your people, update it anytime. Upgrade only if you want your
                 own logo and colors.
               </p>
             </div>
@@ -70,7 +70,7 @@ export default function HomePage() {
                 <h3 className="stepTitle">Share your link</h3>
                 <p className="stepDesc">
                   You get a calendar page with a clean URL. Send it
-                  to your group.
+                  to your people.
                 </p>
               </div>
 
@@ -143,7 +143,7 @@ export default function HomePage() {
                   <strong>Do it all again next month</strong>
                 </div>
                 <div className="compareCell compareCellRight">
-                  <strong>Build a group that never misses</strong>
+                  <strong>Build an audience that never misses</strong>
                 </div>
               </div>
             </div>
