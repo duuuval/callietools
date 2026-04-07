@@ -139,7 +139,7 @@ export default async function CalendarPage({ params }: Props) {
         </p>
         <p className="calFooterCta calFooterUpgrade">
           Want your logo and colors on this page?{" "}
-          <a href="mailto:hello@callietools.com">Make it yours — $10/month</a>
+          <a href="/upgrade">Make it yours — $10/month</a>
         </p>
         <p className="calFooterEmail">
           <a href="mailto:hello@callietools.com">hello@callietools.com</a>
