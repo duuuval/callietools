@@ -503,46 +503,74 @@ a:focus, .btn:focus, button:focus{
   color: var(--text);
 }
 
+/* ─── Sticky CTA bar ────────────────────────────── */
+
+.callieSticky{
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--primary);
+  padding: 10px 18px;
+  text-align: center;
+  transform: translateY(-100%);
+  transition: transform 0.25s ease;
+}
+
+.callieSticky--visible{
+  transform: translateY(0);
+}
+
+.callieStickyLink{
+  color: #fff;
+  font-family: var(--fontDisplay);
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-decoration: none;
+  letter-spacing: -0.1px;
+}
+
+.callieStickyLink:hover{
+  text-decoration: underline;
+  color: #fff;
+}
+
 /* ─── Events list ───────────────────────────────── */
 
 .eventsSection{
   margin: 4px 0;
 }
 
-.eventsMonth{
-  margin-bottom: 20px;
-}
-
-.eventsMonth:last-child{
-  margin-bottom: 4px;
-}
-
-.eventsMonthHeader{
-  font-family: var(--fontDisplay);
-  font-weight: 800;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  margin-bottom: 10px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--border);
-}
-
 .eventRow{
   display: flex;
   gap: 14px;
   padding: 10px 0;
-  align-items: baseline;
+  align-items: flex-start;
 }
 
 .eventRow + .eventRow{
   border-top: 1px solid rgba(0,0,0,0.04);
 }
 
-.eventDate{
+.eventDateCol{
   flex: 0 0 auto;
-  min-width: 120px;
+  min-width: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.eventWeekday{
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.eventDate{
   font-weight: 700;
   font-size: 0.9rem;
   color: var(--text);
@@ -590,41 +618,7 @@ a:focus, .btn:focus, button:focus{
   margin-top: 8px;
 }
 
-/* ─── Accordion ─────────────────────────────────── */
-
-.accordionToggle{
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  padding: 0;
-  background: none;
-  border: none;
-  color: var(--primary);
-  font-weight: 700;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.accordionToggle:hover{
-  text-decoration: underline;
-}
-
-.accordionToggle:focus{
-  outline: none;
-  box-shadow: 0 0 0 4px var(--primarySoft);
-  border-radius: 6px;
-}
-
-.accordionArrow{
-  font-size: 0.65rem;
-}
-
-.accordionContent{
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-}
+/* ─── Google steps ──────────────────────────────── */
 
 .googleSteps{
   margin: 8px 0 0 18px;
@@ -655,14 +649,6 @@ a:focus, .btn:focus, button:focus{
 .calFooter{
   text-align: center;
   padding: 28px 0 40px;
-}
-
-.calFooterBrand{
-  font-family: var(--fontDisplay);
-  font-weight: 800;
-  color: var(--guide);
-  font-size: 0.9rem;
-  margin: 0 0 16px;
 }
 
 .calFooterCta{
@@ -998,8 +984,6 @@ a:focus, .btn:focus, button:focus{
    Homepage Redesign
    ========================================================== */
 
-/* ── Hero overrides ─────────────────────────────── */
-
 .heroInnerRedesign{
   grid-template-columns: 1fr;
   max-width: 680px;
@@ -1040,8 +1024,6 @@ a:focus, .btn:focus, button:focus{
   text-align: center;
 }
 
-/* ── Home sections ──────────────────────────────── */
-
 .homeSection{
   padding: 32px 0 64px;
 }
@@ -1063,8 +1045,6 @@ a:focus, .btn:focus, button:focus{
   text-align: center;
   color: var(--text);
 }
-
-/* ── How It Works ───────────────────────────────── */
 
 .stepsRow{
   display: grid;
@@ -1106,8 +1086,6 @@ a:focus, .btn:focus, button:focus{
   margin: 0;
 }
 
-/* ── Who it's for ───────────────────────────────── */
-
 .homeSectionWho{
   padding: 40px 0 72px;
 }
@@ -1126,11 +1104,7 @@ a:focus, .btn:focus, button:focus{
   color: var(--text);
 }
 
-/* ── Comparison table ───────────────────────────── */
-
-.compareTable{
-  width: 100%;
-}
+.compareTable{ width: 100%; }
 
 .compareHeader{
   display: grid;
@@ -1189,8 +1163,6 @@ a:focus, .btn:focus, button:focus{
   color: var(--muted);
 }
 
-/* ── Mid-page CTA ───────────────────────────────── */
-
 .homeSectionCta{
   padding: 24px 0 72px;
 }
@@ -1203,11 +1175,7 @@ a:focus, .btn:focus, button:focus{
   color: var(--text);
 }
 
-/* ── School calendars teaser (homepage) ─────────── */
-
-.schoolTeaser{
-  text-align: center;
-}
+.schoolTeaser{ text-align: center; }
 
 .schoolTeaserDesc{
   color: var(--muted);
@@ -1219,11 +1187,7 @@ a:focus, .btn:focus, button:focus{
   margin-right: auto;
 }
 
-.schoolTeaser .homeSectionTitle{
-  text-align: center;
-}
-
-/* ── Schools page ───────────────────────────────── */
+.schoolTeaser .homeSectionTitle{ text-align: center; }
 
 .schoolsIntro{
   color: var(--muted);
@@ -1244,9 +1208,7 @@ a:focus, .btn:focus, button:focus{
   display: block;
 }
 
-.schoolListToggle:hover{
-  text-decoration: underline;
-}
+.schoolListToggle:hover{ text-decoration: underline; }
 
 /* ── Upgrade page ───────────────────────────────── */
 
@@ -1356,14 +1318,8 @@ a:focus, .btn:focus, button:focus{
   line-height: 1.5;
 }
 
-.upgradeAlready a{
-  color: var(--primary);
-  font-weight: 700;
-}
-
-.upgradeAlready a:hover{
-  text-decoration: underline;
-}
+.upgradeAlready a{ color: var(--primary); font-weight: 700; }
+.upgradeAlready a:hover{ text-decoration: underline; }
 
 .upgradeFreeBlock{
   padding: 18px 20px;
@@ -1445,7 +1401,6 @@ a:focus, .btn:focus, button:focus{
   .navToggle.isOpen .navToggleBars::before{ top:0; transform:rotate(45deg); }
   .navToggle.isOpen .navToggleBars::after{ top:0; transform:rotate(-45deg); }
 
-  /* Hero */
   .hero{ padding: 18px 0 10px; }
   .heroInner{
     grid-template-columns: 1fr;
@@ -1460,25 +1415,18 @@ a:focus, .btn:focus, button:focus{
   }
   .heroCopy{ text-align:left; }
   .heroInnerRedesign .heroCopy h1{
-  max-width: 340px;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-  }
-  .heroInnerRedesign .heroSub{
-  max-width: 320px;
-  }
-  .heroBtn{
-    width: 100%;
+    max-width: 340px;
+    margin-left: auto;
+    margin-right: auto;
     text-align: center;
   }
+  .heroInnerRedesign .heroSub{ max-width: 320px; }
+  .heroBtn{ width: 100%; text-align: center; }
 
-  /* Home sections */
   .homeSection{ padding: 20px 0 44px; }
   .homeSectionWho{ padding: 24px 0 52px; }
   .homeSectionCta{ padding: 12px 0 48px; }
 
-  /* Steps */
   .stepsRow{ grid-template-columns: 1fr; gap: 16px; }
   .stepCard{
     text-align: left;
@@ -1493,32 +1441,26 @@ a:focus, .btn:focus, button:focus{
   .stepTitle{ margin: 0; }
   .stepDesc{ grid-column: 2; }
 
-  /* Comparison table */
   .compareColLabel{ font-size: 0.75rem; padding: 8px 10px; }
   .compareCell{ font-size: 0.82rem; padding: 10px; }
-
   .midCtaLine{ font-size: 1.1rem; }
 
-  /* Calendar footer */
-  .calFooter{
-    padding-left: 8px;
-    padding-right: 8px;
-  }
-  
-  /* Calendar page */
+  .calFooter{ padding-left: 8px; padding-right: 8px; }
+
   .calPageTitle{ font-size: 1.4rem; }
   .eventRow{ flex-direction: column; gap: 2px; padding: 10px 0; }
-  .eventDate{ min-width: auto; font-size: 0.8rem; color: var(--muted); }
   .eventTitle{ font-size: 0.9rem; }
+  .eventDateCol{ min-width: auto; }
 
-  /* Upgrade */
+  .callieSticky{
+    padding: 12px 16px;
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+  .callieStickyLink{ font-size: 0.85rem; }
+
   .upgradeGrid{ grid-template-columns: 1fr; }
 
-  /* Footer */
-  .footerInner{
-    padding: 20px 16px 40px;
-  }
-
+  .footerInner{ padding: 20px 16px 40px; }
   .footerRow{
     flex-direction: column;
     align-items: flex-start;
@@ -1526,105 +1468,10 @@ a:focus, .btn:focus, button:focus{
   }
 }
 
-.footerLink{
-  margin-top: 8px;
+.footerLink{ margin-top: 8px; }
+.footerUpgrade a{ display: block; margin-top: 4px; }
+
+@media (max-width: 480px){
+  .eventTimeRow{ flex-direction: column; gap: 8px; }
+  .eventDateField{ flex: 1; }
 }
-
-.footerUpgrade a{
-  display: block;
-  margin-top: 4px;
-}
-
-@media (max-width: 480px) {
-  .eventTimeRow{
-    flex-direction: column;
-    gap: 8px;
-  }
-  .eventDateField{
-    flex: 1;
-  }
-}
-
-/* =========================
-   Calendar Page — New Classes
-   (append to bottom of globals.css)
-========================= */
-
-/* ── Inline month label (replaces eventsMonthHeader) ── */
-
-.eventsMonthInline{
-  font-family: var(--fontDisplay);
-  font-weight: 800;
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-  margin: 16px 0 4px;
-  padding-bottom: 4px;
-}
-
-.eventsMonthInline:first-child{
-  margin-top: 4px;
-}
-
-/* ── Event date column (weekday + date stacked) ── */
-
-.eventDateCol{
-  flex: 0 0 auto;
-  min-width: 64px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1px;
-}
-
-.eventWeekday{
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.eventDate{
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: var(--text);
-  white-space: nowrap;
-}
-
-/* ── Between-cards Callie CTA ── */
-
-.callieCta{
-  text-align: center;
-  padding: 20px 0;
-}
-
-.callieCtaHeadline{
-  font-family: var(--fontDisplay);
-  font-weight: 800;
-  font-size: 1rem;
-  color: var(--text);
-  margin: 0 0 14px;
-}
-
-.callieCtaBtn{
-  min-width: 220px;
-}
-
-/* ── Mobile overrides ── */
-
-@media (max-width: 768px){
-  .eventDateCol{
-    min-width: 52px;
-  }
-
-  .eventDate{
-    font-size: 0.85rem;
-  }
-
-  .callieCtaBtn{
-    width: 100%;
-  }
-}
-
