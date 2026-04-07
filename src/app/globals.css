@@ -457,6 +457,10 @@ a:focus, .btn:focus, button:focus{
 
 .footerLink{ color: var(--muted); font-weight: 600; }
 .footerLink:hover{ color: var(--text); text-decoration:none; }
+.footerLeft a.footerLink{
+  display: block;
+  margin: 10px 0;
+}
 
 .footerUpgrade{
   font-size: 13px;
