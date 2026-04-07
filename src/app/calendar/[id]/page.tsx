@@ -64,7 +64,6 @@ export default async function CalendarPage({ params }: Props) {
       new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
   );
 
-  // Cap preview to first N upcoming events
   const previewEvents = upcoming.slice(0, EVENTS_PREVIEW_COUNT);
   const remainingEvents = upcoming.slice(EVENTS_PREVIEW_COUNT);
   const hasMore = remainingEvents.length > 0;
@@ -75,22 +74,20 @@ export default async function CalendarPage({ params }: Props) {
       {/* ── Card 1: Header + Events ── */}
       <div className="card">
         <h1 className="calPageTitle">{cal.name || cal.id}</h1>
-        <p className="calPageSubtitle">A Callie calendar</p>
+
+        {/* Sentinel — sticky bar appears when this scrolls off screen */}
+        <p className="calPageSubtitle" id="callie-sentinel">A Callie calendar</p>
 
         <div className="divider" />
 
         {upcoming.length > 0 ? (
           <div className="eventsSection">
-            {previewEvents.map((e, i) => {
-              const showMonthLabel = i === 0 || monthOf(e) !== monthOf(previewEvents[i - 1]);
-              return (
-                <EventRow
-                  key={`${e.start_date}-${e.title}-${i}`}
-                  event={e}
-                  showMonthLabel={showMonthLabel}
-                />
-              );
-            })}
+            {previewEvents.map((e, i) => (
+              <EventRow
+                key={`${e.start_date}-${e.title}-${i}`}
+                event={e}
+              />
+            ))}
 
             {hasMore && (
               <CalendarClient
@@ -114,16 +111,8 @@ export default async function CalendarPage({ params }: Props) {
         )}
       </div>
 
-      {/* ── Inline Callie CTA — between cards ── */}
-      <div className="callieCta">
-        <p className="callieCtaHeadline">Like what you see? Build your own — free.</p>
-        <a href="/create" className="btn btnPrimary callieCtaBtn">
-          Create your calendar — free
-        </a>
-      </div>
-
       {/* ── Card 2: Subscribe ── */}
-      <div className="card">
+      <div className="card" style={{ marginTop: 16 }}>
         <p className="calSubscribeIntro">
           Add this calendar to your phone — events update automatically.
         </p>
@@ -177,23 +166,10 @@ export default async function CalendarPage({ params }: Props) {
 
 /* ─── Helpers ──────────────────────────────────────────────── */
 
-function monthOf(e: CalendarEvent): string {
-  const d = new Date(e.start_date + "T00:00:00");
-  return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-}
-
-function EventRow({
-  event,
-  showMonthLabel,
-}: {
-  event: CalendarEvent;
-  showMonthLabel: boolean;
-}) {
+function EventRow({ event }: { event: CalendarEvent }) {
   const date = new Date(event.start_date + "T00:00:00");
-
   const isMultiDay = event.end_date && event.end_date !== event.start_date;
 
-  // Inline date: "May 25" — short, no weekday (space is tight now)
   const dateShort = date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -202,23 +178,14 @@ function EventRow({
   let dateDisplay = dateShort;
   if (isMultiDay) {
     const end = new Date(event.end_date + "T00:00:00");
-    const endShort = end.toLocaleDateString("en-US", {
+    dateDisplay = `${dateShort} – ${end.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-    });
-    dateDisplay = `${dateShort} – ${endShort}`;
+    })}`;
   }
 
-  // Weekday as subtle label above the date
   const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
 
-  // Month label shown on first event of each month
-  const monthLabel = date.toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
-
-  // Format time if present
   let timeDisplay = "";
   if (event.start_time) {
     const [h, m] = event.start_time.split(":").map(Number);
@@ -238,23 +205,18 @@ function EventRow({
   }
 
   return (
-    <>
-      {showMonthLabel && (
-        <div className="eventsMonthInline">{monthLabel}</div>
-      )}
-      <div className="eventRow">
-        <div className="eventDateCol">
-          <span className="eventWeekday">{weekday}</span>
-          <span className="eventDate">{dateDisplay}</span>
-        </div>
-        <div className="eventDetails">
-          <div className="eventTitle">{event.title}</div>
-          {timeDisplay && <span className="eventTime">{timeDisplay}</span>}
-          {event.location && (
-            <span className="eventLocation">{event.location}</span>
-          )}
-        </div>
+    <div className="eventRow">
+      <div className="eventDateCol">
+        <span className="eventWeekday">{weekday}</span>
+        <span className="eventDate">{dateDisplay}</span>
       </div>
-    </>
+      <div className="eventDetails">
+        <div className="eventTitle">{event.title}</div>
+        {timeDisplay && <span className="eventTime">{timeDisplay}</span>}
+        {event.location && (
+          <span className="eventLocation">{event.location}</span>
+        )}
+      </div>
+    </div>
   );
 }
