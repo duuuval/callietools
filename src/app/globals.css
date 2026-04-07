@@ -1495,6 +1495,12 @@ a:focus, .btn:focus, button:focus{
 
   .midCtaLine{ font-size: 1.1rem; }
 
+  /* Calendar footer */
+  .calFooter{
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  
   /* Calendar page */
   .calPageTitle{ font-size: 1.4rem; }
   .eventRow{ flex-direction: column; gap: 2px; padding: 10px 0; }
