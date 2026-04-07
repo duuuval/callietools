@@ -253,4 +253,5 @@ function groupByMonth(
     month,
     events,
   }));
+  
 }
