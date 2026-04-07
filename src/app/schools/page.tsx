@@ -45,7 +45,7 @@ export default function SchoolsPage() {
             View &amp; subscribe
           </Link>
 
-          <details className="schoolListDetails">
+          <details className="schoolListDetails" style={{ marginTop: 16 }}>
             <summary className="schoolListSummary">
               Covered schools ({SCHOOLS.length})
             </summary>
