@@ -1544,3 +1544,86 @@ a:focus, .btn:focus, button:focus{
     flex: 1;
   }
 }
+
+/* =========================
+   Calendar Page — New Classes
+   (append to bottom of globals.css)
+========================= */
+
+/* ── Inline month label (replaces eventsMonthHeader) ── */
+
+.eventsMonthInline{
+  font-family: var(--fontDisplay);
+  font-weight: 800;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin: 16px 0 4px;
+  padding-bottom: 4px;
+}
+
+.eventsMonthInline:first-child{
+  margin-top: 4px;
+}
+
+/* ── Event date column (weekday + date stacked) ── */
+
+.eventDateCol{
+  flex: 0 0 auto;
+  min-width: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.eventWeekday{
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.eventDate{
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* ── Between-cards Callie CTA ── */
+
+.callieCta{
+  text-align: center;
+  padding: 20px 0;
+}
+
+.callieCtaHeadline{
+  font-family: var(--fontDisplay);
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--text);
+  margin: 0 0 14px;
+}
+
+.callieCtaBtn{
+  min-width: 220px;
+}
+
+/* ── Mobile overrides ── */
+
+@media (max-width: 768px){
+  .eventDateCol{
+    min-width: 52px;
+  }
+
+  .eventDate{
+    font-size: 0.85rem;
+  }
+
+  .callieCtaBtn{
+    width: 100%;
+  }
+}
