@@ -497,9 +497,11 @@ a:focus, .btn:focus, button:focus{
 }
 
 .calSubscribeIntro{
-  font-weight: 700;
+  font-family: var(--fontDisplay);
+  font-weight: 900;
+  font-size: 1.2rem;
+  letter-spacing: -0.3px;
   margin: 0 0 16px;
-  font-size: 1rem;
   color: var(--text);
 }
 
