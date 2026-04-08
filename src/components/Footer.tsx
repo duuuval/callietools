@@ -12,7 +12,12 @@ export function Footer() {
       <div className="container footerInner">
         <div className="footerRow">
           <div className="footerLeft">
-            <div className="footerBrand">Callie</div>
+            <img
+              src="/callie-name.png"
+              alt="Callie"
+              height={28}
+              style={{ height: "28px", width: "auto", display: "block", marginBottom: "4px" }}
+            />
             <div className="footerMini">
               Your events, on everyone&apos;s phone<span style={{ color: "var(--accent)" }}>.</span>
             </div>
