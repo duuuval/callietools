@@ -14,7 +14,7 @@ export function Footer() {
           <div className="footerLeft">
             <div className="footerBrand">Callie</div>
             <div className="footerMini">
-              Your events, on everyone&apos;s phone
+              Your events, on everyone&apos;s phone<span style={{ color: "var(--accent)" }}>.</span>
             </div>
           </div>
           <a className="footerLink" href="mailto:hello@callietools.com">
