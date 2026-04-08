@@ -12,11 +12,24 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cal = await getCalendar(params.id);
+  const name = cal?.name || "Calendar";
+  const description = cal
+    ? `Subscribe to ${name}. Every update shows up on your phone automatically. No app needed.`
+    : "Calendar not found";
+
   return {
-    title: cal?.name || "Calendar",
-    description: cal
-      ? `Subscribe to "${cal.name}" — events sync to your phone automatically.`
-      : "Calendar not found",
+    title: name,
+    description,
+    openGraph: {
+      title: `${name} — Callie`,
+      description,
+      images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${name} — Callie`,
+      images: ["/og-image.png"],
+    },
   };
 }
 
