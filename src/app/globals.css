@@ -468,7 +468,7 @@ a:focus, .btn:focus, button:focus{
 }
 
 .footerUpgrade a{
-  color: var(--primary);
+  color: var(--accent);
   font-weight: 600;
 }
 
