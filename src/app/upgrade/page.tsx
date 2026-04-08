@@ -1,11 +1,35 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Image as ImageIcon, Palette, SunMoon, ArrowLeftRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Upgrade Your Calendar",
   description:
     "Add your logo, colors, and branding to your Callie calendar page. $10/month.",
 };
+
+const features = [
+  {
+    icon: <ImageIcon size={22} strokeWidth={1.75} />,
+    title: "Your logo",
+    body: "Your logo at the top of the page instead of ours. Subscribers see your brand the moment they arrive.",
+  },
+  {
+    icon: <Palette size={22} strokeWidth={1.75} />,
+    title: "Your colors",
+    body: "Choose an accent color that matches your brand. Subscribe buttons, highlights, and links all update to match.",
+  },
+  {
+    icon: <SunMoon size={22} strokeWidth={1.75} />,
+    title: "Light or dark theme",
+    body: "Pick the look that fits your style. Dark for a bold, modern feel. Light for something clean and bright.",
+  },
+  {
+    icon: <ArrowLeftRight size={22} strokeWidth={1.75} />,
+    title: "We get out of the way",
+    body: "Your branding takes the lead. We step aside — no Callie nav, no busy footer. Small \u201cPowered by Callie\u201d credits in the header and footer, and the rest is yours.",
+  },
+];
 
 export default function UpgradePage() {
   return (
@@ -32,39 +56,15 @@ export default function UpgradePage() {
         <div className="upgradePaidLabel">$10/mo adds:</div>
 
         <div className="upgradeGrid">
-          <div className="upgradeCard">
-            <span className="upgradeCardIcon" aria-hidden="true">🎨</span>
-            <h3>Your colors</h3>
-            <p>
-              Choose an accent color that matches your brand.
-              Subscribe buttons, highlights, and links all update
-              to match.
-            </p>
-          </div>
-          <div className="upgradeCard">
-            <span className="upgradeCardIcon" aria-hidden="true">🏷️</span>
-            <h3>Your logo</h3>
-            <p>
-              Your logo at the top of your calendar page instead
-              of Callie branding. Your group sees your brand, not ours.
-            </p>
-          </div>
-          <div className="upgradeCard">
-            <span className="upgradeCardIcon" aria-hidden="true">🌗</span>
-            <h3>Light or dark theme</h3>
-            <p>
-              Pick the look that fits your style. Dark for a bold,
-              modern feel. Light for something clean and bright.
-            </p>
-          </div>
-          <div className="upgradeCard">
-            <span className="upgradeCardIcon" aria-hidden="true">✨</span>
-            <h3>Clean footer</h3>
-            <p>
-              Callie branding steps back to a small &ldquo;Powered
-              by&rdquo; credit. The rest of the page is all you.
-            </p>
-          </div>
+          {features.map((f) => (
+            <div className="upgradeCard" key={f.title}>
+              <span className="upgradeCardIcon" aria-hidden="true">
+                {f.icon}
+              </span>
+              <h3>{f.title}</h3>
+              <p>{f.body}</p>
+            </div>
+          ))}
         </div>
 
         <div className="upgradePrice">
@@ -87,9 +87,8 @@ export default function UpgradePage() {
 
         <div className="upgradeAlready">
           <p>
-            Already have a Callie calendar and want to add
-            your branding? Email us your calendar name and
-            we&apos;ll get you set up.
+            Already have a Callie calendar and want to add your branding?
+            Email us your calendar name and we&apos;ll get you set up.
           </p>
           <a href="mailto:hello@callietools.com?subject=Upgrade%20my%20calendar">
             hello@callietools.com
