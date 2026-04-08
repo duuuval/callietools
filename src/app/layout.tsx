@@ -23,14 +23,14 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
   themeColor: "#D4775B",
   openGraph: {
-    title: "Callie — Your events, on everyone's phone",
+    title: "Callie — Your events, on everyone's phone.",
     description:
       "Create a free calendar page your people can subscribe to. Every update shows up automatically.",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Callie — Your events, on everyone's phone",
+    title: "Callie — Your events, on everyone's phone.",
     images: ["/og-image.png"],
   },
 };
