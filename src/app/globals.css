@@ -1129,9 +1129,9 @@ a:focus, .btn:focus, button:focus{
 }
 
 .compareColRight{
-  background: var(--primarySoft);
+  background: var(--accentSoft);
   border-radius: 8px 8px 0 0;
-  color: var(--primary);
+  color: var(--accent);
 }
 
 .compareRow{
@@ -1159,8 +1159,8 @@ a:focus, .btn:focus, button:focus{
 }
 
 .compareRowFinal .compareCellRight{
-  background: var(--primarySoft);
-  color: var(--primary);
+  background: var(--accentSoft);
+  color: var(--accent);
   border-radius: 0 0 8px 0;
 }
 
