@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     template: "%s — Callie",
   },
   description:
-    "Create a free subscribable calendar for your group. Events sync to their phone automatically. No app, no login.",
+    "Create a free calendar page your people can add to their phone. You update it once — everyone sees it automatically. No app needed.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://callietools.com"
   ),
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Callie — Your events, on everyone's phone",
     description:
-      "Create a free subscribable calendar for your group. Events sync to their phone automatically.",
+      "Create a free calendar page your people can add to their phone. Every update shows up automatically.",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
