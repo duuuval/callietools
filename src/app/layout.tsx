@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
-  themeColor: "#a17ef9",
+  themeColor: "#D4775B",
   openGraph: {
     title: "Callie — Your events, on everyone's phone",
     description:
