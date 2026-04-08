@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: {
@@ -41,10 +40,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const headersList = headers();
-  const pathname = headersList.get("x-invoke-path") || "";
-  const hideFooter = pathname === "/upgrade";
-
+  
   return (
     <html lang="en">
       <head>
@@ -62,7 +58,7 @@ export default function RootLayout({
       <body>
         <Header />
         <main className="main">{children}</main>
-        {!hideFooter && <Footer />}
+        <Footer />
       </body>
     </html>
   );
