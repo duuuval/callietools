@@ -17,7 +17,7 @@
   --guideSoft: rgba(85, 60, 169, 0.22);
 
   /* Typography */
-  --fontDisplay: "Outfit", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --fontDisplay: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   --fontBody: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 
   /* Layout */
