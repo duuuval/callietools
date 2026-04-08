@@ -30,10 +30,12 @@ export function Header() {
       <header className="siteHeader">
         <div className="container headerInner">
           <Link className="brand" href="/">
-            <span className="brandMark" aria-hidden="true">
-              ✨
-            </span>
-            <span className="brandName">Callie</span>
+            <img
+              src="/callie-logo.png"
+              alt="Callie"
+              height={40}
+              style={{ display: "block" }}
+            />
           </Link>
 
           <button
