@@ -230,13 +230,13 @@ a:focus, .btn:focus, button:focus{
 
 .btnSecondary{
   background: #fff;
-  color: var(--accent);
+  color: var(--primary);
   border-color: var(--border);
 }
 .btnSecondary:hover{
-  background: var(--accentSoft);
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--primarySoft);
+  border-color: var(--primary);
+  color: var(--primary);
   transform: translateY(-1px);
 }
 
