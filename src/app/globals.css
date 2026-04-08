@@ -230,13 +230,13 @@ a:focus, .btn:focus, button:focus{
 
 .btnSecondary{
   background: #fff;
-  color: var(--primary);
+  color: var(--accent);
   border-color: var(--border);
 }
 .btnSecondary:hover{
-  background: var(--primarySoft);
-  border-color: var(--primary);
-  color: var(--primary);
+  background: var(--accentSoft);
+  border-color: var(--accent);
+  color: var(--accent);
   transform: translateY(-1px);
 }
 
@@ -664,7 +664,7 @@ a:focus, .btn:focus, button:focus{
 
 .calFooterCta a{
   font-weight: 700;
-  color: var(--primary);
+  color: var(--accent);
 }
 
 .calFooterUpgrade{
