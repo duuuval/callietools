@@ -10,11 +10,11 @@
   --primaryHover: #3E57C4;   /* hover state */
   --primarySoft: rgba(79, 107, 237, 0.14);
 
-  --accent: #F2C94C;         /* links, highlights */
-  --accentSoft: rgba(242, 201, 76, 0.25);
+  --accent: #D4775B;           /* coral — links, highlights (was gold #F2C94C) */
+  --accentSoft: rgba(212, 119, 91, 0.25);
 
-  --guide: #553ca9;          /* hat shadow purple */
-  --guideSoft: rgba(85, 60, 169, 0.22);
+  --guide: #D4775B;            /* coral — hero highlights, "by Callie" (was purple #553CA9) */
+  --guideSoft: rgba(212, 119, 91, 0.22);
 
   /* Typography */
   --fontDisplay: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
