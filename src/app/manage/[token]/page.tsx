@@ -88,25 +88,31 @@ export default function ManagePage({
         setCalendar(data.calendar);
         setEvents(
           data.events.length > 0
-            ? data.events.map(
-                (e: {
-                  title: string;
-                  start_date: string;
-                  start_time: string;
-                  end_time: string;
-                  location: string;
-                  description: string;
-                }) => ({
-                  id: crypto.randomUUID(),
-                  title: e.title,
-                  start_date: e.start_date,
-                  start_time: e.start_time || "",
-                  end_time: e.end_time || "",
-                  location: e.location || "",
-                  description: e.description || "",
-                  showDetails: !!(e.location || e.description),
+            ? data.events
+                .map(
+                  (e: {
+                    title: string;
+                    start_date: string;
+                    start_time: string;
+                    end_time: string;
+                    location: string;
+                    description: string;
+                  }) => ({
+                    id: crypto.randomUUID(),
+                    title: e.title,
+                    start_date: e.start_date,
+                    start_time: e.start_time || "",
+                    end_time: e.end_time || "",
+                    location: e.location || "",
+                    description: e.description || "",
+                    showDetails: !!(e.location || e.description),
+                  })
+                )
+                .sort((a: EventRow, b: EventRow) => {
+                  if (!a.start_date) return 1;
+                  if (!b.start_date) return -1;
+                  return a.start_date.localeCompare(b.start_date);
                 })
-              )
             : [makeEmptyEvent()]
         );
       } catch {
