@@ -55,7 +55,7 @@ export async function sendManageLink({
 
         <p style="font-size: 12px; color: #999;">
           You're receiving this because you created a calendar at callietools.com.
-          Questions? Reply to this email or reach us at hello@callietools.com.
+          Questions? Reach us at hello@callietools.com.
         </p>
       </div>
     `,
