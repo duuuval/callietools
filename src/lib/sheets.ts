@@ -180,6 +180,15 @@ export async function getEvents(calendarId: string): Promise<CalendarEvent[]> {
   return all.filter((e) => e.calendar_id === calendarId);
 }
 
+/**
+ * Look up a calendar by its manage token.
+ * Used by the manage page to authenticate the token from the URL.
+ */
+export async function getCalendarByToken(token: string): Promise<CalendarMeta | null> {
+  const all = await fetchAllCalendars();
+  return all.find((c) => c.manage_token === token) || null;
+}
+
 // ─── Public API (writes) ─────────────────────────────────────
 
 /**
@@ -290,6 +299,75 @@ export async function appendEvents(
 
   // Bust cache so events show up immediately
   clearCache();
+}
+
+/**
+ * Replace all events for a calendar.
+ * Finds and clears existing rows for this calendar_id, then appends the new set.
+ * v1 strategy: replace-all on save. Simple and safe at current scale.
+ */
+export async function updateEvents(
+  calendarId: string,
+  events: Omit<CalendarEvent, "calendar_id">[]
+): Promise<void> {
+  const sheets = getWriteSheets();
+  const sheetName = process.env.EVENTS_SHEET_NAME || "Events";
+  const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID!;
+
+  // 1. Fetch all rows (including header) to find which rows belong to this calendar
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${sheetName}!A:H`,
+  });
+
+  const rows = res.data.values || [];
+  // rows[0] is the header; data starts at rows[1] (sheet row 2)
+
+  // Find row indices (1-based sheet rows) that match this calendarId
+  const rowsToDelete: number[] = [];
+  for (let i = 1; i < rows.length; i++) {
+    if ((rows[i][0] || "").trim() === calendarId) {
+      rowsToDelete.push(i + 1); // +1 because sheet rows are 1-indexed
+    }
+  }
+
+  // 2. Clear matched rows by overwriting with empty strings
+  // We do this in a single batchUpdate using clear requests
+  if (rowsToDelete.length > 0) {
+    // Get the sheet ID for the Events sheet
+    const meta = await sheets.spreadsheets.get({ spreadsheetId });
+    const sheet = meta.data.sheets?.find(
+      (s) => s.properties?.title === sheetName
+    );
+    const sheetId = sheet?.properties?.sheetId ?? 0;
+
+    // Build delete requests — delete rows from bottom to top to preserve indices
+    const deleteRequests = [...rowsToDelete]
+      .sort((a, b) => b - a) // descending
+      .map((rowNum) => ({
+        deleteDimension: {
+          range: {
+            sheetId,
+            dimension: "ROWS",
+            startIndex: rowNum - 1, // 0-indexed
+            endIndex: rowNum,       // exclusive
+          },
+        },
+      }));
+
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: { requests: deleteRequests },
+    });
+  }
+
+  // 3. Append new events (if any)
+  if (events.length > 0) {
+    await appendEvents(calendarId, events);
+  } else {
+    // No new events — just bust cache
+    clearCache();
+  }
 }
 
 // ─── Mock data (used when Google credentials aren't set) ─────
