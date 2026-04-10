@@ -58,6 +58,17 @@ export default function ManagePage({
   const [submitting, setSubmitting] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+
+  // ── Warn on unsaved changes ────────────────────────────────
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
 
   // ── Load calendar + events on mount ───────────────────────
 
@@ -114,6 +125,7 @@ export default function ManagePage({
       setEvents((prev) =>
         prev.map((e) => (e.id === id ? { ...e, [field]: value } : e))
       );
+      setIsDirty(true);
     },
     []
   );
@@ -123,10 +135,12 @@ export default function ManagePage({
       const next = prev.filter((e) => e.id !== id);
       return next.length > 0 ? next : [makeEmptyEvent()];
     });
+    setIsDirty(true);
   }, []);
 
   const addEvent = useCallback(() => {
     setEvents((prev) => [...prev, makeEmptyEvent()]);
+    setIsDirty(true);
   }, []);
 
   // ── Save ──────────────────────────────────────────────────
@@ -170,6 +184,7 @@ export default function ManagePage({
         );
       }
 
+      setIsDirty(false);
       setSaveSuccess(true);
       // Clear success message after 4 seconds
       setTimeout(() => setSaveSuccess(false), 4000);
