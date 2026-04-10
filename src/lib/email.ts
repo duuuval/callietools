@@ -2,6 +2,7 @@
 // Thin Resend wrapper — transactional email for Callie
 // Sends from noreply@callietools.com
 
+
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_KEY_CALLIE);
