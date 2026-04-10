@@ -1,9 +1,11 @@
+// src/app/api/calendar/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import {
   findUniqueSlug,
   createCalendar,
   appendEvents,
 } from "@/lib/sheets";
+import { sendManageLink } from "@/lib/email";
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -112,7 +114,7 @@ export async function POST(req: NextRequest) {
       email,
     });
 
-    // Write events — map to concrete strings for type safety
+    // Write events
     await appendEvents(
       slug,
       events.map((e) => ({
@@ -126,28 +128,24 @@ export async function POST(req: NextRequest) {
       }))
     );
 
-    // TODO: Send manage link email via Resend
-    // When you're ready to wire this up:
-    //
-    // import { Resend } from 'resend';
-    // const resend = new Resend(process.env.RESEND_API_KEY);
-    // await resend.emails.send({
-    //   from: 'Callie <hello@callietools.com>',
-    //   to: email,
-    //   subject: `Your manage link for "${name}"`,
-    //   html: `
-    //     <p>Your calendar is live at <a href="https://callietools.com/${slug}">callietools.com/${slug}</a></p>
-    //     <p>Manage your events here: <a href="https://callietools.com/manage/${manage_token}">Manage Calendar</a></p>
-    //     <p>Bookmark this link — it's your private way to add, edit, or remove events.</p>
-    //   `,
-    // });
+    // Build URLs
+    const calendarUrl = `https://callietools.com/${slug}`;
+    const manageUrl = `https://callietools.com/manage/${manage_token}`;
+
+    // Send manage link email — non-blocking: calendar is already written,
+    // don't fail the whole request if email has a transient error.
+    try {
+      await sendManageLink({ to: email, calendarName: name, calendarUrl, manageUrl });
+    } catch (emailErr) {
+      console.error("Resend error (non-fatal):", emailErr);
+    }
 
     return NextResponse.json(
       {
         slug,
         manage_token,
-        url: `https://callietools.com/${slug}`,
-        manage_url: `https://callietools.com/manage/${manage_token}`,
+        url: calendarUrl,
+        manage_url: manageUrl,
       },
       { status: 201 }
     );
