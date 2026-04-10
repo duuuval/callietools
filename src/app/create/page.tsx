@@ -63,13 +63,27 @@ export default function CreatePage() {
   // ── Event row helpers ──────────────────────────────────────
 
   const updateEvent = useCallback(
-    (id: string, field: keyof EventRow, value: string | boolean) => {
-      setEvents((prev) =>
-        prev.map((e) => (e.id === id ? { ...e, [field]: value } : e))
+  (id: string, field: keyof EventRow, value: string | boolean) => {
+    setEvents((prev) =>
+      prev.map((e) => {
+        if (e.id !== id) return e;
+        const updated = { ...e, [field]: value };
+
+        // Auto-set end time to +1 hour when start time changes
+        if (field === "start_time" && typeof value === "string" && value) {
+          if (!e.end_time) {
+            const [h, m] = value.split(":").map(Number);
+            const endH = (h + 1) % 24;
+            updated.end_time = `${String(endH).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+          }
+        }
+
+           return updated;
+          })
+         );
+        },
+       []
       );
-    },
-    []
-  );
 
   const removeEvent = useCallback((id: string) => {
     setEvents((prev) => {
@@ -285,20 +299,23 @@ export default function CreatePage() {
                   <input
                     type="time"
                     className="formInput"
+                    step="900"
                     value={ev.start_time}
                     onChange={(e) =>
-                      updateEvent(ev.id, "start_time", e.target.value)
+                     updateEvent(ev.id, "start_time", e.target.value)
                     }
                   />
+               
                 </div>
                 <div className="eventTimeField">
                   <label className="formLabelSmall">End</label>
                   <input
                     type="time"
                     className="formInput"
+                    step="900"
                     value={ev.end_time}
                     onChange={(e) =>
-                      updateEvent(ev.id, "end_time", e.target.value)
+                     updateEvent(ev.id, "end_time", e.target.value)
                     }
                   />
                 </div>
