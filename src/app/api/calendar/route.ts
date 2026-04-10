@@ -1,4 +1,3 @@
-// src/app/api/calendar/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import {
   findUniqueSlug,
