@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getCalendar, getEvents } from "@/lib/sheets";
 import type { CalendarEvent } from "@/lib/sheets";
 import { CalendarClient } from "./CalendarClient";
+export const revalidate = 0;
 
 const EVENTS_PREVIEW_COUNT = 5;
 
