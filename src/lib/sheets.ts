@@ -36,7 +36,7 @@ export interface CalendarEvent {
 
 // ─── In-memory cache ─────────────────────────────────────────
 
-const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+const CACHE_TTL = 0; // turned off
 
 interface CacheEntry<T> {
   data: T;
