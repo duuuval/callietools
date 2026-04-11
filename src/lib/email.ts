@@ -111,3 +111,56 @@ export async function sendRecoveryEmail({
     `,
   });
 }
+
+// ─── Send /my-calendars magic link email ─────────────────────
+
+export async function sendMyCalendarsEmail(
+  email: string,
+  dashboardToken: string,
+  calendars: Array<{ name: string; manage_token: string; slug: string }>
+): Promise<void> {
+  const dashboardUrl = `https://callietools.com/my-calendars/${dashboardToken}`;
+
+  const calendarLinks = calendars
+    .map(
+      (c) =>
+        `<li style="margin-bottom: 8px;">
+          <a href="https://callietools.com/${c.slug}" style="color: #4F6BED; font-weight: 600;">${c.name}</a>
+          &mdash; <a href="https://callietools.com/manage/${c.manage_token}" style="color: #4F6BED;">Manage</a>
+        </li>`
+    )
+    .join("");
+
+  await resend.emails.send({
+    from: "Callie <noreply@callietools.com>",
+    to: email,
+    subject: "Your Callie calendars",
+    html: `
+      <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #1a1a1a;">
+        <p>Hey &mdash;</p>
+        <p>Here's a link to view and manage all your calendars:</p>
+        <p style="text-align: center; margin: 24px 0;">
+          <a href="${dashboardUrl}"
+             style="display: inline-block; padding: 14px 28px; background: #4F6BED; color: #fff; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 16px;">
+            View My Calendars
+          </a>
+        </p>
+        <p style="font-size: 13px; color: #666;">
+          This link expires in 30 minutes. You can always request a new one
+          at <a href="https://callietools.com/my-calendars" style="color: #4F6BED;">callietools.com/my-calendars</a>.
+        </p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
+        <p><strong>Your calendars:</strong></p>
+        <ul style="padding-left: 0; list-style: none; margin-bottom: 16px;">${calendarLinks}</ul>
+        <p style="font-size: 13px; color: #666; margin-bottom: 32px;">
+          Each manage link is permanent &mdash; bookmark any of them for quick access.
+        </p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
+        <p style="font-size: 12px; color: #999;">
+          You're receiving this because someone requested calendar access for this email
+          at callietools.com. If that wasn't you, you can safely ignore this email.
+        </p>
+      </div>
+    `,
+  });
+}
