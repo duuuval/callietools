@@ -63,6 +63,13 @@ export function Header() {
               School Calendars
             </Link>
             <Link
+              className="navLink"
+              href="/my-calendars"
+              onClick={() => setOpen(false)}
+            >
+              My Calendars
+            </Link>
+            <Link
               className="navLink navLinkPrimary"
               href="/create"
               onClick={() => setOpen(false)}
