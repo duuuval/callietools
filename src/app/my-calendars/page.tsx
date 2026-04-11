@@ -26,49 +26,52 @@ export default function MyCalendarsPage() {
   }
 
   return (
-    <main className="formPage">
-      <div className="formCard">
-        <h1 className="formTitle">My Calendars</h1>
-        <p className="formSubtitle">
-          Enter your email and we&rsquo;ll send a link to access all your calendars.
-        </p>
+    <main className="main">
+      <div className="container" style={{ maxWidth: 480 }}>
+        <div className="card">
+          <h1 className="createHeader">My Calendars</h1>
+          <p className="createSubhead">
+            Enter your email and we&rsquo;ll send a link to access all your calendars.
+          </p>
 
-        {!submitted ? (
-          <form onSubmit={handleSubmit}>
-            <label className="fieldLabel" htmlFor="email">
-              Your email
-            </label>
-            <input
-              id="email"
-              className="fieldInput"
-              type="email"
-              required
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-            />
-            <p className="fieldHelper">
-              The email you used when creating your calendars.
-            </p>
+          {!submitted ? (
+            <form onSubmit={handleSubmit} style={{ marginTop: 20 }}>
+              <div className="formGroup">
+                <label className="formLabel" htmlFor="email">
+                  Your email
+                </label>
+                <input
+                  id="email"
+                  className="formInput"
+                  type="email"
+                  required
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                />
+                <p className="formHelper">
+                  The email you used when creating your calendars.
+                </p>
+              </div>
 
-            <button
-              className="btnPrimary"
-              type="submit"
-              disabled={sending}
-              style={{ width: "100%", marginTop: 16 }}
-            >
-              {sending ? "Sending…" : "Send my link"}
-            </button>
-          </form>
-        ) : (
-          <div className="confirmationBox">
-            <p>
-              If that email has calendars associated with it, we sent you a link.
-              Check your inbox.
-            </p>
-          </div>
-        )}
+              <button
+                className="btn btnPrimary createSubmit"
+                type="submit"
+                disabled={sending}
+              >
+                {sending ? "Sending…" : "Send my link"}
+              </button>
+            </form>
+          ) : (
+            <div className="successLinkBox" style={{ marginTop: 20 }}>
+              <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.5 }}>
+                If that email has calendars associated with it, we sent you a link.
+                Check your inbox.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
