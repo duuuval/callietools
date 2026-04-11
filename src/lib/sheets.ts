@@ -370,6 +370,67 @@ export async function updateEvents(
   }
 }
 
+// ─── /my-calendars — Dashboard tokens ────────────────────────
+
+/**
+ * Create a time-limited dashboard token for the /my-calendars magic link.
+ * Writes a row to the DashboardTokens sheet tab.
+ */
+export async function createDashboardToken(email: string): Promise<string> {
+  const token = randomUUID();
+  const now = new Date().toISOString();
+  const sheets = getWriteSheets();
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID!,
+    range: "DashboardTokens!A:C",
+    valueInputOption: "RAW",
+    requestBody: {
+      values: [[token, email.toLowerCase().trim(), now]],
+    },
+  });
+
+  return token;
+}
+
+/**
+ * Validate a dashboard token. Returns the associated email if the token
+ * exists and was created within the last 30 minutes. Returns null otherwise.
+ */
+export async function validateDashboardToken(
+  token: string
+): Promise<{ email: string } | null> {
+  const sheets = getSheets();
+
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID!,
+    range: "DashboardTokens!A:C",
+  });
+
+  const rows = res.data.values || [];
+  const match = rows.find((row) => row[0] === token);
+  if (!match) return null;
+
+  const createdAt = new Date(match[2]).getTime();
+  const thirtyMinutes = 30 * 60 * 1000;
+  if (Date.now() - createdAt > thirtyMinutes) return null;
+
+  return { email: match[1] };
+}
+
+/**
+ * Get all calendars associated with an email address.
+ * Thin filter over the cached fetchAllCalendars() call.
+ */
+export async function getCalendarsByEmail(
+  email: string
+): Promise<CalendarMeta[]> {
+  const all = await fetchAllCalendars();
+  return all.filter(
+    (c) => c.email?.toLowerCase().trim() === email.toLowerCase().trim()
+  );
+}
+
 // ─── Mock data (used when Google credentials aren't set) ─────
 
 const MOCK_CALENDARS: CalendarMeta[] = [
