@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         model: OPENAI_MODEL,
-        max_tokens: 2000,
+        max_tokens: 4000,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userContent },
