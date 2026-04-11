@@ -13,6 +13,7 @@ function buildSystemPrompt(req: NextRequest) {
 
 Rules:
 - Split multi-session events into separate event objects
+- When an event is described as recurring on a specific day of the week (e.g. "Mondays", "every Wednesday", "Fridays, Saturdays, Sundays") within a named month, expand it into separate events for each occurrence in that month. Set confidence to "medium" on expanded instances.
 - Use YYYY-MM-DD for all dates
 - Use HH:MM (24-hour) for all times, or null if no time is given
 - Set all_day to true only if there is genuinely no time component
