@@ -1481,3 +1481,18 @@ a:focus, .btn:focus, button:focus{
   .eventTimeRow{ flex-direction: column; gap: 8px; }
   .eventDateField{ flex: 1; }
 }
+
+.flyerUpload{
+  margin: 4px 0;
+  padding: 28px 20px;
+  border: 2px dashed var(--border);
+  border-radius: 16px;
+  background: #fafafa;
+  text-align: center;
+  cursor: pointer;
+}
+
+.flyerUploadDragOver{
+  border-color: var(--primary);
+  background: var(--primarySoft);
+}
