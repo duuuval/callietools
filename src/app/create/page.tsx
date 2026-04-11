@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 // ─── Types ───────────────────────────────────────────────────
 
 interface EventRow {
-  id: string; // client-side key
+  id: string;
   title: string;
   start_date: string;
   start_time: string;
@@ -14,6 +14,7 @@ interface EventRow {
   location: string;
   description: string;
   showDetails: boolean;
+  confidence?: "high" | "medium" | "low"; // set on flyer-parsed rows
 }
 
 function makeEmptyEvent(): EventRow {
@@ -26,6 +27,28 @@ function makeEmptyEvent(): EventRow {
     location: "",
     description: "",
     showDetails: false,
+  };
+}
+
+function makeEventFromParse(raw: {
+  title: string;
+  start_date: string;
+  start_time: string | null;
+  end_time: string | null;
+  location: string | null;
+  description: string | null;
+  confidence: "high" | "medium" | "low";
+}): EventRow {
+  return {
+    id: crypto.randomUUID(),
+    title: raw.title ?? "",
+    start_date: raw.start_date ?? "",
+    start_time: raw.start_time ?? "",
+    end_time: raw.end_time ?? "",
+    location: raw.location ?? "",
+    description: raw.description ?? "",
+    showDetails: !!(raw.description),
+    confidence: raw.confidence,
   };
 }
 
@@ -46,6 +69,7 @@ function slugPreview(name: string): string {
 
 export default function CreatePage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [calendarName, setCalendarName] = useState("");
@@ -56,39 +80,133 @@ export default function CreatePage() {
     makeEmptyEvent(),
   ]);
 
+  // Flyer import state
+  const [parseStatus, setParseStatus] = useState<
+    "idle" | "parsing" | "success" | "error"
+  >("idle");
+  const [parseMessage, setParseMessage] = useState("");
+  const [parsedCount, setParsedCount] = useState(0);
+  const [dragOver, setDragOver] = useState(false);
+
   // UI state
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // ── Flyer import ───────────────────────────────────────────
+
+  const handleFile = useCallback(async (file: File) => {
+    if (parseStatus === "parsing") return; // prevent double-fire
+
+    setParseStatus("parsing");
+    setParseMessage("");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/parse-flyer", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setParseStatus("error");
+        setParseMessage(data.error || "We couldn't read that. Try a sharper image, or add events manually below.");
+        return;
+      }
+
+      const parsedEvents: EventRow[] = data.events.map(makeEventFromParse);
+
+      // Populate calendar name if field is empty and GPT inferred one
+      if (!calendarName.trim() && data.calendar_name) {
+        setCalendarName(data.calendar_name);
+      }
+
+      // Replace the default empty rows with parsed events
+      // Keep any rows the user has already filled in
+      setEvents((prev) => {
+        const userFilled = prev.filter(
+          (e) => e.title.trim() || e.start_date.trim()
+        );
+        return [...parsedEvents, ...userFilled];
+      });
+
+      setParsedCount(parsedEvents.length);
+      setParseStatus("success");
+      setParseMessage(
+        data.parse_notes
+          ? `We pulled ${parsedEvents.length} event${parsedEvents.length !== 1 ? "s" : ""} from your upload. Note: ${data.parse_notes}`
+          : `We pulled ${parsedEvents.length} event${parsedEvents.length !== 1 ? "s" : ""} from your upload — review and confirm below.`
+      );
+    } catch {
+      setParseStatus("error");
+      setParseMessage("Something went wrong. Try again or add events manually below.");
+    }
+  }, [parseStatus, calendarName]);
+
+  const handleFileInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) handleFile(file);
+      // Reset input so the same file can be re-uploaded if needed
+      e.target.value = "";
+    },
+    [handleFile]
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragOver(false);
+      const file = e.dataTransfer.files?.[0];
+      if (file) handleFile(file);
+    },
+    [handleFile]
+  );
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setDragOver(false);
+  }, []);
+
+  const triggerFilePicker = useCallback(() => {
+    if (parseStatus === "parsing") return;
+    fileInputRef.current?.click();
+  }, [parseStatus]);
+
   // ── Event row helpers ──────────────────────────────────────
 
   const updateEvent = useCallback(
-  (id: string, field: keyof EventRow, value: string | boolean) => {
-    setEvents((prev) =>
-      prev.map((e) => {
-        if (e.id !== id) return e;
-        const updated = { ...e, [field]: value };
+    (id: string, field: keyof EventRow, value: string | boolean) => {
+      setEvents((prev) =>
+        prev.map((e) => {
+          if (e.id !== id) return e;
+          const updated = { ...e, [field]: value };
 
-        // Auto-set end time to +1 hour when start time changes
-        if (field === "start_time" && typeof value === "string" && value) {
-          if (!e.end_time) {
-            const [h, m] = value.split(":").map(Number);
-            const endH = (h + 1) % 24;
-            updated.end_time = `${String(endH).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+          if (field === "start_time" && typeof value === "string" && value) {
+            if (!e.end_time) {
+              const [h, m] = value.split(":").map(Number);
+              const endH = (h + 1) % 24;
+              updated.end_time = `${String(endH).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+            }
           }
-        }
 
-           return updated;
-          })
-         );
-        },
-       []
+          return updated;
+        })
       );
+    },
+    []
+  );
 
   const removeEvent = useCallback((id: string) => {
     setEvents((prev) => {
       const next = prev.filter((e) => e.id !== id);
-      // Always keep at least 1 row
       return next.length > 0 ? next : [makeEmptyEvent()];
     });
   }, []);
@@ -102,7 +220,6 @@ export default function CreatePage() {
   const handleSubmit = async () => {
     setError("");
 
-    // Client-side validation
     const name = calendarName.trim();
     if (!name) {
       setError("Give your calendar a name.");
@@ -115,7 +232,6 @@ export default function CreatePage() {
       return;
     }
 
-    // Filter to events that have at least a title and date
     const validEvents = events.filter(
       (e) => e.title.trim() && e.start_date.trim()
     );
@@ -137,7 +253,7 @@ export default function CreatePage() {
             title: e.title.trim(),
             start_date: e.start_date,
             start_time: e.start_time || "",
-            end_date: e.start_date, // v1: single-day events
+            end_date: e.start_date,
             end_time: e.end_time || "",
             location: e.location.trim(),
             description: e.description.trim(),
@@ -154,11 +270,9 @@ export default function CreatePage() {
 
       const data = await res.json();
 
-      // Redirect to confirmation page
       router.push(
         `/create/success?slug=${encodeURIComponent(data.slug)}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(trimmedEmail)}&token=${encodeURIComponent(data.manage_token)}`
       );
-
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Something went wrong. Please try again."
@@ -183,20 +297,82 @@ export default function CreatePage() {
 
         <div className="divider" />
 
-        {/* ── Flyer import (UI shell — not yet active) ── */}
-        <div className="flyerUpload">
+        {/* ── Flyer import ──────────────────────────────── */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,application/pdf"
+          style={{ display: "none" }}
+          onChange={handleFileInput}
+        />
+
+        <div
+          className={`flyerUpload${dragOver ? " flyerUploadDragOver" : ""}`}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onClick={triggerFilePicker}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === "Enter" && triggerFilePicker()}
+          style={{ cursor: parseStatus === "parsing" ? "wait" : "pointer" }}
+        >
           <div className="flyerUploadInner">
             <div className="flyerIcon" aria-hidden="true">
-              📄
+              {parseStatus === "parsing" ? "⏳" : parseStatus === "success" ? "✅" : "📄"}
             </div>
-            <p className="flyerHeadline">
-              Got a flyer or schedule? Upload it and Callie will pull your events
-              out.
-            </p>
-            <p className="flyerFormats">JPEG, PNG, or PDF</p>
-            <button type="button" className="btn btnSecondary" disabled>
-              Coming soon
-            </button>
+
+            {parseStatus === "idle" && (
+              <>
+                <p className="flyerHeadline">
+                  Got a flyer or schedule? Upload it and Callie will pull your
+                  events out.
+                </p>
+                <p className="flyerFormats">JPEG, PNG, or PDF</p>
+                <button
+                  type="button"
+                  className="btn btnSecondary"
+                  onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}
+                >
+                  Upload flyer
+                </button>
+              </>
+            )}
+
+            {parseStatus === "parsing" && (
+              <>
+                <p className="flyerHeadline">Reading your flyer…</p>
+                <p className="flyerFormats">This usually takes a few seconds.</p>
+              </>
+            )}
+
+            {parseStatus === "success" && (
+              <>
+                <p className="flyerHeadline">{parseMessage}</p>
+                <button
+                  type="button"
+                  className="btn btnSecondary"
+                  onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}
+                >
+                  Upload a different flyer
+                </button>
+              </>
+            )}
+
+            {parseStatus === "error" && (
+              <>
+                <p className="flyerHeadline" style={{ color: "var(--color-error, #c0392b)" }}>
+                  {parseMessage}
+                </p>
+                <button
+                  type="button"
+                  className="btn btnSecondary"
+                  onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}
+                >
+                  Try again
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -255,10 +431,20 @@ export default function CreatePage() {
         <div className="formGroup">
           <label className="formLabel">Events</label>
 
+          {parsedCount > 0 && parseStatus === "success" && (
+            <p className="flyerFormats" style={{ marginBottom: 12 }}>
+              Events marked with ⚠️ had lower confidence — double-check those before submitting.
+            </p>
+          )}
+
           {events.map((ev, idx) => (
             <div key={ev.id} className="eventCard">
               <div className="eventCardHeader">
-                <span className="eventCardNum">{idx + 1}</span>
+                <span className="eventCardNum">
+                  {idx + 1}
+                  {ev.confidence === "low" && " ⚠️"}
+                  {ev.confidence === "medium" && " ·"}
+                </span>
                 {events.length > 1 && (
                   <button
                     type="button"
@@ -302,10 +488,9 @@ export default function CreatePage() {
                     step="900"
                     value={ev.start_time}
                     onChange={(e) =>
-                     updateEvent(ev.id, "start_time", e.target.value)
+                      updateEvent(ev.id, "start_time", e.target.value)
                     }
                   />
-               
                 </div>
                 <div className="eventTimeField">
                   <label className="formLabelSmall">End</label>
@@ -315,7 +500,7 @@ export default function CreatePage() {
                     step="900"
                     value={ev.end_time}
                     onChange={(e) =>
-                     updateEvent(ev.id, "end_time", e.target.value)
+                      updateEvent(ev.id, "end_time", e.target.value)
                     }
                   />
                 </div>
@@ -356,11 +541,7 @@ export default function CreatePage() {
             </div>
           ))}
 
-          <button
-            type="button"
-            className="addEventLink"
-            onClick={addEvent}
-          >
+          <button type="button" className="addEventLink" onClick={addEvent}>
             + Add event
           </button>
         </div>
@@ -383,7 +564,7 @@ export default function CreatePage() {
         >
           {submitting ? "Creating…" : "Create my calendar"}
         </button>
-      </div>      
+      </div>
     </div>
   );
 }
