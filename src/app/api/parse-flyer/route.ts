@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const OPENAI_MODEL = "gpt-4.1-mini"; // bump to "gpt-4.1" if parse quality is insufficient on real flyers
+const OPENAI_MODEL = "gpt-4.1-mini";
 
-const SYSTEM_PROMPT = `You are an event extraction assistant. The user will provide an image of a flyer, schedule, or calendar. Extract all events you can find and return them as structured JSON.
+function buildSystemPrompt(req: NextRequest) {
+  const tz = req.headers.get('x-vercel-ip-timezone') || 'America/New_York';
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+    timeZone: tz
+  });
+
+  return `You are an event extraction assistant. Today's date is ${today}. The user will provide an image of a flyer, schedule, or calendar. Extract all events you can find and return them as structured JSON.
 
 Rules:
 - Split multi-session events into separate event objects
@@ -35,6 +42,7 @@ Return ONLY valid JSON matching this exact schema, no markdown, no explanation:
   ],
   "parse_notes": "string or null"
 }`;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -118,7 +126,7 @@ export async function POST(req: NextRequest) {
         model: OPENAI_MODEL,
         max_tokens: 4000,
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: buildSystemPrompt(req) },
           { role: "user", content: userContent },
         ],
         response_format: { type: "json_object" },
