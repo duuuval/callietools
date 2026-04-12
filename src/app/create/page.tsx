@@ -160,9 +160,7 @@ export default function CreatePage() {
       setParsedCount(parsedEvents.length);
       setParseStatus("success");
       setParseMessage(
-        data.parse_notes
-          ? `We pulled ${parsedEvents.length} event${parsedEvents.length !== 1 ? "s" : ""} from your upload. Note: ${data.parse_notes}`
-          : `We pulled ${parsedEvents.length} event${parsedEvents.length !== 1 ? "s" : ""} from your upload — review and confirm below.`
+        `We pulled ${parsedEvents.length} event${parsedEvents.length !== 1 ? "s" : ""} from your upload — review and confirm below.`
       );
     } catch {
       setParseStatus("error");
