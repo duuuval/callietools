@@ -67,7 +67,7 @@ function slugPreview(name: string): string {
 
 // ─── PDF to image conversion ─────────────────────────────────
 
-async function pdfToImage(file: File, maxDimension = 1600, quality = 0.85): Promise<File> {
+async function pdfToImage(file: File, maxDimension = 3000, quality = 0.85): Promise<File> {
   const pdfjsLib = await import("pdfjs-dist");
   pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
