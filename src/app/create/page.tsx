@@ -65,11 +65,47 @@ function slugPreview(name: string): string {
   return slug || "your-calendar";
 }
 
+// ─── PDF to image conversion ─────────────────────────────────
+
+async function pdfToImage(file: File, maxDimension = 1600, quality = 0.85): Promise<File> {
+  const pdfjsLib = await import("pdfjs-dist");
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const page = await pdf.getPage(1);
+
+  // Scale to fit within maxDimension
+  const viewport = page.getViewport({ scale: 1 });
+  const scale = Math.min(1, maxDimension / Math.max(viewport.width, viewport.height));
+  const scaled = page.getViewport({ scale });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(scaled.width);
+  canvas.height = Math.round(scaled.height);
+
+  await page.render({
+    canvasContext: canvas.getContext("2d")!,
+    viewport: scaled,
+  }).promise;
+
+  return new Promise((resolve) => {
+    canvas.toBlob(
+      (blob) => resolve(blob
+        ? new File([blob], file.name.replace(/\.pdf$/i, ".jpg"), { type: "image/jpeg" })
+        : file),
+      "image/jpeg",
+      quality
+    );
+  });
+}
+
 // ─── Image compression ───────────────────────────────────────
 
 async function compressImage(file: File, maxDimension = 1600, quality = 0.85): Promise<File> {
-  // PDFs pass through — canvas can't compress them
-  if (file.type === "application/pdf") return file;
+  if (file.type === "application/pdf") {
+    return pdfToImage(file, maxDimension, quality);
+  }
 
   return new Promise((resolve) => {
     const img = new Image();
@@ -90,7 +126,6 @@ async function compressImage(file: File, maxDimension = 1600, quality = 0.85): P
     img.src = url;
   });
 }
-
 // ─── Component ───────────────────────────────────────────────
 
 export default function CreatePage() {
