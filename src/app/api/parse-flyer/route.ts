@@ -55,10 +55,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate file type
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: "Unsupported file type. Please upload a JPEG, PNG, or PDF." },
+        { error: "Unsupported file type. Please upload a JPEG, PNG, or WEBP image." },
         { status: 400 }
       );
     }
@@ -84,38 +84,19 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString("base64");
 
-    // PDFs: send as document, images: send as image_url
-    const isPdf = file.type === "application/pdf";
-
-    // Build the content block
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const userContent: any[] = isPdf
-      ? [
-          {
-            type: "text",
-            text: "Please extract all events from this schedule or flyer.",
-          },
-          {
-            type: "image_url",
-            image_url: {
-              url: `data:application/pdf;base64,${base64}`,
-              detail: "high",
-            },
-          },
-        ]
-      : [
-          {
-            type: "text",
-            text: "Please extract all events from this flyer or schedule.",
-          },
-          {
-            type: "image_url",
-            image_url: {
-              url: `data:${file.type};base64,${base64}`,
-              detail: "high",
-            },
-          },
-        ];
+    const userContent = [
+      {
+        type: "text",
+        text: "Please extract all events from this flyer or schedule.",
+      },
+      {
+        type: "image_url",
+        image_url: {
+          url: `data:${file.type};base64,${base64}`,
+          detail: "high",
+       },
+      },
+    ];
 
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
