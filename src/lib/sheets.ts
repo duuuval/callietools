@@ -21,6 +21,10 @@ export interface CalendarMeta {
   timezone: string;
   email?: string;
   manage_token?: string;
+  // Paid-tier branding fields (columns H, I, J)
+  accentColor?: string;  // e.g. "#D4775B" — applied to subscribe buttons
+  theme?: string;        // "light" | "dark"
+  websiteUrl?: string;   // OnDek "Visit Website" back-link
 }
 
 export interface CalendarEvent {
@@ -79,7 +83,6 @@ function getSheets() {
   const auth = new google.auth.GoogleAuth({
     credentials: {
       client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL!,
-      // Vercel stores the key with literal \n — convert to real newlines
       private_key: process.env.GOOGLE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
     },
     scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
@@ -113,13 +116,13 @@ async function fetchAllCalendars(): Promise<CalendarMeta[]> {
 
   const sheets = getSheets();
   const sheetName = process.env.CALENDARS_SHEET_NAME || "Calendars";
+  // Extended to A:J to include new branding columns H (accentColor), I (theme), J (websiteUrl)
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID!,
-    range: `${sheetName}!A:G`, // id, name, tier, last_updated, timezone, email, manage_token
+    range: `${sheetName}!A:J`,
   });
 
   const rows = res.data.values || [];
-  // Skip header row
   const calendars: CalendarMeta[] = rows.slice(1).map((row) => ({
     id: (row[0] || "").trim(),
     name: (row[1] || "").trim(),
@@ -128,6 +131,9 @@ async function fetchAllCalendars(): Promise<CalendarMeta[]> {
     timezone: (row[4] || "America/New_York").trim(),
     email: (row[5] || "").trim(),
     manage_token: (row[6] || "").trim(),
+    accentColor: (row[7] || "").trim() || undefined,
+    theme: (row[8] || "").trim() || undefined,
+    websiteUrl: (row[9] || "").trim() || undefined,
   }));
 
   setCache(cacheKey, calendars);
@@ -145,7 +151,7 @@ async function fetchAllEvents(): Promise<CalendarEvent[]> {
   const sheetName = process.env.EVENTS_SHEET_NAME || "Events";
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID!,
-    range: `${sheetName}!A:H`, // calendar_id, title, start_date, start_time, end_date, end_time, location, description
+    range: `${sheetName}!A:H`,
   });
 
   const rows = res.data.values || [];
@@ -180,10 +186,6 @@ export async function getEvents(calendarId: string): Promise<CalendarEvent[]> {
   return all.filter((e) => e.calendar_id === calendarId);
 }
 
-/**
- * Look up a calendar by its manage token.
- * Used by the manage page to authenticate the token from the URL.
- */
 export async function getCalendarByToken(token: string): Promise<CalendarMeta | null> {
   const all = await fetchAllCalendars();
   return all.find((c) => c.manage_token === token) || null;
@@ -191,23 +193,16 @@ export async function getCalendarByToken(token: string): Promise<CalendarMeta | 
 
 // ─── Public API (writes) ─────────────────────────────────────
 
-/**
- * Slugify a calendar name for use as the URL path.
- * e.g., "Crestwood Swim Team" → "crestwood-swim-team"
- */
 export function slugify(name: string): string {
   return name
     .toLowerCase()
     .trim()
-    .replace(/['']/g, "") // remove apostrophes
-    .replace(/[^a-z0-9]+/g, "-") // non-alphanum → hyphens
-    .replace(/^-+|-+$/g, "") // trim leading/trailing hyphens
-    .slice(0, 60); // cap length
+    .replace(/['']/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
 }
 
-/**
- * Find a unique slug, appending -2, -3, etc. on conflict.
- */
 export async function findUniqueSlug(name: string): Promise<string> {
   const base = slugify(name);
   if (!base) throw new Error("Calendar name produces empty slug");
@@ -215,21 +210,15 @@ export async function findUniqueSlug(name: string): Promise<string> {
   const existing = await getCalendar(base);
   if (!existing) return base;
 
-  // Try suffixes
   for (let i = 2; i <= 99; i++) {
     const candidate = `${base}-${i}`;
     const found = await getCalendar(candidate);
     if (!found) return candidate;
   }
 
-  // Fallback: append random chars
   return `${base}-${randomUUID().slice(0, 6)}`;
 }
 
-/**
- * Create a new calendar row in the Calendars sheet.
- * Returns the manage token.
- */
 export async function createCalendar(opts: {
   id: string;
   name: string;
@@ -237,39 +226,37 @@ export async function createCalendar(opts: {
   timezone?: string;
 }): Promise<{ manage_token: string }> {
   const manage_token = randomUUID();
-  const now = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const now = new Date().toISOString().slice(0, 10);
 
   const sheets = getWriteSheets();
   const sheetName = process.env.CALENDARS_SHEET_NAME || "Calendars";
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID!,
-    range: `${sheetName}!A:G`,
+    range: `${sheetName}!A:J`,
     valueInputOption: "RAW",
     requestBody: {
       values: [
         [
           opts.id,
           opts.name,
-          "free", // tier
-          now, // last_updated
+          "free",
+          now,
           opts.timezone || "America/New_York",
           opts.email,
           manage_token,
+          "", // accentColor — empty on create
+          "", // theme — empty on create
+          "", // websiteUrl — empty on create
         ],
       ],
     },
   });
 
-  // Bust cache so the new calendar is immediately visible
   clearCache();
-
   return { manage_token };
 }
 
-/**
- * Append event rows to the Events sheet.
- */
 export async function appendEvents(
   calendarId: string,
   events: Omit<CalendarEvent, "calendar_id">[]
@@ -284,7 +271,7 @@ export async function appendEvents(
     e.title,
     e.start_date,
     e.start_time || "",
-    e.end_date || e.start_date, // default end_date = start_date
+    e.end_date || e.start_date,
     e.end_time || "",
     e.location || "",
     e.description || "",
@@ -297,15 +284,9 @@ export async function appendEvents(
     requestBody: { values: rows },
   });
 
-  // Bust cache so events show up immediately
   clearCache();
 }
 
-/**
- * Replace all events for a calendar.
- * Finds and clears existing rows for this calendar_id, then appends the new set.
- * v1 strategy: replace-all on save. Simple and safe at current scale.
- */
 export async function updateEvents(
   calendarId: string,
   events: Omit<CalendarEvent, "calendar_id">[]
@@ -314,43 +295,36 @@ export async function updateEvents(
   const sheetName = process.env.EVENTS_SHEET_NAME || "Events";
   const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID!;
 
-  // 1. Fetch all rows (including header) to find which rows belong to this calendar
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range: `${sheetName}!A:H`,
   });
 
   const rows = res.data.values || [];
-  // rows[0] is the header; data starts at rows[1] (sheet row 2)
 
-  // Find row indices (1-based sheet rows) that match this calendarId
   const rowsToDelete: number[] = [];
   for (let i = 1; i < rows.length; i++) {
     if ((rows[i][0] || "").trim() === calendarId) {
-      rowsToDelete.push(i + 1); // +1 because sheet rows are 1-indexed
+      rowsToDelete.push(i + 1);
     }
   }
 
-  // 2. Clear matched rows by overwriting with empty strings
-  // We do this in a single batchUpdate using clear requests
   if (rowsToDelete.length > 0) {
-    // Get the sheet ID for the Events sheet
     const meta = await sheets.spreadsheets.get({ spreadsheetId });
     const sheet = meta.data.sheets?.find(
       (s) => s.properties?.title === sheetName
     );
     const sheetId = sheet?.properties?.sheetId ?? 0;
 
-    // Build delete requests — delete rows from bottom to top to preserve indices
     const deleteRequests = [...rowsToDelete]
-      .sort((a, b) => b - a) // descending
+      .sort((a, b) => b - a)
       .map((rowNum) => ({
         deleteDimension: {
           range: {
             sheetId,
             dimension: "ROWS",
-            startIndex: rowNum - 1, // 0-indexed
-            endIndex: rowNum,       // exclusive
+            startIndex: rowNum - 1,
+            endIndex: rowNum,
           },
         },
       }));
@@ -361,21 +335,15 @@ export async function updateEvents(
     });
   }
 
-  // 3. Append new events (if any)
   if (events.length > 0) {
     await appendEvents(calendarId, events);
   } else {
-    // No new events — just bust cache
     clearCache();
   }
 }
 
 // ─── /my-calendars — Dashboard tokens ────────────────────────
 
-/**
- * Create a time-limited dashboard token for the /my-calendars magic link.
- * Writes a row to the DashboardTokens sheet tab.
- */
 export async function createDashboardToken(email: string): Promise<string> {
   const token = randomUUID();
   const now = new Date().toISOString();
@@ -393,10 +361,6 @@ export async function createDashboardToken(email: string): Promise<string> {
   return token;
 }
 
-/**
- * Validate a dashboard token. Returns the associated email if the token
- * exists and was created within the last 30 minutes. Returns null otherwise.
- */
 export async function validateDashboardToken(
   token: string
 ): Promise<{ email: string } | null> {
@@ -418,10 +382,6 @@ export async function validateDashboardToken(
   return { email: match[1] };
 }
 
-/**
- * Get all calendars associated with an email address.
- * Thin filter over the cached fetchAllCalendars() call.
- */
 export async function getCalendarsByEmail(
   email: string
 ): Promise<CalendarMeta[]> {
@@ -431,7 +391,7 @@ export async function getCalendarsByEmail(
   );
 }
 
-// ─── Mock data (used when Google credentials aren't set) ─────
+// ─── Mock data ───────────────────────────────────────────────
 
 const MOCK_CALENDARS: CalendarMeta[] = [
   {
