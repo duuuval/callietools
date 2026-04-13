@@ -1496,3 +1496,108 @@ a:focus, .btn:focus, button:focus{
   border-color: var(--primary);
   background: var(--primarySoft);
 }
+
+/* =========================
+   Parse Loading Animation
+========================= */
+
+.flyerUploadParsing{
+  border-color: var(--accent);
+  background: rgba(212, 119, 91, 0.04);
+  cursor: wait;
+  animation: parseGlow 2.4s ease-in-out infinite;
+}
+
+@keyframes parseGlow{
+  0%, 100%{ box-shadow: inset 0 0 0px rgba(212,119,91,0); }
+  50%{ box-shadow: inset 0 0 20px rgba(212,119,91,0.12); }
+}
+
+.parseLoading{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+/* ── Mascot ─────────────────────────────────────── */
+
+.parseMascotWrap{
+  position: relative;
+  width: 110px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parseMascot{
+  width: 100px;
+  height: auto;
+  animation: parseMascotFloat 3s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes parseMascotFloat{
+  0%, 100%{ transform: translateY(0px); }
+  50%{ transform: translateY(-7px); }
+}
+
+/* ── Sparkles ───────────────────────────────────── */
+
+.parseSpark{
+  position: absolute;
+  display: block;
+  background: #F2C94C;
+  clip-path: polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  z-index: 3;
+  opacity: 0;
+}
+
+/* Position sparkles around the wand (upper-right of mascot) */
+.parseSpark1{ width: 9px; height: 9px; top: 6px;  right: 10px; animation: sparkTwinkle 2.0s 0.0s ease-in-out infinite; }
+.parseSpark2{ width: 6px; height: 6px; top: 18px; right: 2px;  animation: sparkTwinkle 1.7s 0.6s ease-in-out infinite; }
+.parseSpark3{ width: 7px; height: 7px; top: 2px;  right: 26px; animation: sparkTwinkle 2.3s 1.1s ease-in-out infinite; }
+.parseSpark4{ width: 5px; height: 5px; top: 32px; right: 6px;  animation: sparkTwinkle 1.5s 1.7s ease-in-out infinite; }
+
+@keyframes sparkTwinkle{
+  0%, 100%{ opacity: 0; transform: scale(0.4); }
+  45%, 55%{ opacity: 1; transform: scale(1); }
+}
+
+/* ── Phrase text ────────────────────────────────── */
+
+.parsePhrase{
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+  margin: 0;
+  transition: opacity 0.3s ease;
+  min-height: 1.4em;
+}
+
+/* ── Bouncing dots ──────────────────────────────── */
+
+.parseDots{
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.parseDot{
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: parseDotBounce 1.2s ease-in-out infinite;
+}
+
+.parseDot:nth-child(2){ animation-delay: 0.2s; }
+.parseDot:nth-child(3){ animation-delay: 0.4s; }
+
+@keyframes parseDotBounce{
+  0%, 100%{ transform: translateY(0);  opacity: 0.4; }
+  50%{      transform: translateY(-4px); opacity: 1; }
+}
