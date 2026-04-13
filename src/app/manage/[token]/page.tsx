@@ -1,5 +1,7 @@
 "use client";
 
+// src/app/manage/[token]/page.tsx
+
 import { useState, useCallback, useEffect } from "react";
 
 // ─── Types ───────────────────────────────────────────────────
@@ -22,6 +24,7 @@ interface CalendarMeta {
   timezone: string;
   accentColor?: string;
   theme?: string;
+  logoUrl?: string; // ← replaces hardcoded /logos/[id].png
 }
 
 function makeEmptyEvent(): EventRow {
@@ -37,7 +40,6 @@ function makeEmptyEvent(): EventRow {
   };
 }
 
-// Curated swatches — intentional palette, not a full picker
 const COLOR_SWATCHES = [
   { hex: "#4F6BED", label: "Callie Blue" },
   { hex: "#D4775B", label: "Coral" },
@@ -62,15 +64,11 @@ export default function ManagePage({
 }) {
   const { token } = params;
 
-  // Load state
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-
-  // Calendar state
   const [calendar, setCalendar] = useState<CalendarMeta | null>(null);
   const [events, setEvents] = useState<EventRow[]>([]);
 
-  // Branding state
   const [accentColor, setAccentColor] = useState("");
   const [hexInput, setHexInput] = useState("");
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -79,15 +77,12 @@ export default function ManagePage({
   const [brandingSaveError, setBrandingSaveError] = useState("");
   const [brandingSaveSuccess, setBrandingSaveSuccess] = useState(false);
 
-  // Events UI state
   const [submitting, setSubmitting] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
   const isPaid = calendar?.tier === "paid";
-
-  // ── Warn on unsaved changes ────────────────────────────────
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -96,8 +91,6 @@ export default function ManagePage({
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [isDirty, brandingDirty]);
-
-  // ── Load calendar + events on mount ───────────────────────
 
   useEffect(() => {
     async function load() {
@@ -114,7 +107,6 @@ export default function ManagePage({
         const data = await res.json();
         setCalendar(data.calendar);
 
-        // Seed branding state from loaded values
         const color = data.calendar.accentColor || "";
         setAccentColor(color);
         setHexInput(color);
@@ -158,8 +150,6 @@ export default function ManagePage({
     load();
   }, [token]);
 
-  // ── Branding helpers ───────────────────────────────────────
-
   const handleSwatchClick = (hex: string) => {
     setAccentColor(hex);
     setHexInput(hex);
@@ -168,7 +158,6 @@ export default function ManagePage({
 
   const handleHexInput = (val: string) => {
     setHexInput(val);
-    // Only apply if valid 6-digit hex
     if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
       setAccentColor(val);
     }
@@ -214,8 +203,6 @@ export default function ManagePage({
     }
   };
 
-  // ── Event row helpers ──────────────────────────────────────
-
   const updateEvent = useCallback(
     (id: string, field: keyof EventRow, value: string | boolean) => {
       setEvents((prev) =>
@@ -238,8 +225,6 @@ export default function ManagePage({
     setEvents((prev) => [...prev, makeEmptyEvent()]);
     setIsDirty(true);
   }, []);
-
-  // ── Save events ───────────────────────────────────────────
 
   const handleSave = async () => {
     setSaveError("");
@@ -292,8 +277,6 @@ export default function ManagePage({
     }
   };
 
-  // ── Render: loading ───────────────────────────────────────
-
   if (loading) {
     return (
       <div className="container">
@@ -303,8 +286,6 @@ export default function ManagePage({
       </div>
     );
   }
-
-  // ── Render: error ─────────────────────────────────────────
 
   if (loadError) {
     return (
@@ -320,22 +301,18 @@ export default function ManagePage({
     );
   }
 
-  // ── Derived values ────────────────────────────────────────
-
   const calendarUrl = `https://callietools.com/${calendar?.id}`;
-  const logoPath = `/logos/${calendar?.id}.png`;
-  // Apply their accent color to primary buttons on the manage page
+  // ← logoUrl comes from Sheets via the API response
+  const logoUrl = calendar?.logoUrl || null;
   const accentStyle = accentColor
     ? { backgroundColor: accentColor, borderColor: accentColor }
     : {};
-
-  // ── Render: manage form ───────────────────────────────────
 
   return (
     <div className="container">
       <div className="card">
 
-        {/* ── Header ──────────────────────────────────────── */}
+        {/* ── Header ── */}
         <div style={{ marginBottom: 4 }}>
           <h1 className="createHeader" style={{ marginBottom: 4 }}>
             {calendar?.name}
@@ -352,13 +329,13 @@ export default function ManagePage({
 
         <div className="divider" />
 
-        {/* ── Branding section (paid only) ─────────────────── */}
+        {/* ── Branding section (paid only) ── */}
         {isPaid && (
           <>
             <div className="formGroup">
               <label className="formLabel">Your branding</label>
 
-              {/* Logo display */}
+              {/* Logo */}
               <div style={{
                 marginBottom: 20,
                 padding: "16px",
@@ -369,22 +346,22 @@ export default function ManagePage({
                 <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 10, fontWeight: 500 }}>
                   Your logo
                 </p>
-                {/* Attempt to render logo — if file doesn't exist yet, show placeholder */}
-                <img
-                  src={logoPath}
-                  alt={`${calendar?.name} logo`}
-                  style={{ maxHeight: 56, maxWidth: 180, objectFit: "contain", display: "block" }}
-                  onError={(e) => {
-                    // Hide broken image and show placeholder text
-                    const target = e.currentTarget;
-                    target.style.display = "none";
-                    const placeholder = target.nextElementSibling as HTMLElement;
-                    if (placeholder) placeholder.style.display = "block";
-                  }}
-                />
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt={`${calendar?.name} logo`}
+                    style={{ maxHeight: 56, maxWidth: 180, objectFit: "contain", display: "block" }}
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.style.display = "none";
+                      const placeholder = target.nextElementSibling as HTMLElement;
+                      if (placeholder) placeholder.style.display = "block";
+                    }}
+                  />
+                ) : null}
                 <p
                   style={{
-                    display: "none",
+                    display: logoUrl ? "none" : "block",
                     fontSize: "0.8rem",
                     color: "#999",
                     fontStyle: "italic",
@@ -402,13 +379,7 @@ export default function ManagePage({
                 <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>
                   Accent color
                 </p>
-                {/* Swatches */}
-                <div style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 8,
-                  marginBottom: 10,
-                }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
                   {COLOR_SWATCHES.map((swatch) => (
                     <button
                       key={swatch.hex}
@@ -420,12 +391,8 @@ export default function ManagePage({
                         height: 28,
                         borderRadius: "50%",
                         background: swatch.hex,
-                        border: accentColor === swatch.hex
-                          ? "3px solid #333"
-                          : "2px solid transparent",
-                        outline: accentColor === swatch.hex
-                          ? "2px solid #fff"
-                          : "none",
+                        border: accentColor === swatch.hex ? "3px solid #333" : "2px solid transparent",
+                        outline: accentColor === swatch.hex ? "2px solid #fff" : "none",
                         cursor: "pointer",
                         padding: 0,
                         boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
@@ -434,7 +401,6 @@ export default function ManagePage({
                     />
                   ))}
                 </div>
-                {/* Hex input */}
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   {accentColor && (
                     <div style={{
@@ -463,7 +429,7 @@ export default function ManagePage({
                 </div>
               </div>
 
-              {/* Theme toggle */}
+              {/* Theme */}
               <div style={{ marginBottom: 20 }}>
                 <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>
                   Page theme
@@ -503,7 +469,6 @@ export default function ManagePage({
                 </div>
               </div>
 
-              {/* Branding save feedback */}
               {brandingSaveError && (
                 <div className="error" style={{ marginBottom: 12 }}>
                   {brandingSaveError}
@@ -541,7 +506,7 @@ export default function ManagePage({
           </>
         )}
 
-        {/* ── Events ──────────────────────────────────────── */}
+        {/* ── Events ── */}
         <div className="formGroup">
           <label className="formLabel">Events</label>
 
@@ -577,9 +542,7 @@ export default function ManagePage({
                     type="date"
                     className="formInput"
                     value={ev.start_date}
-                    onChange={(e) =>
-                      updateEvent(ev.id, "start_date", e.target.value)
-                    }
+                    onChange={(e) => updateEvent(ev.id, "start_date", e.target.value)}
                   />
                 </div>
                 <div className="eventTimeField">
@@ -588,9 +551,7 @@ export default function ManagePage({
                     type="time"
                     className="formInput"
                     value={ev.start_time}
-                    onChange={(e) =>
-                      updateEvent(ev.id, "start_time", e.target.value)
-                    }
+                    onChange={(e) => updateEvent(ev.id, "start_time", e.target.value)}
                   />
                 </div>
                 <div className="eventTimeField">
@@ -599,9 +560,7 @@ export default function ManagePage({
                     type="time"
                     className="formInput"
                     value={ev.end_time}
-                    onChange={(e) =>
-                      updateEvent(ev.id, "end_time", e.target.value)
-                    }
+                    onChange={(e) => updateEvent(ev.id, "end_time", e.target.value)}
                   />
                 </div>
               </div>
@@ -611,18 +570,14 @@ export default function ManagePage({
                 className="formInput"
                 placeholder="Location (optional)"
                 value={ev.location}
-                onChange={(e) =>
-                  updateEvent(ev.id, "location", e.target.value)
-                }
+                onChange={(e) => updateEvent(ev.id, "location", e.target.value)}
                 autoComplete="off"
               />
 
               <button
                 type="button"
                 className="eventDetailsToggle"
-                onClick={() =>
-                  updateEvent(ev.id, "showDetails", !ev.showDetails)
-                }
+                onClick={() => updateEvent(ev.id, "showDetails", !ev.showDetails)}
               >
                 {ev.showDetails ? "− Hide details" : "+ More details"}
               </button>
@@ -633,9 +588,7 @@ export default function ManagePage({
                   placeholder="Description (optional)"
                   rows={3}
                   value={ev.description}
-                  onChange={(e) =>
-                    updateEvent(ev.id, "description", e.target.value)
-                  }
+                  onChange={(e) => updateEvent(ev.id, "description", e.target.value)}
                 />
               )}
             </div>
@@ -648,7 +601,6 @@ export default function ManagePage({
 
         <div className="divider" />
 
-        {/* ── Save feedback ────────────────────────────────── */}
         {saveError && (
           <div className="error" style={{ marginBottom: 16 }}>
             {saveError}
@@ -668,7 +620,6 @@ export default function ManagePage({
           </div>
         )}
 
-        {/* ── Save button ──────────────────────────────────── */}
         <button
           type="button"
           className="btn btnPrimary createSubmit"
@@ -679,7 +630,6 @@ export default function ManagePage({
           {submitting ? "Saving…" : "Save changes"}
         </button>
 
-        {/* ── Upgrade nudge (free only) ────────────────────── */}
         {!isPaid && (
           <>
             <div className="divider" />
