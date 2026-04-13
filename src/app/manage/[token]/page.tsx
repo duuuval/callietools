@@ -291,7 +291,7 @@ export default function ManagePage({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) handleFile(file);
-      e.target.value "";
+      e.target.value = "";
     },
     [handleFile]
   );
