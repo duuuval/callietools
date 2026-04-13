@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useCallback } from "react";
 
 interface CopyButtonProps {
@@ -7,6 +6,7 @@ interface CopyButtonProps {
   label?: string;
   copiedLabel?: string;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export function CopyButton({
@@ -14,6 +14,7 @@ export function CopyButton({
   label = "Copy",
   copiedLabel = "Copied!",
   className = "btn btnSecondary",
+  style,
 }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
@@ -28,7 +29,7 @@ export function CopyButton({
   }, [text]);
 
   return (
-    <button className={className} type="button" onClick={handleCopy}>
+    <button className={className} style={style} type="button" onClick={handleCopy}>
       {copied ? copiedLabel : label}
     </button>
   );
