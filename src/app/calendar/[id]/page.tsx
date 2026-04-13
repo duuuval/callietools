@@ -55,7 +55,7 @@ export default async function CalendarPage({ params }: Props) {
   const isPaid = cal.tier === "paid";
   // Logo path convention: /public/logos/[calendarId].png
   // Drop the file and set tier="paid" in Sheets to activate.
-  const logoPath = isPaid ? `/logos/${cal.id}.png` : null;
+  const logoPath = isPaid && cal.logoUrl ? cal.logoUrl : null;
   // Accent color: use calendar's value, fall back to Callie blue
   const accentColor = isPaid && cal.accentColor ? cal.accentColor : "#4F6BED";
   // Theme: default to light
