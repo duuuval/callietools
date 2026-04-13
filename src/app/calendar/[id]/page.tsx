@@ -96,27 +96,41 @@ export default async function CalendarPage({ params }: Props) {
     <div
       className="container"
       data-theme={isDark ? "dark" : "light"}
-      style={{ "--accent-color": accentColor } as React.CSSProperties}
+      style={{ "--primary": accentColor, "--primaryHover": accentColor } as React.CSSProperties}
     >
 
       {/* ── Card 1: Header + Events ── */}
       <div className="card">
-        <h1 className="calPageTitle">{cal.name || cal.id}</h1>
-
-        {/* Subtitle: logo for paid, "A Callie calendar" for free */}
         {isPaid && logoPath ? (
-          // Paid: logo replaces subtitle; sentinel still needed for sticky logic
-          <div id="callie-sentinel" style={{ marginBottom: 8 }}>
+          // Paid: logo left, calendar name right-aligned
+          <div
+            id="callie-sentinel"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+              marginBottom: 4,
+            }}
+          >
             <img
               src={logoPath}
               alt={cal.name}
               className="calLogoImg"
             />
+            <h1
+              className="calPageTitle"
+              style={{ margin: 0, textAlign: "right", flex: 1 }}
+            >
+              {cal.name || cal.id}
+            </h1>
           </div>
         ) : (
-          <p className="calPageSubtitle" id="callie-sentinel">A Callie calendar</p>
+          // Free: title then subtitle
+          <>
+            <h1 className="calPageTitle">{cal.name || cal.id}</h1>
+            <p className="calPageSubtitle" id="callie-sentinel">A Callie calendar</p>
+          </>
         )}
-
         <div className="divider" />
 
         {upcoming.length > 0 ? (
