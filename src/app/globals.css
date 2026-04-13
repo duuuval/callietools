@@ -1547,7 +1547,7 @@ a:focus, .btn:focus, button:focus{
 .parseMascot{
   width: 100px;
   height: auto;
-  animation: parseMascotFloat 3s ease-in-out infinite, parseMascotAppear 0.6s ease-out forwards;
+  animation: parseMascotFloat 3s ease-in-out infinite, parseMascotAppear 1.2s ease-out forwards;
   position: relative;
   z-index: 2;
   will-change: filter, opacity;
@@ -1562,7 +1562,6 @@ a:focus, .btn:focus, button:focus{
   0%{
     opacity: 0;
     filter: blur(10px) brightness(1.4);
-    transform: translateY(6px) scale(0.96);
   }
   60%{
     opacity: 1;
@@ -1571,7 +1570,6 @@ a:focus, .btn:focus, button:focus{
   100%{
     opacity: 1;
     filter: blur(0px) brightness(1);
-    transform: translateY(0px) scale(1);
   }
 }
 
