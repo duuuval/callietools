@@ -1,7 +1,3 @@
-# File 1 of 2 — `src/app/create/page.tsx`
-# Full file replacement
-
-```tsx
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
