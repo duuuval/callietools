@@ -1769,6 +1769,6 @@ a:focus, .btn:focus, button:focus{
   color: var(--color-text-muted, #999);
 }
 
-:has([data-paid="true"]) footer.siteFooter {
-  display: none;
+:has([data-calendar="true"]) footer.siteFooter { 
+  display: none; 
 }
