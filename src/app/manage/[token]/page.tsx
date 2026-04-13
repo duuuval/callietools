@@ -24,7 +24,7 @@ interface CalendarMeta {
   timezone: string;
   accentColor?: string;
   theme?: string;
-  logoUrl?: string; // ← replaces hardcoded /logos/[id].png
+  logoUrl?: string;
 }
 
 function makeEmptyEvent(): EventRow {
@@ -55,6 +55,18 @@ const COLOR_SWATCHES = [
   { hex: "#333333", label: "Charcoal" },
 ];
 
+/**
+ * Returns true if the hex color is light enough to need dark text.
+ * Uses perceived luminance — same formula used in accessibility tools.
+ */
+function isLightColor(hex: string): boolean {
+  if (!hex || !/^#[0-9A-Fa-f]{6}$/.test(hex)) return false;
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 155;
+}
+
 // ─── Component ───────────────────────────────────────────────
 
 export default function ManagePage({
@@ -83,6 +95,9 @@ export default function ManagePage({
   const [isDirty, setIsDirty] = useState(false);
 
   const isPaid = calendar?.tier === "paid";
+
+  // Derived: text color for buttons based on accent luminance
+  const buttonTextColor = isLightColor(accentColor) ? "#000" : "#fff";
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -302,10 +317,9 @@ export default function ManagePage({
   }
 
   const calendarUrl = `https://callietools.com/${calendar?.id}`;
-  // ← logoUrl comes from Sheets via the API response
   const logoUrl = calendar?.logoUrl || null;
   const accentStyle = accentColor
-    ? { backgroundColor: accentColor, borderColor: accentColor }
+    ? { backgroundColor: accentColor, borderColor: accentColor, color: buttonTextColor }
     : {};
 
   return (
@@ -359,14 +373,12 @@ export default function ManagePage({
                     }}
                   />
                 ) : null}
-                <p
-                  style={{
-                    display: logoUrl ? "none" : "block",
-                    fontSize: "0.8rem",
-                    color: "#999",
-                    fontStyle: "italic",
-                  }}
-                >
+                <p style={{
+                  display: logoUrl ? "none" : "block",
+                  fontSize: "0.8rem",
+                  color: "#999",
+                  fontStyle: "italic",
+                }}>
                   Logo not uploaded yet — email your file (transparent PNG or SVG) to{" "}
                   <a href="mailto:hello@callietools.com" style={{ color: "#4F6BED" }}>
                     hello@callietools.com
@@ -379,6 +391,7 @@ export default function ManagePage({
                 <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>
                   Accent color
                 </p>
+                {/* Swatches */}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
                   {COLOR_SWATCHES.map((swatch) => (
                     <button
@@ -401,6 +414,7 @@ export default function ManagePage({
                     />
                   ))}
                 </div>
+                {/* Hex input */}
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   {accentColor && (
                     <div style={{
@@ -427,6 +441,39 @@ export default function ManagePage({
                     or pick a color above
                   </span>
                 </div>
+
+                {/* Live button preview */}
+                {accentColor && (
+                  <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: "0.75rem", color: "#999", marginRight: 4 }}>
+                      Preview:
+                    </span>
+                    {/* Primary button */}
+                    <div style={{
+                      padding: "7px 16px",
+                      borderRadius: 6,
+                      border: `1px solid ${accentColor}`,
+                      background: accentColor,
+                      color: buttonTextColor,
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}>
+                      Sync to Calendar
+                    </div>
+                    {/* Secondary button */}
+                    <div style={{
+                      padding: "7px 16px",
+                      borderRadius: 6,
+                      border: "1px solid #e0e0e0",
+                      background: "#fff",
+                      color: accentColor,
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}>
+                      Copy link
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Theme */}
