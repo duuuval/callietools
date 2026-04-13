@@ -1,9 +1,9 @@
-// src/app/api/manage/[token]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import {
   getCalendarByToken,
   getEvents,
   updateEvents,
+  updateCalendarBranding,
 } from "@/lib/sheets";
 
 // ─── Types ───────────────────────────────────────────────────
@@ -25,7 +25,6 @@ export async function GET(
   { params }: { params: { token: string } }
 ) {
   const { token } = params;
-
   if (!token) {
     return NextResponse.json({ error: "Missing token" }, { status: 400 });
   }
@@ -36,7 +35,6 @@ export async function GET(
   }
 
   const events = await getEvents(calendar.id);
-
   return NextResponse.json({ calendar, events });
 }
 
@@ -47,18 +45,15 @@ export async function POST(
   { params }: { params: { token: string } }
 ) {
   const { token } = params;
-
   if (!token) {
     return NextResponse.json({ error: "Missing token" }, { status: 400 });
   }
 
-  // Verify token is valid
   const calendar = await getCalendarByToken(token);
   if (!calendar) {
     return NextResponse.json({ error: "Calendar not found" }, { status: 404 });
   }
 
-  // Parse body
   let body: unknown;
   try {
     body = await req.json();
@@ -72,7 +67,6 @@ export async function POST(
 
   const b = body as Record<string, unknown>;
 
-  // Validate events array
   if (!Array.isArray(b.events)) {
     return NextResponse.json({ error: "Events must be an array" }, { status: 400 });
   }
@@ -111,7 +105,6 @@ export async function POST(
     });
   }
 
-  // Replace all events for this calendar
   await updateEvents(
     calendar.id,
     events.map((e) => ({
@@ -124,6 +117,58 @@ export async function POST(
       description: e.description || "",
     }))
   );
+
+  return NextResponse.json({ ok: true });
+}
+
+// ─── PATCH — save branding (paid tier only) ──────────────────
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { token: string } }
+) {
+  const { token } = params;
+  if (!token) {
+    return NextResponse.json({ error: "Missing token" }, { status: 400 });
+  }
+
+  const calendar = await getCalendarByToken(token);
+  if (!calendar) {
+    return NextResponse.json({ error: "Calendar not found" }, { status: 404 });
+  }
+
+  if (calendar.tier !== "paid") {
+    return NextResponse.json({ error: "Branding requires a paid account" }, { status: 403 });
+  }
+
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  const b = body as Record<string, unknown>;
+
+  // Validate accent color — must be a valid 6-digit hex or empty
+  const accentColor = typeof b.accentColor === "string" ? b.accentColor.trim() : "";
+  if (accentColor && !/^#[0-9A-Fa-f]{6}$/.test(accentColor)) {
+    return NextResponse.json(
+      { error: "Invalid accent color — use a 6-digit hex value like #4F6BED" },
+      { status: 400 }
+    );
+  }
+
+  // Validate theme
+  const theme = typeof b.theme === "string" ? b.theme.trim() : "";
+  if (theme && theme !== "light" && theme !== "dark") {
+    return NextResponse.json(
+      { error: "Theme must be 'light' or 'dark'" },
+      { status: 400 }
+    );
+  }
+
+  await updateCalendarBranding(calendar.id, { accentColor, theme });
 
   return NextResponse.json({ ok: true });
 }
