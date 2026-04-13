@@ -1,6 +1,10 @@
+# File 1 of 2 — `src/app/create/page.tsx`
+# Full file replacement
+
+```tsx
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 // ─── Types ───────────────────────────────────────────────────
@@ -14,7 +18,7 @@ interface EventRow {
   location: string;
   description: string;
   showDetails: boolean;
-  confidence?: "high" | "medium" | "low"; // set on flyer-parsed rows
+  confidence?: "high" | "medium" | "low";
 }
 
 function makeEmptyEvent(): EventRow {
@@ -88,6 +92,15 @@ async function compressImage(file: File, maxDimension = 1600, quality = 0.85): P
   });
 }
 
+// ─── Parse loading phrases ───────────────────────────────────
+
+const PARSE_PHRASES = [
+  "Reading your image…",
+  "Finding your events…",
+  "Almost ready…",
+  "Hang tight…",
+];
+
 // ─── Component ───────────────────────────────────────────────
 
 export default function CreatePage() {
@@ -115,10 +128,54 @@ export default function CreatePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // Parse loading phrase state
+  const [parsePhrase, setParsePhrase] = useState(PARSE_PHRASES[0]);
+  const [parsePhraseVisible, setParsePhraseVisible] = useState(true);
+  const parsePhraseTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  // ── Phrase sequencer ───────────────────────────────────────
+
+  useEffect(() => {
+    // Clear any running timers whenever status changes
+    parsePhraseTimers.current.forEach(clearTimeout);
+    parsePhraseTimers.current = [];
+
+    if (parseStatus !== "parsing") {
+      setParsePhrase(PARSE_PHRASES[0]);
+      setParsePhraseVisible(true);
+      return;
+    }
+
+    // Reset to first phrase immediately
+    setParsePhrase(PARSE_PHRASES[0]);
+    setParsePhraseVisible(true);
+
+    // Schedule phrases 2, 3, 4
+    // Phrase 4 ("Hang tight…") stays indefinitely — no loop
+    [1, 2, 3].forEach((i) => {
+      const delay = i * 2200;
+      const t = setTimeout(() => {
+        // Fade out
+        setParsePhraseVisible(false);
+        // Swap text mid-fade, then fade back in
+        const swap = setTimeout(() => {
+          setParsePhrase(PARSE_PHRASES[i]);
+          setParsePhraseVisible(true);
+        }, 300);
+        parsePhraseTimers.current.push(swap);
+      }, delay);
+      parsePhraseTimers.current.push(t);
+    });
+
+    return () => {
+      parsePhraseTimers.current.forEach(clearTimeout);
+    };
+  }, [parseStatus]);
+
   // ── Flyer import ───────────────────────────────────────────
 
   const handleFile = useCallback(async (file: File) => {
-    if (parseStatus === "parsing") return; // prevent double-fire
+    if (parseStatus === "parsing") return;
 
     setParseStatus("parsing");
     setParseMessage("");
@@ -143,13 +200,10 @@ export default function CreatePage() {
 
       const parsedEvents: EventRow[] = data.events.map(makeEventFromParse);
 
-      // Populate calendar name if field is empty and GPT inferred one
       if (!calendarName.trim() && data.calendar_name) {
         setCalendarName(data.calendar_name);
       }
 
-      // Replace the default empty rows with parsed events
-      // Keep any rows the user has already filled in
       setEvents((prev) => {
         const userFilled = prev.filter(
           (e) => e.title.trim() || e.start_date.trim()
@@ -172,7 +226,6 @@ export default function CreatePage() {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) handleFile(file);
-      // Reset input so the same file can be re-uploaded if needed
       e.target.value = "";
     },
     [handleFile]
@@ -210,7 +263,6 @@ export default function CreatePage() {
         prev.map((e) => {
           if (e.id !== id) return e;
           const updated = { ...e, [field]: value };
-
           if (field === "start_time" && typeof value === "string" && value) {
             if (!e.end_time) {
               const [h, m] = value.split(":").map(Number);
@@ -218,7 +270,6 @@ export default function CreatePage() {
               updated.end_time = `${String(endH).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
             }
           }
-
           return updated;
         })
       );
@@ -319,7 +370,7 @@ export default function CreatePage() {
 
         <div className="divider" />
 
-        {/* ── Flyer import ──────────────────────────────── */}
+        {/* ── Image import ──────────────────────────────── */}
         <input
           ref={fileInputRef}
           type="file"
@@ -329,7 +380,7 @@ export default function CreatePage() {
         />
 
         <div
-          className={`flyerUpload${dragOver ? " flyerUploadDragOver" : ""}`}
+          className={`flyerUpload${dragOver ? " flyerUploadDragOver" : ""}${parseStatus === "parsing" ? " flyerUploadParsing" : ""}`}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -340,12 +391,11 @@ export default function CreatePage() {
           style={{ cursor: parseStatus === "parsing" ? "wait" : "pointer" }}
         >
           <div className="flyerUploadInner">
-            <div className="flyerIcon" aria-hidden="true">
-              {parseStatus === "parsing" ? "⏳" : parseStatus === "success" ? "✅" : "📄"}
-            </div>
 
+            {/* ── Idle state ──────────────────────────── */}
             {parseStatus === "idle" && (
               <>
+                <div className="flyerIcon" aria-hidden="true">📄</div>
                 <p className="flyerHeadline">
                   Upload an image of your events. We'll read it and build your calendar automatically.
                 </p>
@@ -355,33 +405,59 @@ export default function CreatePage() {
                   className="btn btnSecondary"
                   onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}
                 >
-                  Upload flyer
+                  Upload your image
                 </button>
               </>
             )}
 
+            {/* ── Parsing state ───────────────────────── */}
             {parseStatus === "parsing" && (
-              <>
-                <p className="flyerHeadline">Reading your flyer…</p>
-                <p className="flyerFormats">This usually takes a few seconds.</p>
-              </>
+              <div className="parseLoading">
+                <div className="parseMascotWrap" aria-hidden="true">
+                  {/* Sparkles positioned around wand area */}
+                  <span className="parseSpark parseSpark1" />
+                  <span className="parseSpark parseSpark2" />
+                  <span className="parseSpark parseSpark3" />
+                  <span className="parseSpark parseSpark4" />
+                  <img
+                    src="/callie-mascot.png"
+                    alt=""
+                    className="parseMascot"
+                  />
+                </div>
+                <p
+                  className="parsePhrase"
+                  style={{ opacity: parsePhraseVisible ? 1 : 0 }}
+                >
+                  {parsePhrase}
+                </p>
+                <div className="parseDots" aria-label="Loading">
+                  <span className="parseDot" />
+                  <span className="parseDot" />
+                  <span className="parseDot" />
+                </div>
+              </div>
             )}
 
+            {/* ── Success state ───────────────────────── */}
             {parseStatus === "success" && (
               <>
+                <div className="flyerIcon" aria-hidden="true">✅</div>
                 <p className="flyerHeadline">{parseMessage}</p>
                 <button
                   type="button"
                   className="btn btnSecondary"
                   onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}
                 >
-                  Upload a different flyer
+                  Upload a different image
                 </button>
               </>
             )}
 
+            {/* ── Error state ─────────────────────────── */}
             {parseStatus === "error" && (
               <>
+                <div className="flyerIcon" aria-hidden="true">📄</div>
                 <p className="flyerHeadline" style={{ color: "var(--color-error, #c0392b)" }}>
                   {parseMessage}
                 </p>
@@ -394,6 +470,7 @@ export default function CreatePage() {
                 </button>
               </>
             )}
+
           </div>
         </div>
 
@@ -478,7 +555,6 @@ export default function CreatePage() {
                 )}
               </div>
 
-              {/* Title */}
               <input
                 type="text"
                 className="formInput"
@@ -488,7 +564,6 @@ export default function CreatePage() {
                 autoComplete="off"
               />
 
-              {/* Date + times row */}
               <div className="eventTimeRow">
                 <div className="eventTimeField eventDateField">
                   <label className="formLabelSmall">Date</label>
@@ -496,9 +571,7 @@ export default function CreatePage() {
                     type="date"
                     className="formInput"
                     value={ev.start_date}
-                    onChange={(e) =>
-                      updateEvent(ev.id, "start_date", e.target.value)
-                    }
+                    onChange={(e) => updateEvent(ev.id, "start_date", e.target.value)}
                   />
                 </div>
                 <div className="eventTimeField">
@@ -508,9 +581,7 @@ export default function CreatePage() {
                     className="formInput"
                     step="900"
                     value={ev.start_time}
-                    onChange={(e) =>
-                      updateEvent(ev.id, "start_time", e.target.value)
-                    }
+                    onChange={(e) => updateEvent(ev.id, "start_time", e.target.value)}
                   />
                 </div>
                 <div className="eventTimeField">
@@ -520,14 +591,11 @@ export default function CreatePage() {
                     className="formInput"
                     step="900"
                     value={ev.end_time}
-                    onChange={(e) =>
-                      updateEvent(ev.id, "end_time", e.target.value)
-                    }
+                    onChange={(e) => updateEvent(ev.id, "end_time", e.target.value)}
                   />
                 </div>
               </div>
 
-              {/* Location */}
               <input
                 type="text"
                 className="formInput"
@@ -537,13 +605,10 @@ export default function CreatePage() {
                 autoComplete="off"
               />
 
-              {/* Description toggle */}
               <button
                 type="button"
                 className="eventDetailsToggle"
-                onClick={() =>
-                  updateEvent(ev.id, "showDetails", !ev.showDetails)
-                }
+                onClick={() => updateEvent(ev.id, "showDetails", !ev.showDetails)}
               >
                 {ev.showDetails ? "− Hide details" : "+ More details"}
               </button>
@@ -554,9 +619,7 @@ export default function CreatePage() {
                   placeholder="Description (optional)"
                   rows={3}
                   value={ev.description}
-                  onChange={(e) =>
-                    updateEvent(ev.id, "description", e.target.value)
-                  }
+                  onChange={(e) => updateEvent(ev.id, "description", e.target.value)}
                 />
               )}
             </div>
@@ -569,14 +632,12 @@ export default function CreatePage() {
 
         <div className="divider" />
 
-        {/* ── Error ─────────────────────────────────────── */}
         {error && (
           <div className="error" style={{ marginBottom: 16 }}>
             {error}
           </div>
         )}
 
-        {/* ── Submit ────────────────────────────────────── */}
         <button
           type="button"
           className="btn btnPrimary createSubmit"
@@ -589,3 +650,4 @@ export default function CreatePage() {
     </div>
   );
 }
+```
