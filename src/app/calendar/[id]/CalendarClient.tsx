@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { CopyButton } from "@/components/CopyButton";
 import type { CalendarEvent } from "@/lib/sheets";
 
@@ -12,6 +12,8 @@ interface Props {
   pastEvents: CalendarEvent[];
   remainingEvents: CalendarEvent[];
   showEventsOnly?: boolean;
+  isPaid?: boolean;
+  accentColor?: string;
 }
 
 export function CalendarClient({
@@ -21,13 +23,17 @@ export function CalendarClient({
   pastEvents,
   remainingEvents,
   showEventsOnly = false,
+  isPaid = false,
+  accentColor,
 }: Props) {
   const [showAllEvents, setShowAllEvents] = useState(false);
   const [showPast, setShowPast] = useState(false);
   const [stickyVisible, setStickyVisible] = useState(false);
 
   // Observe the subtitle sentinel — show sticky bar when it scrolls off screen
+  // Sticky bar is only shown on free-tier pages
   useEffect(() => {
+    if (isPaid) return; // paid pages never show the sticky bar
     const sentinel = document.getElementById("callie-sentinel");
     if (!sentinel) return;
 
@@ -40,7 +46,12 @@ export function CalendarClient({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, []);
+  }, [isPaid]);
+
+  // Accent color as inline style for buttons (overrides CSS default)
+  const accentStyle = accentColor
+    ? { backgroundColor: accentColor, borderColor: accentColor }
+    : {};
 
   const handleShare = async () => {
     const shareData = {
@@ -95,12 +106,14 @@ export function CalendarClient({
   // ── Full mode ─────────────────────────────────────────────────────────────
   return (
     <>
-      {/* Sticky bar — appears when "A Callie calendar" scrolls off screen */}
-      <div className={`callieSticky ${stickyVisible ? "callieSticky--visible" : ""}`}>
-        <a href="/create" className="callieStickyLink">
-          Like what you see? Build your own — free.
-        </a>
-      </div>
+      {/* Sticky bar — free tier only, hidden on paid pages */}
+      {!isPaid && (
+        <div className={`callieSticky ${stickyVisible ? "callieSticky--visible" : ""}`}>
+          <a href="/create" className="callieStickyLink">
+            Like what you see? Build your own — free.
+          </a>
+        </div>
+      )}
 
       {/* Google Calendar — fully expanded */}
       <div className="section" style={{ marginTop: 18 }}>
@@ -132,6 +145,7 @@ export function CalendarClient({
                   label="Copy calendar link"
                   copiedLabel="Copied!"
                   className="btn btnPrimary"
+                  style={accentStyle}
                 />
               </div>
             </li>
@@ -185,6 +199,7 @@ export function CalendarClient({
         <button
           type="button"
           className="btn btnPrimary shareBtn"
+          style={accentStyle}
           onClick={handleShare}
         >
           Share this calendar
