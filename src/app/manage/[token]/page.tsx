@@ -1,10 +1,6 @@
 "use client";
 
-// src/app/manage/[token]/page.tsx
-
 import { useState, useCallback, useEffect } from "react";
-
-// ─── Types ───────────────────────────────────────────────────
 
 interface EventRow {
   id: string;
@@ -55,10 +51,6 @@ const COLOR_SWATCHES = [
   { hex: "#333333", label: "Charcoal" },
 ];
 
-/**
- * Returns true if the hex color is light enough to need dark text.
- * Uses perceived luminance — same formula used in accessibility tools.
- */
 function isLightColor(hex: string): boolean {
   if (!hex || !/^#[0-9A-Fa-f]{6}$/.test(hex)) return false;
   const r = parseInt(hex.slice(1, 3), 16);
@@ -66,8 +58,6 @@ function isLightColor(hex: string): boolean {
   const b = parseInt(hex.slice(5, 7), 16);
   return (r * 299 + g * 587 + b * 114) / 1000 > 155;
 }
-
-// ─── Component ───────────────────────────────────────────────
 
 export default function ManagePage({
   params,
@@ -95,9 +85,14 @@ export default function ManagePage({
   const [isDirty, setIsDirty] = useState(false);
 
   const isPaid = calendar?.tier === "paid";
-
-  // Derived: text color for buttons based on accent luminance
   const buttonTextColor = isLightColor(accentColor) ? "#000" : "#fff";
+
+  // Preview box colors driven by theme selection
+  const previewBg = theme === "dark" ? "#1a1a1a" : "#ffffff";
+  const previewBorder = theme === "dark" ? "#3a3a3a" : "#e5e5e5";
+  const previewSecondaryBg = theme === "dark" ? "#242424" : "#ffffff";
+  const previewSecondaryBorder = theme === "dark" ? "#3a3a3a" : "#e0e0e0";
+  const previewSecondaryText = theme === "dark" ? accentColor || "#4F6BED" : accentColor || "#4F6BED";
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -121,34 +116,30 @@ export default function ManagePage({
         }
         const data = await res.json();
         setCalendar(data.calendar);
-
         const color = data.calendar.accentColor || "";
         setAccentColor(color);
         setHexInput(color);
         setTheme(data.calendar.theme === "dark" ? "dark" : "light");
-
         setEvents(
           data.events.length > 0
             ? data.events
-                .map(
-                  (e: {
-                    title: string;
-                    start_date: string;
-                    start_time: string;
-                    end_time: string;
-                    location: string;
-                    description: string;
-                  }) => ({
-                    id: crypto.randomUUID(),
-                    title: e.title,
-                    start_date: e.start_date,
-                    start_time: e.start_time || "",
-                    end_time: e.end_time || "",
-                    location: e.location || "",
-                    description: e.description || "",
-                    showDetails: !!(e.location || e.description),
-                  })
-                )
+                .map((e: {
+                  title: string;
+                  start_date: string;
+                  start_time: string;
+                  end_time: string;
+                  location: string;
+                  description: string;
+                }) => ({
+                  id: crypto.randomUUID(),
+                  title: e.title,
+                  start_date: e.start_date,
+                  start_time: e.start_time || "",
+                  end_time: e.end_time || "",
+                  location: e.location || "",
+                  description: e.description || "",
+                  showDetails: !!(e.location || e.description),
+                }))
                 .sort((a: EventRow, b: EventRow) => {
                   if (!a.start_date) return 1;
                   if (!b.start_date) return -1;
@@ -173,9 +164,7 @@ export default function ManagePage({
 
   const handleHexInput = (val: string) => {
     setHexInput(val);
-    if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
-      setAccentColor(val);
-    }
+    if (/^#[0-9A-Fa-f]{6}$/.test(val)) setAccentColor(val);
     setBrandingDirty(true);
   };
 
@@ -187,12 +176,10 @@ export default function ManagePage({
   const handleBrandingSave = async () => {
     setBrandingSaveError("");
     setBrandingSaveSuccess(false);
-
     if (accentColor && !/^#[0-9A-Fa-f]{6}$/.test(accentColor)) {
       setBrandingSaveError("Enter a valid hex color like #4F6BED");
       return;
     }
-
     setBrandingSubmitting(true);
     try {
       const res = await fetch(`/api/manage/${token}`, {
@@ -200,12 +187,10 @@ export default function ManagePage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accentColor, theme }),
       });
-
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Something went wrong. Please try again.");
       }
-
       setBrandingDirty(false);
       setBrandingSaveSuccess(true);
       setTimeout(() => setBrandingSaveSuccess(false), 4000);
@@ -220,12 +205,9 @@ export default function ManagePage({
 
   const updateEvent = useCallback(
     (id: string, field: keyof EventRow, value: string | boolean) => {
-      setEvents((prev) =>
-        prev.map((e) => (e.id === id ? { ...e, [field]: value } : e))
-      );
+      setEvents((prev) => prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
       setIsDirty(true);
-    },
-    []
+    }, []
   );
 
   const removeEvent = useCallback((id: string) => {
@@ -244,18 +226,12 @@ export default function ManagePage({
   const handleSave = async () => {
     setSaveError("");
     setSaveSuccess(false);
-
-    const validEvents = events.filter(
-      (e) => e.title.trim() && e.start_date.trim()
-    );
-
+    const validEvents = events.filter((e) => e.title.trim() && e.start_date.trim());
     if (validEvents.length === 0) {
       setSaveError("Add at least one event with a title and date.");
       return;
     }
-
     setSubmitting(true);
-
     try {
       const res = await fetch(`/api/manage/${token}`, {
         method: "POST",
@@ -272,21 +248,15 @@ export default function ManagePage({
           })),
         }),
       });
-
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(
-          data.error || `Something went wrong (${res.status}). Please try again.`
-        );
+        throw new Error(data.error || `Something went wrong (${res.status}). Please try again.`);
       }
-
       setIsDirty(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 4000);
     } catch (err) {
-      setSaveError(
-        err instanceof Error ? err.message : "Something went wrong. Please try again."
-      );
+      setSaveError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -328,9 +298,7 @@ export default function ManagePage({
 
         {/* ── Header ── */}
         <div style={{ marginBottom: 4 }}>
-          <h1 className="createHeader" style={{ marginBottom: 4 }}>
-            {calendar?.name}
-          </h1>
+          <h1 className="createHeader" style={{ marginBottom: 4 }}>{calendar?.name}</h1>
           <a
             href={calendarUrl}
             target="_blank"
@@ -349,134 +317,98 @@ export default function ManagePage({
             <div className="formGroup">
               <label className="formLabel">Your branding</label>
 
-              {/* Logo */}
+              {/* ── Unified preview box ── */}
               <div style={{
                 marginBottom: 20,
-                padding: "16px",
-                background: "var(--color-surface-alt, #f9f9f9)",
-                borderRadius: 8,
-                border: "1px solid var(--color-border, #eee)",
+                padding: "20px",
+                background: previewBg,
+                borderRadius: 10,
+                border: `1px solid ${previewBorder}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 16,
+                transition: "background 0.2s, border-color 0.2s",
               }}>
-                <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 10, fontWeight: 500 }}>
-                  Your logo
-                </p>
-                {logoUrl ? (
-                  <img
-                    src={logoUrl}
-                    alt={`${calendar?.name} logo`}
-                    style={{ maxHeight: 56, maxWidth: 180, objectFit: "contain", display: "block" }}
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      target.style.display = "none";
-                      const placeholder = target.nextElementSibling as HTMLElement;
-                      if (placeholder) placeholder.style.display = "block";
-                    }}
-                  />
-                ) : null}
-                <p style={{
-                  display: logoUrl ? "none" : "block",
-                  fontSize: "0.8rem",
-                  color: "#999",
-                  fontStyle: "italic",
-                }}>
-                  Logo not uploaded yet — email your file (transparent PNG or SVG) to{" "}
-                  <a href="mailto:hello@callietools.com" style={{ color: "#4F6BED" }}>
-                    hello@callietools.com
-                  </a>
-                </p>
-              </div>
-
-              {/* Accent color */}
-              <div style={{ marginBottom: 20 }}>
-                <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>
-                  Accent color
-                </p>
-                {/* Swatches */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
-                  {COLOR_SWATCHES.map((swatch) => (
-                    <button
-                      key={swatch.hex}
-                      type="button"
-                      title={swatch.label}
-                      onClick={() => handleSwatchClick(swatch.hex)}
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: "50%",
-                        background: swatch.hex,
-                        border: accentColor === swatch.hex ? "3px solid #333" : "2px solid transparent",
-                        outline: accentColor === swatch.hex ? "2px solid #fff" : "none",
-                        cursor: "pointer",
-                        padding: 0,
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
-                      }}
-                      aria-label={swatch.label}
-                    />
-                  ))}
-                </div>
-                {/* Hex input */}
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  {accentColor && (
-                    <div style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 4,
-                      background: accentColor,
-                      border: "1px solid rgba(0,0,0,0.1)",
-                      flexShrink: 0,
-                    }} />
+                {/* Logo left */}
+                <div style={{ flexShrink: 0 }}>
+                  {logoUrl ? (
+                    <>
+                      <img
+                        src={logoUrl}
+                        alt={`${calendar?.name} logo`}
+                        style={{
+                          maxHeight: 64,
+                          maxWidth: 140,
+                          objectFit: "contain",
+                          display: "block",
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const el = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (el) el.style.display = "block";
+                        }}
+                      />
+                      <p style={{ display: "none", fontSize: "0.75rem", color: "#999", fontStyle: "italic" }}>
+                        Logo not found
+                      </p>
+                    </>
+                  ) : (
+                    <p style={{
+                      fontSize: "0.8rem",
+                      color: theme === "dark" ? "#666" : "#bbb",
+                      fontStyle: "italic",
+                      maxWidth: 140,
+                    }}>
+                      Logo not uploaded yet —{" "}
+                      <a href="mailto:hello@callietools.com" style={{ color: "#4F6BED" }}>
+                        email us your file
+                      </a>
+                    </p>
                   )}
-                  <input
-                    type="text"
-                    className="formInput"
-                    placeholder="#4F6BED"
-                    value={hexInput}
-                    onChange={(e) => handleHexInput(e.target.value)}
-                    style={{ maxWidth: 120, fontFamily: "monospace", fontSize: "0.875rem" }}
-                    maxLength={7}
-                    autoComplete="off"
-                    spellCheck={false}
-                  />
-                  <span style={{ fontSize: "0.75rem", color: "#999" }}>
-                    or pick a color above
-                  </span>
                 </div>
 
-                {/* Live button preview */}
-                {accentColor && (
-                  <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: "0.75rem", color: "#999", marginRight: 4 }}>
-                      Preview:
-                    </span>
-                    {/* Primary button */}
-                    <div style={{
-                      padding: "7px 16px",
-                      borderRadius: 6,
-                      border: `1px solid ${accentColor}`,
-                      background: accentColor,
-                      color: buttonTextColor,
-                      fontSize: "0.875rem",
-                      fontWeight: 500,
-                    }}>
-                      Sync to Calendar
-                    </div>
-                    {/* Secondary button */}
-                    <div style={{
-                      padding: "7px 16px",
-                      borderRadius: 6,
-                      border: "1px solid #e0e0e0",
-                      background: "#fff",
-                      color: accentColor,
-                      fontSize: "0.875rem",
-                      fontWeight: 500,
-                    }}>
-                      Copy link
-                    </div>
+                {/* Buttons right */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+                  <span style={{
+                    fontSize: "0.7rem",
+                    color: theme === "dark" ? "#666" : "#bbb",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    marginBottom: 2,
+                  }}>
+                    Your buttons
+                  </span>
+                  {/* Primary button preview */}
+                  <div style={{
+                    padding: "8px 18px",
+                    borderRadius: 6,
+                    background: accentColor || "#4F6BED",
+                    border: `1px solid ${accentColor || "#4F6BED"}`,
+                    color: buttonTextColor,
+                    fontSize: "0.875rem",
+                    fontWeight: 500,
+                    whiteSpace: "nowrap",
+                  }}>
+                    Sync to Calendar
                   </div>
-                )}
+                  {/* Secondary button preview */}
+                  <div style={{
+                    padding: "8px 18px",
+                    borderRadius: 6,
+                    background: previewSecondaryBg,
+                    border: `1px solid ${previewSecondaryBorder}`,
+                    color: previewSecondaryText,
+                    fontSize: "0.875rem",
+                    fontWeight: 500,
+                    whiteSpace: "nowrap",
+                  }}>
+                    Copy link
+                  </div>
+                </div>
               </div>
 
-              {/* Theme */}
+              {/* ── Theme toggle ── */}
               <div style={{ marginBottom: 20 }}>
                 <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>
                   Page theme
@@ -516,10 +448,63 @@ export default function ManagePage({
                 </div>
               </div>
 
-              {brandingSaveError && (
-                <div className="error" style={{ marginBottom: 12 }}>
-                  {brandingSaveError}
+              {/* ── Accent color ── */}
+              <div style={{ marginBottom: 20 }}>
+                <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>
+                  Accent color
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+                  {COLOR_SWATCHES.map((swatch) => (
+                    <button
+                      key={swatch.hex}
+                      type="button"
+                      title={swatch.label}
+                      onClick={() => handleSwatchClick(swatch.hex)}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: "50%",
+                        background: swatch.hex,
+                        border: accentColor === swatch.hex ? "3px solid #333" : "2px solid transparent",
+                        outline: accentColor === swatch.hex ? "2px solid #fff" : "none",
+                        cursor: "pointer",
+                        padding: 0,
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+                      }}
+                      aria-label={swatch.label}
+                    />
+                  ))}
                 </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {accentColor && (
+                    <div style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 4,
+                      background: accentColor,
+                      border: "1px solid rgba(0,0,0,0.1)",
+                      flexShrink: 0,
+                    }} />
+                  )}
+                  <input
+                    type="text"
+                    className="formInput"
+                    placeholder="#4F6BED"
+                    value={hexInput}
+                    onChange={(e) => handleHexInput(e.target.value)}
+                    style={{ maxWidth: 120, fontFamily: "monospace", fontSize: "0.875rem" }}
+                    maxLength={7}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                  <span style={{ fontSize: "0.75rem", color: "#999" }}>
+                    or pick a color above
+  				  </span>
+                </div>
+              </div>
+
+              {brandingSaveError && (
+                <div className="error" style={{ marginBottom: 12 }}>{brandingSaveError}</div>
               )}
               {brandingSaveSuccess && (
                 <div style={{
@@ -649,9 +634,7 @@ export default function ManagePage({
         <div className="divider" />
 
         {saveError && (
-          <div className="error" style={{ marginBottom: 16 }}>
-            {saveError}
-          </div>
+          <div className="error" style={{ marginBottom: 16 }}>{saveError}</div>
         )}
         {saveSuccess && (
           <div style={{
