@@ -1536,14 +1536,32 @@ a:focus, .btn:focus, button:focus{
 .parseMascot{
   width: 100px;
   height: auto;
-  animation: parseMascotFloat 3s ease-in-out infinite;
+  animation: parseMascotFloat 3s ease-in-out infinite, parseMascotAppear 0.6s ease-out forwards;
   position: relative;
   z-index: 2;
+  will-change: filter, opacity;
 }
 
 @keyframes parseMascotFloat{
   0%, 100%{ transform: translateY(0px); }
   50%{ transform: translateY(-7px); }
+}
+
+@keyframes parseMascotAppear{
+  0%{
+    opacity: 0;
+    filter: blur(10px) brightness(1.4);
+    transform: translateY(6px) scale(0.96);
+  }
+  60%{
+    opacity: 1;
+    filter: blur(1px) brightness(1.05);
+  }
+  100%{
+    opacity: 1;
+    filter: blur(0px) brightness(1);
+    transform: translateY(0px) scale(1);
+  }
 }
 
 /* ── Sparkles ───────────────────────────────────── */
