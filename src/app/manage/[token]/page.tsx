@@ -270,9 +270,12 @@ export default function ManagePage({
       }
       const parsedEvents: EventRow[] = data.events.map(makeEventFromParse);
       setEvents((prev) => {
-        // Remove the single empty placeholder if that's all that exists
-        const nonEmpty = prev.filter((e) => e.title.trim() || e.start_date.trim());
-        return [...parsedEvents, ...nonEmpty];
+      const nonEmpty = prev.filter((e) => e.title.trim() || e.start_date.trim());
+      return [...parsedEvents, ...nonEmpty].sort((a, b) => {
+          if (!a.start_date) return 1;
+          if (!b.start_date) return -1;
+          return a.start_date.localeCompare(b.start_date);
+        });
       });
       setIsDirty(true);
       setParseStatus("success");
