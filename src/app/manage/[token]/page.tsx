@@ -660,8 +660,7 @@ export default function ManagePage({
           {/* ── Flyer import ── */}
           <div style={{ marginBottom: 20 }}>
             <p style={{ fontSize: "0.875rem", color: "var(--text-muted, #666)", marginBottom: 12, lineHeight: 1.5 }}>
-              Got a new schedule? Upload an image and Callie will add the events to your calendar.
-              New events show up on subscribed calendars automatically.
+              Have more events coming up? Upload an image and they'll be added to your calendar. New events show up on subscribed calendars automatically.
             </p>
 
             <input
@@ -688,7 +687,7 @@ export default function ManagePage({
                 {parseStatus === "idle" && (
                   <>
                     <div className="flyerIcon" aria-hidden="true">📄</div>
-                    <p className="flyerHeadline">Upload an image of your schedule</p>
+                    <p className="flyerHeadline">Upload an image of your events</p>
                     <p className="flyerFormats">JPEG, PNG, or WEBP</p>
                     <button type="button" className="btn btnSecondary" onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}>
                       Upload image
@@ -753,7 +752,7 @@ export default function ManagePage({
             )
           ) : (
             <p style={{ fontSize: "0.875rem", color: "var(--text-muted, #999)", marginBottom: 16, fontStyle: "italic" }}>
-              No upcoming events — add one below or upload a schedule above.
+              No upcoming events — add one below or upload more events above.
             </p>
           )}
 
