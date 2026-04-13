@@ -1602,3 +1602,80 @@ a:focus, .btn:focus, button:focus{
   0%, 100%{ transform: translateY(0);  opacity: 0.4; }
   50%{      transform: translateY(-4px); opacity: 1; }
 }
+
+/* ── Paid tier: accent color on primary buttons ─────────────────────────────
+   The CSS variable --accent-color is set inline on the page container.
+   btnPrimary picks it up automatically; no per-button changes needed
+   beyond what's already passed as accentStyle in CalendarClient.
+   If your existing btnPrimary already uses a variable, map it here instead. */
+
+/* ── Paid tier: logo image ───────────────────────────────────────────────── */
+.calLogoImg {
+  display: block;
+  max-height: 56px;      /* tall enough to read, constrained enough to not dominate */
+  max-width: 180px;      /* prevents wide horizontal logos from blowing out the card */
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 4px;
+}
+
+/* ── Paid tier: footer credit (small, unobtrusive) ───────────────────────── */
+.calFooterCredit {
+  font-size: 12px;
+  color: var(--color-text-muted, #999);
+  text-align: center;
+  margin-top: 4px;
+}
+
+.calFooterCredit a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── Dark theme ──────────────────────────────────────────────────────────────
+   Applied when data-theme="dark" is set on the container.
+   Scope: only affects the calendar page container, not the whole site. */
+[data-theme="dark"] {
+  --color-bg: #1a1a1a;
+  --color-surface: #242424;
+  --color-surface-alt: #2e2e2e;
+  --color-text: #f0f0f0;
+  --color-text-muted: #999;
+  --color-border: #3a3a3a;
+}
+
+[data-theme="dark"] .card {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+[data-theme="dark"] .eventRow {
+  border-color: var(--color-border);
+}
+
+[data-theme="dark"] .eventTitle {
+  color: var(--color-text);
+}
+
+[data-theme="dark"] .eventWeekday,
+[data-theme="dark"] .eventDate,
+[data-theme="dark"] .eventTime,
+[data-theme="dark"] .eventLocation {
+  color: var(--color-text-muted);
+}
+
+[data-theme="dark"] .sectionBox {
+  background: var(--color-surface-alt);
+  border-color: var(--color-border);
+}
+
+[data-theme="dark"] .calFooter {
+  color: var(--color-text-muted);
+}
+
+[data-theme="dark"] .mini,
+[data-theme="dark"] .helper {
+  color: var(--color-text-muted);
+}
