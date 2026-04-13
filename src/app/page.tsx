@@ -31,7 +31,7 @@ export default function HomePage() {
               people <span className="heroHighlight">actually check</span>.
             </h1>
             <p className="heroSub">
-              Not the group chat. Not a screenshot. On their existing calendar — where every update shows up on their phone. 
+              Not the group chat. Not a screenshot. On their existing calendar, where every update shows up on their phone. 
               No more "when is it again?"
             </p>
             <div className="heroCtas">
@@ -59,7 +59,7 @@ export default function HomePage() {
                 <span className="stepNum">1</span>
                 <h3 className="stepTitle">Upload your events</h3>
                 <p className="stepDesc">
-                  Upload an image of your events — Callie reads it and builds your calendar. 
+                  Upload an image of your events. We'll read it and build your calendar automatically. 
                   Or add events manually.
                 </p>
               </div>
