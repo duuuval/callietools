@@ -35,6 +35,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+function isLightColor(hex: string): boolean {
+  if (!hex || !/^#[0-9A-Fa-f]{6}$/.test(hex)) return false;
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 155;
+}
+
 export default async function CalendarPage({ params }: Props) {
   const cal = await getCalendar(params.id);
 
@@ -60,7 +68,8 @@ export default async function CalendarPage({ params }: Props) {
   const accentColor = isPaid && cal.accentColor ? cal.accentColor : "#4F6BED";
   // Theme: default to light
   const isDark = isPaid && cal.theme === "dark";
-
+  const buttonTextColor = isLightColor(accentColor) ? "#000000" : "#ffffff";
+  
   // Split events into upcoming and past
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -96,7 +105,12 @@ export default async function CalendarPage({ params }: Props) {
     <div
       className="container"
       data-theme={isDark ? "dark" : "light"}
-      style={{ "--primary": accentColor, "--primaryHover": accentColor } as React.CSSProperties}
+      data-paid={isPaid ? "true" : undefined}
+      style={{
+        "--primary": accentColor,
+        "--primaryHover": accentColor,
+        "--primary-text": buttonTextColor,
+      } as React.CSSProperties}
     >
 
       {/* ── Card 1: Header + Events ── */}
