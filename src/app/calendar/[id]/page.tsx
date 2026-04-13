@@ -106,6 +106,7 @@ export default async function CalendarPage({ params }: Props) {
       className="container"
       data-theme={isDark ? "dark" : "light"}
       data-paid={isPaid ? "true" : undefined}
+      data-calendar="true"
       style={{
         "--primary": accentColor,
         "--primaryHover": accentColor,
