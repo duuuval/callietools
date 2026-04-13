@@ -1768,3 +1768,7 @@ a:focus, .btn:focus, button:focus{
 [data-theme="dark"] .calFooterCredit a {
   color: var(--color-text-muted, #999);
 }
+
+:has([data-paid="true"]) footer.siteFooter {
+  display: none;
+}
