@@ -3,10 +3,6 @@
  *
  * Reads from Google Sheets API when credentials are configured.
  * Falls back to mock data for local development.
- *
- * Caching: results are held in-memory for 10 minutes per Vercel
- * serverless function instance. On Vercel, cold starts will re-fetch.
- * This is fine at your scale — if you outgrow it, swap in Vercel KV.
  */
 import { google } from "googleapis";
 import { randomUUID } from "crypto";
@@ -21,17 +17,17 @@ export interface CalendarMeta {
   timezone: string;
   email?: string;
   manage_token?: string;
-  // Paid-tier branding fields (columns H, I, J)
-  accentColor?: string;  // e.g. "#D4775B" — applied to subscribe buttons
-  theme?: string;        // "light" | "dark"
-  websiteUrl?: string;   // OnDek "Visit Website" back-link
+  accentColor?: string;  // col H
+  theme?: string;        // col I
+  websiteUrl?: string;   // col J
+  logoUrl?: string;      // col K — e.g. "/logos/dance-studio.png"
 }
 
 export interface CalendarEvent {
   calendar_id: string;
   title: string;
-  start_date: string; // YYYY-MM-DD
-  start_time: string; // HH:MM or ""
+  start_date: string;
+  start_time: string;
   end_date: string;
   end_time: string;
   location: string;
@@ -40,7 +36,7 @@ export interface CalendarEvent {
 
 // ─── In-memory cache ─────────────────────────────────────────
 
-const CACHE_TTL = 0; // turned off
+const CACHE_TTL = 0;
 
 interface CacheEntry<T> {
   data: T;
@@ -87,7 +83,6 @@ function getSheets() {
     },
     scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
   });
-
   return google.sheets({ version: "v4", auth });
 }
 
@@ -101,7 +96,6 @@ function getWriteSheets() {
     },
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
-
   return google.sheets({ version: "v4", auth });
 }
 
@@ -116,10 +110,11 @@ async function fetchAllCalendars(): Promise<CalendarMeta[]> {
 
   const sheets = getSheets();
   const sheetName = process.env.CALENDARS_SHEET_NAME || "Calendars";
-  // Extended to A:J to include new branding columns H (accentColor), I (theme), J (websiteUrl)
+  // A:K — id, name, tier, last_updated, timezone, email, manage_token,
+  //        accentColor, theme, websiteUrl, logoUrl
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID!,
-    range: `${sheetName}!A:J`,
+    range: `${sheetName}!A:K`,
   });
 
   const rows = res.data.values || [];
@@ -134,6 +129,7 @@ async function fetchAllCalendars(): Promise<CalendarMeta[]> {
     accentColor: (row[7] || "").trim() || undefined,
     theme: (row[8] || "").trim() || undefined,
     websiteUrl: (row[9] || "").trim() || undefined,
+    logoUrl: (row[10] || "").trim() || undefined,
   }));
 
   setCache(cacheKey, calendars);
@@ -219,6 +215,11 @@ export async function findUniqueSlug(name: string): Promise<string> {
   return `${base}-${randomUUID().slice(0, 6)}`;
 }
 
+/**
+ * Create a new calendar row.
+ * If the email already has a paid calendar, the new calendar inherits
+ * tier, accentColor, theme, and logoUrl automatically.
+ */
 export async function createCalendar(opts: {
   id: string;
   name: string;
@@ -228,28 +229,35 @@ export async function createCalendar(opts: {
   const manage_token = randomUUID();
   const now = new Date().toISOString().slice(0, 10);
 
+  // Inherit paid branding from existing calendars for this email
+  const existingCalendars = await getCalendarsByEmail(opts.email);
+  const paidCalendar = existingCalendars.find((c) => c.tier === "paid");
+  const tier = paidCalendar ? "paid" : "free";
+  const accentColor = paidCalendar?.accentColor ?? "";
+  const theme = paidCalendar?.theme ?? "";
+  const logoUrl = paidCalendar?.logoUrl ?? "";
+
   const sheets = getWriteSheets();
   const sheetName = process.env.CALENDARS_SHEET_NAME || "Calendars";
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID!,
-    range: `${sheetName}!A:J`,
+    range: `${sheetName}!A:K`,
     valueInputOption: "RAW",
     requestBody: {
-      values: [
-        [
-          opts.id,
-          opts.name,
-          "free",
-          now,
-          opts.timezone || "America/New_York",
-          opts.email,
-          manage_token,
-          "", // accentColor — empty on create
-          "", // theme — empty on create
-          "", // websiteUrl — empty on create
-        ],
-      ],
+      values: [[
+        opts.id,
+        opts.name,
+        tier,
+        now,
+        opts.timezone || "America/New_York",
+        opts.email,
+        manage_token,
+        accentColor,
+        theme,
+        "",      // websiteUrl — not inherited, calendar-specific
+        logoUrl,
+      ]],
     },
   });
 
@@ -301,8 +309,8 @@ export async function updateEvents(
   });
 
   const rows = res.data.values || [];
-
   const rowsToDelete: number[] = [];
+
   for (let i = 1; i < rows.length; i++) {
     if ((rows[i][0] || "").trim() === calendarId) {
       rowsToDelete.push(i + 1);
@@ -344,8 +352,7 @@ export async function updateEvents(
 
 /**
  * Update branding fields for a paid-tier calendar.
- * Writes accentColor and theme to columns H and I.
- * Finds the calendar's row by ID and updates in place.
+ * Writes accentColor (H) and theme (I) in place.
  */
 export async function updateCalendarBranding(
   calendarId: string,
@@ -355,14 +362,12 @@ export async function updateCalendarBranding(
   const sheetName = process.env.CALENDARS_SHEET_NAME || "Calendars";
   const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID!;
 
-  // Fetch all rows to find the row index for this calendar
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${sheetName}!A:A`, // only need column A (id) to find the row
+    range: `${sheetName}!A:A`,
   });
 
   const rows = res.data.values || [];
-  // rows[0] is header; data starts at rows[1] (sheet row 2)
   const rowIndex = rows.findIndex(
     (row, i) => i > 0 && (row[0] || "").trim() === calendarId
   );
@@ -371,10 +376,8 @@ export async function updateCalendarBranding(
     throw new Error(`Calendar ${calendarId} not found in sheet`);
   }
 
-  // Sheet row number is 1-indexed; rowIndex in array is 0-indexed
   const sheetRow = rowIndex + 1;
 
-  // Update H (accentColor) and I (theme) in the found row
   await sheets.spreadsheets.values.update({
     spreadsheetId,
     range: `${sheetName}!H${sheetRow}:I${sheetRow}`,
