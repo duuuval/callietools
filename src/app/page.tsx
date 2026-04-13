@@ -59,8 +59,9 @@ export default function HomePage() {
                 <span className="stepNum">1</span>
                 <h3 className="stepTitle">Upload your events</h3>
                 <p className="stepDesc">
-                  Upload an image of your events. We'll read it and build your calendar automatically. 
-                  Or add events manually.
+                  Upload an image of your events. We'll read it and build your calendar automatically.
+                  <br />
+                  No image? You can add events manually too.
                 </p>
               </div>
 
@@ -91,7 +92,7 @@ export default function HomePage() {
         <div className="container">
           <h2 className="homeSectionTitleCenter">Who it&apos;s for</h2>
           <p className="recognitionLine">
-            Teams, classes, scout troops, church groups, PTAs, community
+            Families, teams, classes, scout troops, church groups, PTAs, community
             orgs&nbsp;&mdash; if you&apos;re the one everyone asks{" "}
             <em>&ldquo;when is it again?&rdquo;</em>, this is for you.
           </p>
