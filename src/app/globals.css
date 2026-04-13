@@ -218,12 +218,12 @@ a:focus, .btn:focus, button:focus{
 }
 .btn:hover{ text-decoration:none; }
 
-.btnPrimary{
+.btnPrimary {
   background: var(--primary);
-  color: #fff;
+  color: var(--primary-text, #fff); /* falls back to white when variable not set */
   border-color: var(--primary);
 }
-.btnPrimary:hover{
+.btnPrimary:hover {
   background: var(--primaryHover);
   border-color: var(--primaryHover);
   transform: translateY(-1px);
@@ -239,6 +239,17 @@ a:focus, .btn:focus, button:focus{
   border-color: var(--primary);
   color: var(--primary);
   transform: translateY(-1px);
+}
+
+/* Secondary buttons stay neutral on paid pages — accent color only for text */
+[data-paid="true"] .btnSecondary {
+  color: var(--primary);
+  border-color: #e0e0e0;
+}
+[data-paid="true"] .btnSecondary:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, white);
 }
 
 .sectionTitle{
