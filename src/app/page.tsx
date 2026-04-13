@@ -26,14 +26,13 @@ export default function HomePage() {
         <div className="heroInner heroInnerRedesign">
           <div className="heroCopy">
             <h1>
-              Everyone has a calendar app.
+              Put your events somewhere
               <br />
-              Nobody has <span className="heroHighlight">your events</span> on
-              it&nbsp;&mdash;&nbsp;yet.
+              people <span className="heroHighlight">actually check</span>.
             </h1>
             <p className="heroSub">
-              Create a free calendar page your people can subscribe to.
-              They add it once&nbsp;&mdash; every update shows up automatically.
+              Not the group chat. Not a screenshot. On their existing calendar — where every update shows up on their phone. 
+              No more "when is it again?"
             </p>
             <div className="heroCtas">
               <Link className="btn btnPrimary heroBtn" href="/create">
@@ -58,10 +57,10 @@ export default function HomePage() {
             <div className="stepsRow">
               <div className="stepCard">
                 <span className="stepNum">1</span>
-                <h3 className="stepTitle">Add your events</h3>
+                <h3 className="stepTitle">Upload your events</h3>
                 <p className="stepDesc">
-                  Enter them manually or upload an image or
-                  schedule and we&apos;ll pull them out for you.
+                  Upload an image of your events — Callie reads it and builds your calendar. 
+                  Or add events manually.
                 </p>
               </div>
 
