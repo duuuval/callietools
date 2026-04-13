@@ -1630,11 +1630,11 @@ a:focus, .btn:focus, button:focus{
 /* ── Paid tier: logo image ───────────────────────────────────────────────── */
 .calLogoImg {
   display: block;
-  max-height: 56px;      /* tall enough to read, constrained enough to not dominate */
-  max-width: 180px;      /* prevents wide horizontal logos from blowing out the card */
+  max-height: 72px;     /* was 56px — bigger in side-by-side context */
+  max-width: 120px;     /* constrain width so name has room */
   width: auto;
   object-fit: contain;
-  margin-bottom: 4px;
+  flex-shrink: 0;       /* don't let it compress when name is long */
 }
 
 /* ── Paid tier: footer credit (small, unobtrusive) ───────────────────────── */
