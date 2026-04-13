@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 interface EventRow {
   id: string;
@@ -36,6 +36,66 @@ function makeEmptyEvent(): EventRow {
   };
 }
 
+function makeEventFromParse(e: {
+  title?: string;
+  start_date?: string;
+  start_time?: string;
+  end_time?: string;
+  location?: string;
+  description?: string;
+}): EventRow {
+  return {
+    id: crypto.randomUUID(),
+    title: e.title || "",
+    start_date: e.start_date || "",
+    start_time: e.start_time || "",
+    end_time: e.end_time || "",
+    location: e.location || "",
+    description: e.description || "",
+    showDetails: !!(e.location || e.description),
+  };
+}
+
+function isPastEvent(ev: EventRow): boolean {
+  if (!ev.start_date) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const evDate = new Date(ev.start_date + "T00:00:00");
+  return evDate < today;
+}
+
+async function compressImage(file: File): Promise<File> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const MAX = 1600;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width > height) { height = Math.round((height * MAX) / width); width = MAX; }
+        else { width = Math.round((width * MAX) / height); height = MAX; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => resolve(blob ? new File([blob], file.name, { type: "image/jpeg" }) : file),
+        "image/jpeg", 0.88
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
+const PARSE_PHRASES = [
+  "Reading your image…",
+  "Finding your events…",
+  "Almost there…",
+];
+
 const COLOR_SWATCHES = [
   { hex: "#4F6BED", label: "Callie Blue" },
   { hex: "#D4775B", label: "Coral" },
@@ -70,6 +130,16 @@ export default function ManagePage({
   const [loadError, setLoadError] = useState("");
   const [calendar, setCalendar] = useState<CalendarMeta | null>(null);
   const [events, setEvents] = useState<EventRow[]>([]);
+  const [pastExpanded, setPastExpanded] = useState(false);
+
+  // ── Flyer import state ──
+  const [parseStatus, setParseStatus] = useState<"idle" | "parsing" | "success" | "error">("idle");
+  const [parseMessage, setParseMessage] = useState("");
+  const [parsePhrase, setParsePhrase] = useState(PARSE_PHRASES[0]);
+  const [parsePhraseVisible, setParsePhraseVisible] = useState(true);
+  const [dragOver, setDragOver] = useState(false);
+  const parsePhraseTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [accentColor, setAccentColor] = useState("");
   const [hexInput, setHexInput] = useState("");
@@ -87,12 +157,15 @@ export default function ManagePage({
   const isPaid = calendar?.tier === "paid";
   const buttonTextColor = isLightColor(accentColor) ? "#000" : "#fff";
 
-  // Preview box colors driven by theme selection
   const previewBg = theme === "dark" ? "#1a1a1a" : "#ffffff";
   const previewBorder = theme === "dark" ? "#3a3a3a" : "#e5e5e5";
   const previewSecondaryBg = theme === "dark" ? "#242424" : "#ffffff";
   const previewSecondaryBorder = theme === "dark" ? "#3a3a3a" : "#e0e0e0";
   const previewSecondaryText = theme === "dark" ? accentColor || "#4F6BED" : accentColor || "#4F6BED";
+
+  // ── Derived: split events into upcoming and past ──
+  const upcomingEvents = events.filter((e) => !isPastEvent(e));
+  const pastEvents = events.filter((e) => isPastEvent(e));
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -156,6 +229,87 @@ export default function ManagePage({
     load();
   }, [token]);
 
+  // ── Parse phrase animation ──
+  useEffect(() => {
+    parsePhraseTimers.current.forEach(clearTimeout);
+    parsePhraseTimers.current = [];
+    if (parseStatus !== "parsing") return;
+    PARSE_PHRASES.forEach((_, i) => {
+      if (i === 0) return;
+      const delay = i * 2200;
+      const t = setTimeout(() => {
+        setParsePhraseVisible(false);
+        const swap = setTimeout(() => {
+          setParsePhrase(PARSE_PHRASES[i]);
+          setParsePhraseVisible(true);
+        }, 300);
+        parsePhraseTimers.current.push(swap);
+      }, delay);
+      parsePhraseTimers.current.push(t);
+    });
+    return () => { parsePhraseTimers.current.forEach(clearTimeout); };
+  }, [parseStatus]);
+
+  // ── Flyer import ──
+  const handleFile = useCallback(async (file: File) => {
+    if (parseStatus === "parsing") return;
+    setParseStatus("parsing");
+    setParseMessage("");
+    setParsePhrase(PARSE_PHRASES[0]);
+    setParsePhraseVisible(true);
+    try {
+      const compressed = await compressImage(file);
+      const formData = new FormData();
+      formData.append("file", compressed);
+      const res = await fetch("/api/parse-flyer", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        setParseStatus("error");
+        setParseMessage(data.error || "We couldn't read that. Try a sharper image, or add events manually below.");
+        return;
+      }
+      const parsedEvents: EventRow[] = data.events.map(makeEventFromParse);
+      setEvents((prev) => {
+        // Remove the single empty placeholder if that's all that exists
+        const nonEmpty = prev.filter((e) => e.title.trim() || e.start_date.trim());
+        return [...parsedEvents, ...nonEmpty];
+      });
+      setIsDirty(true);
+      setParseStatus("success");
+      setParseMessage(
+        `We added ${parsedEvents.length} event${parsedEvents.length !== 1 ? "s" : ""} from your upload — review below, then save your calendar.`
+      );
+    } catch {
+      setParseStatus("error");
+      setParseMessage("Something went wrong. Try again or add events manually below.");
+    }
+  }, [parseStatus]);
+
+  const triggerFilePicker = () => fileInputRef.current?.click();
+
+  const handleFileInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) handleFile(file);
+      e.target.value "";
+    },
+    [handleFile]
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragOver(false);
+      const file = e.dataTransfer.files?.[0];
+      if (file) handleFile(file);
+    },
+    [handleFile]
+  );
+
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setDragOver(true); };
+  const handleDragLeave = () => setDragOver(false);
+
+  // ── Branding handlers ──
   const handleSwatchClick = (hex: string) => {
     setAccentColor(hex);
     setHexInput(hex);
@@ -203,6 +357,7 @@ export default function ManagePage({
     }
   };
 
+  // ── Event handlers ──
   const updateEvent = useCallback(
     (id: string, field: keyof EventRow, value: string | boolean) => {
       setEvents((prev) => prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
@@ -262,6 +417,93 @@ export default function ManagePage({
     }
   };
 
+  // ── Shared event card renderer ──
+  function renderEventCard(ev: EventRow, globalIdx: number) {
+    return (
+      <div key={ev.id} className="eventCard">
+        <div className="eventCardHeader">
+          <span className="eventCardNum">{globalIdx + 1}</span>
+          {events.length > 1 && (
+            <button
+              type="button"
+              className="eventCardRemove"
+              onClick={() => removeEvent(ev.id)}
+              aria-label={`Remove event ${globalIdx + 1}`}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        <input
+          type="text"
+          className="formInput"
+          placeholder="Event title"
+          value={ev.title}
+          onChange={(e) => updateEvent(ev.id, "title", e.target.value)}
+          autoComplete="off"
+        />
+
+        <div className="eventTimeRow">
+          <div className="eventTimeField eventDateField">
+            <label className="formLabelSmall">Date</label>
+            <input
+              type="date"
+              className="formInput"
+              value={ev.start_date}
+              onChange={(e) => updateEvent(ev.id, "start_date", e.target.value)}
+            />
+          </div>
+          <div className="eventTimeField">
+            <label className="formLabelSmall">Start</label>
+            <input
+              type="time"
+              className="formInput"
+              value={ev.start_time}
+              onChange={(e) => updateEvent(ev.id, "start_time", e.target.value)}
+            />
+          </div>
+          <div className="eventTimeField">
+            <label className="formLabelSmall">End</label>
+            <input
+              type="time"
+              className="formInput"
+              value={ev.end_time}
+              onChange={(e) => updateEvent(ev.id, "end_time", e.target.value)}
+            />
+          </div>
+        </div>
+
+        <input
+          type="text"
+          className="formInput"
+          placeholder="Location (optional)"
+          value={ev.location}
+          onChange={(e) => updateEvent(ev.id, "location", e.target.value)}
+          autoComplete="off"
+        />
+
+        <button
+          type="button"
+          className="eventDetailsToggle"
+          onClick={() => updateEvent(ev.id, "showDetails", !ev.showDetails)}
+        >
+          {ev.showDetails ? "− Hide details" : "+ More details"}
+        </button>
+
+        {ev.showDetails && (
+          <textarea
+            className="formInput formTextarea"
+            placeholder="Description (optional)"
+            rows={3}
+            value={ev.description}
+            onChange={(e) => updateEvent(ev.id, "description", e.target.value)}
+          />
+        )}
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="container">
@@ -317,7 +559,6 @@ export default function ManagePage({
             <div className="formGroup">
               <label className="formLabel">Your branding</label>
 
-              {/* ── Unified preview box ── */}
               <div style={{
                 marginBottom: 20,
                 padding: "20px",
@@ -330,19 +571,13 @@ export default function ManagePage({
                 gap: 16,
                 transition: "background 0.2s, border-color 0.2s",
               }}>
-                {/* Logo left */}
                 <div style={{ flexShrink: 0 }}>
                   {logoUrl ? (
                     <>
                       <img
                         src={logoUrl}
                         alt={`${calendar?.name} logo`}
-                        style={{
-                          maxHeight: 64,
-                          maxWidth: 140,
-                          objectFit: "contain",
-                          display: "block",
-                        }}
+                        style={{ maxHeight: 64, maxWidth: 140, objectFit: "contain", display: "block" }}
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
                           const el = e.currentTarget.nextElementSibling as HTMLElement;
@@ -354,182 +589,62 @@ export default function ManagePage({
                       </p>
                     </>
                   ) : (
-                    <p style={{
-                      fontSize: "0.8rem",
-                      color: theme === "dark" ? "#666" : "#bbb",
-                      fontStyle: "italic",
-                      maxWidth: 140,
-                    }}>
+                    <p style={{ fontSize: "0.8rem", color: theme === "dark" ? "#666" : "#bbb", fontStyle: "italic", maxWidth: 140 }}>
                       Logo not uploaded yet —{" "}
-                      <a href="mailto:hello@callietools.com" style={{ color: "#4F6BED" }}>
-                        email us your file
-                      </a>
+                      <a href="mailto:hello@callietools.com" style={{ color: "#4F6BED" }}>email us your file</a>
                     </p>
                   )}
                 </div>
 
-                {/* Buttons right */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-                  <span style={{
-                    fontSize: "0.7rem",
-                    color: theme === "dark" ? "#666" : "#bbb",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    marginBottom: 2,
-                  }}>
+                  <span style={{ fontSize: "0.7rem", color: theme === "dark" ? "#666" : "#bbb", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>
                     Your buttons
                   </span>
-                  {/* Primary button preview */}
-                  <div style={{
-                    padding: "8px 18px",
-                    borderRadius: 6,
-                    background: accentColor || "#4F6BED",
-                    border: `1px solid ${accentColor || "#4F6BED"}`,
-                    color: buttonTextColor,
-                    fontSize: "0.875rem",
-                    fontWeight: 500,
-                    whiteSpace: "nowrap",
-                  }}>
+                  <div style={{ padding: "8px 18px", borderRadius: 6, background: accentColor || "#4F6BED", border: `1px solid ${accentColor || "#4F6BED"}`, color: buttonTextColor, fontSize: "0.875rem", fontWeight: 500, whiteSpace: "nowrap" }}>
                     Sync to Calendar
                   </div>
-                  {/* Secondary button preview */}
-                  <div style={{
-                    padding: "8px 18px",
-                    borderRadius: 6,
-                    background: previewSecondaryBg,
-                    border: `1px solid ${previewSecondaryBorder}`,
-                    color: previewSecondaryText,
-                    fontSize: "0.875rem",
-                    fontWeight: 500,
-                    whiteSpace: "nowrap",
-                  }}>
+                  <div style={{ padding: "8px 18px", borderRadius: 6, background: previewSecondaryBg, border: `1px solid ${previewSecondaryBorder}`, color: previewSecondaryText, fontSize: "0.875rem", fontWeight: 500, whiteSpace: "nowrap" }}>
                     Copy link
                   </div>
                 </div>
               </div>
 
-              {/* ── Theme toggle ── */}
               <div style={{ marginBottom: 20 }}>
-                <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>
-                  Page theme
-                </p>
+                <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>Page theme</p>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    type="button"
-                    onClick={() => handleThemeToggle("light")}
-                    style={{
-                      padding: "8px 20px",
-                      borderRadius: 6,
-                      border: theme === "light" ? "2px solid #333" : "2px solid #ddd",
-                      background: theme === "light" ? "#fff" : "transparent",
-                      fontWeight: theme === "light" ? 600 : 400,
-                      cursor: "pointer",
-                      fontSize: "0.875rem",
-                    }}
-                  >
+                  <button type="button" onClick={() => handleThemeToggle("light")} style={{ padding: "8px 20px", borderRadius: 6, border: theme === "light" ? "2px solid #333" : "2px solid #ddd", background: theme === "light" ? "#fff" : "transparent", fontWeight: theme === "light" ? 600 : 400, cursor: "pointer", fontSize: "0.875rem" }}>
                     ☀️ Light
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handleThemeToggle("dark")}
-                    style={{
-                      padding: "8px 20px",
-                      borderRadius: 6,
-                      border: theme === "dark" ? "2px solid #333" : "2px solid #ddd",
-                      background: theme === "dark" ? "#1a1a1a" : "transparent",
-                      color: theme === "dark" ? "#f0f0f0" : "inherit",
-                      fontWeight: theme === "dark" ? 600 : 400,
-                      cursor: "pointer",
-                      fontSize: "0.875rem",
-                    }}
-                  >
+                  <button type="button" onClick={() => handleThemeToggle("dark")} style={{ padding: "8px 20px", borderRadius: 6, border: theme === "dark" ? "2px solid #333" : "2px solid #ddd", background: theme === "dark" ? "#1a1a1a" : "transparent", color: theme === "dark" ? "#f0f0f0" : "inherit", fontWeight: theme === "dark" ? 600 : 400, cursor: "pointer", fontSize: "0.875rem" }}>
                     🌙 Dark
                   </button>
                 </div>
               </div>
 
-              {/* ── Accent color ── */}
               <div style={{ marginBottom: 20 }}>
-                <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>
-                  Accent color
-                </p>
+                <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>Accent color</p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
                   {COLOR_SWATCHES.map((swatch) => (
-                    <button
-                      key={swatch.hex}
-                      type="button"
-                      title={swatch.label}
-                      onClick={() => handleSwatchClick(swatch.hex)}
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: "50%",
-                        background: swatch.hex,
-                        border: accentColor === swatch.hex ? "3px solid #333" : "2px solid transparent",
-                        outline: accentColor === swatch.hex ? "2px solid #fff" : "none",
-                        cursor: "pointer",
-                        padding: 0,
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
-                      }}
-                      aria-label={swatch.label}
-                    />
+                    <button key={swatch.hex} type="button" title={swatch.label} onClick={() => handleSwatchClick(swatch.hex)} style={{ width: 28, height: 28, borderRadius: "50%", background: swatch.hex, border: accentColor === swatch.hex ? "3px solid #333" : "2px solid transparent", outline: accentColor === swatch.hex ? "2px solid #fff" : "none", cursor: "pointer", padding: 0, boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }} aria-label={swatch.label} />
                   ))}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   {accentColor && (
-                    <div style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 4,
-                      background: accentColor,
-                      border: "1px solid rgba(0,0,0,0.1)",
-                      flexShrink: 0,
-                    }} />
+                    <div style={{ width: 24, height: 24, borderRadius: 4, background: accentColor, border: "1px solid rgba(0,0,0,0.1)", flexShrink: 0 }} />
                   )}
-                  <input
-                    type="text"
-                    className="formInput"
-                    placeholder="#4F6BED"
-                    value={hexInput}
-                    onChange={(e) => handleHexInput(e.target.value)}
-                    style={{ maxWidth: 120, fontFamily: "monospace", fontSize: "0.875rem" }}
-                    maxLength={7}
-                    autoComplete="off"
-                    spellCheck={false}
-                  />
-                  <span style={{ fontSize: "0.75rem", color: "#999" }}>
-                    or pick a color above
-  				  </span>
+                  <input type="text" className="formInput" placeholder="#4F6BED" value={hexInput} onChange={(e) => handleHexInput(e.target.value)} style={{ maxWidth: 120, fontFamily: "monospace", fontSize: "0.875rem" }} maxLength={7} autoComplete="off" spellCheck={false} />
+                  <span style={{ fontSize: "0.75rem", color: "#999" }}>or pick a color above</span>
                 </div>
               </div>
 
-              {brandingSaveError && (
-                <div className="error" style={{ marginBottom: 12 }}>{brandingSaveError}</div>
-              )}
+              {brandingSaveError && <div className="error" style={{ marginBottom: 12 }}>{brandingSaveError}</div>}
               {brandingSaveSuccess && (
-                <div style={{
-                  marginBottom: 12,
-                  padding: "10px 14px",
-                  background: "#f0fdf4",
-                  border: "1px solid #bbf7d0",
-                  borderRadius: 8,
-                  color: "#166534",
-                  fontSize: "0.875rem",
-                }}>
+                <div style={{ marginBottom: 12, padding: "10px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, color: "#166534", fontSize: "0.875rem" }}>
                   ✓ Branding saved — view your calendar page to see changes.
                 </div>
               )}
 
-              <button
-                type="button"
-                className="btn btnPrimary"
-                onClick={handleBrandingSave}
-                disabled={brandingSubmitting || !brandingDirty}
-                style={{
-                  ...accentStyle,
-                  opacity: (!brandingDirty || brandingSubmitting) ? 0.6 : 1,
-                }}
-              >
+              <button type="button" className="btn btnPrimary" onClick={handleBrandingSave} disabled={brandingSubmitting || !brandingDirty} style={{ ...accentStyle, opacity: (!brandingDirty || brandingSubmitting) ? 0.6 : 1 }}>
                 {brandingSubmitting ? "Saving…" : "Save branding"}
               </button>
             </div>
@@ -542,110 +657,150 @@ export default function ManagePage({
         <div className="formGroup">
           <label className="formLabel">Events</label>
 
-          {events.map((ev, idx) => (
-            <div key={ev.id} className="eventCard">
-              <div className="eventCardHeader">
-                <span className="eventCardNum">{idx + 1}</span>
-                {events.length > 1 && (
-                  <button
-                    type="button"
-                    className="eventCardRemove"
-                    onClick={() => removeEvent(ev.id)}
-                    aria-label={`Remove event ${idx + 1}`}
-                  >
-                    ✕
-                  </button>
+          {/* ── Flyer import ── */}
+          <div style={{ marginBottom: 20 }}>
+            <p style={{ fontSize: "0.875rem", color: "var(--text-muted, #666)", marginBottom: 12, lineHeight: 1.5 }}>
+              Got a new schedule? Upload an image and Callie will add the events to your calendar.
+              New events show up on subscribed calendars automatically.
+            </p>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style={{ display: "none" }}
+              onChange={handleFileInput}
+            />
+
+            <div
+              className={`flyerUpload${dragOver ? " flyerUploadDragOver" : ""}${parseStatus === "parsing" ? " flyerUploadParsing" : ""}`}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onClick={triggerFilePicker}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === "Enter" && triggerFilePicker()}
+              style={{ cursor: parseStatus === "parsing" ? "wait" : "pointer" }}
+            >
+              <div className="flyerUploadInner">
+
+                {parseStatus === "idle" && (
+                  <>
+                    <div className="flyerIcon" aria-hidden="true">📄</div>
+                    <p className="flyerHeadline">Upload an image of your schedule</p>
+                    <p className="flyerFormats">JPEG, PNG, or WEBP</p>
+                    <button type="button" className="btn btnSecondary" onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}>
+                      Upload image
+                    </button>
+                  </>
                 )}
+
+                {parseStatus === "parsing" && (
+                  <div className="parseLoading">
+                    <div className="parseMascotWrap" aria-hidden="true">
+                      <span className="parseSpark parseSpark1" />
+                      <span className="parseSpark parseSpark2" />
+                      <span className="parseSpark parseSpark3" />
+                      <span className="parseSpark parseSpark4" />
+                      <img src="/callie-mascot.png" alt="" className="parseMascot" />
+                    </div>
+                    <p className="parsePhrase" style={{ opacity: parsePhraseVisible ? 1 : 0 }}>
+                      {parsePhrase}
+                    </p>
+                    <div className="parseDots" aria-label="Loading">
+                      <span className="parseDot" />
+                      <span className="parseDot" />
+                      <span className="parseDot" />
+                    </div>
+                  </div>
+                )}
+
+                {parseStatus === "success" && (
+                  <>
+                    <div className="flyerIcon" aria-hidden="true">✅</div>
+                    <p className="flyerHeadline">{parseMessage}</p>
+                    <button type="button" className="btn btnSecondary" onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}>
+                      Upload another image
+                    </button>
+                  </>
+                )}
+
+                {parseStatus === "error" && (
+                  <>
+                    <div className="flyerIcon" aria-hidden="true">📄</div>
+                    <p className="flyerHeadline" style={{ color: "var(--color-error, #c0392b)" }}>
+                      {parseMessage}
+                    </p>
+                    <button type="button" className="btn btnSecondary" onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}>
+                      Try again
+                    </button>
+                  </>
+                )}
+
               </div>
-
-              <input
-                type="text"
-                className="formInput"
-                placeholder="Event title"
-                value={ev.title}
-                onChange={(e) => updateEvent(ev.id, "title", e.target.value)}
-                autoComplete="off"
-              />
-
-              <div className="eventTimeRow">
-                <div className="eventTimeField eventDateField">
-                  <label className="formLabelSmall">Date</label>
-                  <input
-                    type="date"
-                    className="formInput"
-                    value={ev.start_date}
-                    onChange={(e) => updateEvent(ev.id, "start_date", e.target.value)}
-                  />
-                </div>
-                <div className="eventTimeField">
-                  <label className="formLabelSmall">Start</label>
-                  <input
-                    type="time"
-                    className="formInput"
-                    value={ev.start_time}
-                    onChange={(e) => updateEvent(ev.id, "start_time", e.target.value)}
-                  />
-                </div>
-                <div className="eventTimeField">
-                  <label className="formLabelSmall">End</label>
-                  <input
-                    type="time"
-                    className="formInput"
-                    value={ev.end_time}
-                    onChange={(e) => updateEvent(ev.id, "end_time", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <input
-                type="text"
-                className="formInput"
-                placeholder="Location (optional)"
-                value={ev.location}
-                onChange={(e) => updateEvent(ev.id, "location", e.target.value)}
-                autoComplete="off"
-              />
-
-              <button
-                type="button"
-                className="eventDetailsToggle"
-                onClick={() => updateEvent(ev.id, "showDetails", !ev.showDetails)}
-              >
-                {ev.showDetails ? "− Hide details" : "+ More details"}
-              </button>
-
-              {ev.showDetails && (
-                <textarea
-                  className="formInput formTextarea"
-                  placeholder="Description (optional)"
-                  rows={3}
-                  value={ev.description}
-                  onChange={(e) => updateEvent(ev.id, "description", e.target.value)}
-                />
-              )}
             </div>
-          ))}
+
+            <div className="createOrDivider">
+              <span>or add events manually</span>
+            </div>
+          </div>
+
+          {/* ── Upcoming events ── */}
+          {upcomingEvents.length > 0 ? (
+            upcomingEvents.map((ev) =>
+              renderEventCard(ev, events.indexOf(ev))
+            )
+          ) : (
+            <p style={{ fontSize: "0.875rem", color: "var(--text-muted, #999)", marginBottom: 16, fontStyle: "italic" }}>
+              No upcoming events — add one below or upload a schedule above.
+            </p>
+          )}
 
           <button type="button" className="addEventLink" onClick={addEvent}>
             + Add event
           </button>
+
+          {/* ── Past events collapsible ── */}
+          {pastEvents.length > 0 && (
+            <div style={{ marginTop: 24 }}>
+              <button
+                type="button"
+                onClick={() => setPastExpanded((v) => !v)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "8px 0",
+                  fontSize: "0.875rem",
+                  color: "var(--text-muted, #666)",
+                  fontWeight: 500,
+                }}
+              >
+                <span style={{ display: "inline-block", transform: pastExpanded ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▶</span>
+                {pastEvents.length} past event{pastEvents.length !== 1 ? "s" : ""}
+                <span style={{ fontWeight: 400 }}>— {pastExpanded ? "hide" : "show"}</span>
+              </button>
+
+              {pastExpanded && (
+                <div style={{ marginTop: 8 }}>
+                  {pastEvents.map((ev) =>
+                    renderEventCard(ev, events.indexOf(ev))
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="divider" />
 
-        {saveError && (
-          <div className="error" style={{ marginBottom: 16 }}>{saveError}</div>
-        )}
+        {saveError && <div className="error" style={{ marginBottom: 16 }}>{saveError}</div>}
         {saveSuccess && (
-          <div style={{
-            marginBottom: 16,
-            padding: "12px 16px",
-            background: "#f0fdf4",
-            border: "1px solid #bbf7d0",
-            borderRadius: 8,
-            color: "#166534",
-            fontSize: "0.9rem",
-          }}>
+          <div style={{ marginBottom: 16, padding: "12px 16px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, color: "#166534", fontSize: "0.9rem" }}>
             ✓ Changes saved — your calendar is updated.
           </div>
         )}
