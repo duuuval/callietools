@@ -342,6 +342,51 @@ export async function updateEvents(
   }
 }
 
+/**
+ * Update branding fields for a paid-tier calendar.
+ * Writes accentColor and theme to columns H and I.
+ * Finds the calendar's row by ID and updates in place.
+ */
+export async function updateCalendarBranding(
+  calendarId: string,
+  branding: { accentColor?: string; theme?: string }
+): Promise<void> {
+  const sheets = getWriteSheets();
+  const sheetName = process.env.CALENDARS_SHEET_NAME || "Calendars";
+  const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID!;
+
+  // Fetch all rows to find the row index for this calendar
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${sheetName}!A:A`, // only need column A (id) to find the row
+  });
+
+  const rows = res.data.values || [];
+  // rows[0] is header; data starts at rows[1] (sheet row 2)
+  const rowIndex = rows.findIndex(
+    (row, i) => i > 0 && (row[0] || "").trim() === calendarId
+  );
+
+  if (rowIndex === -1) {
+    throw new Error(`Calendar ${calendarId} not found in sheet`);
+  }
+
+  // Sheet row number is 1-indexed; rowIndex in array is 0-indexed
+  const sheetRow = rowIndex + 1;
+
+  // Update H (accentColor) and I (theme) in the found row
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `${sheetName}!H${sheetRow}:I${sheetRow}`,
+    valueInputOption: "RAW",
+    requestBody: {
+      values: [[branding.accentColor ?? "", branding.theme ?? ""]],
+    },
+  });
+
+  clearCache();
+}
+
 // ─── /my-calendars — Dashboard tokens ────────────────────────
 
 export async function createDashboardToken(email: string): Promise<string> {
