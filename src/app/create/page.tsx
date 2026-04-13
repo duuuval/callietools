@@ -347,8 +347,7 @@ export default function CreatePage() {
             {parseStatus === "idle" && (
               <>
                 <p className="flyerHeadline">
-                  Got a flyer or schedule? Upload it and Callie will pull your
-                  events out.
+                  Upload an image of your events. We'll read it and build your calendar automatically.
                 </p>
                 <p className="flyerFormats">JPEG, PNG, or WEBP</p>
                 <button
@@ -411,7 +410,7 @@ export default function CreatePage() {
             id="cal-name"
             type="text"
             className="formInput"
-            placeholder="e.g., Crestwood Swim Team"
+            placeholder="e.g., Woolridge PTA"
             value={calendarName}
             onChange={(e) => setCalendarName(e.target.value)}
             maxLength={100}
