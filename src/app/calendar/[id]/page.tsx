@@ -50,6 +50,16 @@ export default async function CalendarPage({ params }: Props) {
   const webcalIcs = `webcal://${host}/api/ics/${encodeURIComponent(cal.id)}.ics`;
   const vanityUrl = `${siteUrl}/${encodeURIComponent(cal.id)}`;
 
+  // ── Paid tier detection ───────────────────────────────────
+  const isPaid = cal.tier === "paid";
+  // Logo path convention: /public/logos/[calendarId].png
+  // Drop the file and set tier="paid" in Sheets to activate.
+  const logoPath = isPaid ? `/logos/${cal.id}.png` : null;
+  // Accent color: use calendar's value, fall back to Callie blue
+  const accentColor = isPaid && cal.accentColor ? cal.accentColor : "#4F6BED";
+  // Theme: default to light
+  const isDark = isPaid && cal.theme === "dark";
+
   // Split events into upcoming and past
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -66,13 +76,11 @@ export default async function CalendarPage({ params }: Props) {
     }
   }
 
-  // Sort upcoming chronologically
   upcoming.sort(
     (a, b) =>
       new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
   );
 
-  // Sort past reverse-chronologically
   past.sort(
     (a, b) =>
       new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
@@ -83,14 +91,30 @@ export default async function CalendarPage({ params }: Props) {
   const hasMore = remainingEvents.length > 0;
 
   return (
-    <div className="container">
+    // data-theme drives dark mode via CSS; accentColor injected as CSS variable
+    <div
+      className="container"
+      data-theme={isDark ? "dark" : "light"}
+      style={{ "--accent-color": accentColor } as React.CSSProperties}
+    >
 
       {/* ── Card 1: Header + Events ── */}
       <div className="card">
         <h1 className="calPageTitle">{cal.name || cal.id}</h1>
 
-        {/* Sentinel — sticky bar appears when this scrolls off screen */}
-        <p className="calPageSubtitle" id="callie-sentinel">A Callie calendar</p>
+        {/* Subtitle: logo for paid, "A Callie calendar" for free */}
+        {isPaid && logoPath ? (
+          // Paid: logo replaces subtitle; sentinel still needed for sticky logic
+          <div id="callie-sentinel" style={{ marginBottom: 8 }}>
+            <img
+              src={logoPath}
+              alt={cal.name}
+              className="calLogoImg"
+            />
+          </div>
+        ) : (
+          <p className="calPageSubtitle" id="callie-sentinel">A Callie calendar</p>
+        )}
 
         <div className="divider" />
 
@@ -112,6 +136,8 @@ export default async function CalendarPage({ params }: Props) {
                 pastEvents={past}
                 remainingEvents={remainingEvents}
                 showEventsOnly
+                isPaid={isPaid}
+                accentColor={accentColor}
               />
             )}
           </div>
@@ -138,6 +164,11 @@ export default async function CalendarPage({ params }: Props) {
           </div>
           <div className="sectionBox">
             <div className="row">
+              {/*
+                Accent color on the Apple button:
+                btnPrimary uses var(--accent-color) so it picks up the
+                custom color automatically via the CSS variable set above.
+              */}
               <a className="btn btnPrimary" href={webcalIcs} rel="noopener">
                 Sync to Apple Calendar
               </a>
@@ -157,22 +188,43 @@ export default async function CalendarPage({ params }: Props) {
           pastEvents={past}
           remainingEvents={remainingEvents}
           showEventsOnly={false}
+          isPaid={isPaid}
+          accentColor={accentColor}
         />
       </div>
 
-      {/* Footer CTAs */}
+      {/* ── Footer ── */}
       <div className="calFooter">
-        <p className="calFooterCta">
-          Run a group or class?{" "}
-          <a href="/create">Create your own calendar — free</a>
-        </p>
-        <p className="calFooterCta calFooterUpgrade">
-          Want your logo and colors on this page?{" "}
-          <a href="/upgrade">Make it yours — $10/month</a>
-        </p>
-        <p className="calFooterEmail">
-          <a href="mailto:hello@callietools.com">hello@callietools.com</a>
-        </p>
+        {isPaid ? (
+          // Paid footer: small credit only, no recruitment CTAs
+          <>
+            {cal.websiteUrl && (
+              <p className="calFooterCta">
+                <a href={cal.websiteUrl} target="_blank" rel="noopener">
+                  Visit website →
+                </a>
+              </p>
+            )}
+            <p className="calFooterCredit">
+              Powered by <a href="https://callietools.com">Callie</a>
+            </p>
+          </>
+        ) : (
+          // Free footer: full distribution CTAs
+          <>
+            <p className="calFooterCta">
+              Run a group or class?{" "}
+              <a href="/create">Create your own calendar — free</a>
+            </p>
+            <p className="calFooterCta calFooterUpgrade">
+              Want your logo and colors on this page?{" "}
+              <a href="/upgrade">Make it yours — $10/month</a>
+            </p>
+            <p className="calFooterEmail">
+              <a href="mailto:hello@callietools.com">hello@callietools.com</a>
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
