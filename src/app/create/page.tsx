@@ -149,7 +149,7 @@ export default function CreatePage() {
     // Schedule phrases 2, 3, 4
     // Phrase 4 ("Hang tight…") stays indefinitely — no loop
     [1, 2, 3].forEach((i) => {
-      const delay = i * 2200;
+      const delay = i * 3000;
       const t = setTimeout(() => {
         // Fade out
         setParsePhraseVisible(false);
