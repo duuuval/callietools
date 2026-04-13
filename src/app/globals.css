@@ -1708,3 +1708,63 @@ a:focus, .btn:focus, button:focus{
 [data-theme="dark"] .helper {
   color: var(--color-text-muted);
 }
+
+/* ── "Add this calendar" intro text ─────────────────────────────────────── */
+[data-theme="dark"] .calSubscribeIntro {
+  color: var(--color-text, #f0f0f0);
+}
+
+/* ── Section titles (Apple, Google, Other) ───────────────────────────────── */
+[data-theme="dark"] .sectionTitle {
+  color: var(--color-text, #f0f0f0);
+}
+
+/* ── Secondary buttons — dark surface instead of white island ────────────── */
+[data-theme="dark"] .btnSecondary {
+  background: var(--color-surface, #242424);
+  color: var(--primary);
+  border-color: var(--color-border, #3a3a3a);
+}
+
+[data-theme="dark"] .btnSecondary:hover {
+  background: var(--color-surface-alt, #2e2e2e);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+/* ── Section boxes ───────────────────────────────────────────────────────── */
+[data-theme="dark"] .sectionBox {
+  background: var(--color-surface-alt, #2e2e2e);
+  border-color: var(--color-border, #3a3a3a);
+}
+
+/* ── Warning/helper box inside Google steps ──────────────────────────────── */
+[data-theme="dark"] .helper {
+  background: var(--color-surface-alt, #2e2e2e) !important;
+  color: var(--color-text-muted, #bbb);
+}
+
+/* ── Mini text ───────────────────────────────────────────────────────────── */
+[data-theme="dark"] .mini {
+  color: var(--color-text-muted, #999);
+}
+
+/* ── Share section subtext ───────────────────────────────────────────────── */
+[data-theme="dark"] .shareSection p {
+  color: var(--color-text-muted, #999);
+}
+
+/* ── Dividers ────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .divider {
+  border-color: var(--color-border, #3a3a3a);
+}
+
+/* ── Footer credit ───────────────────────────────────────────────────────── */
+[data-theme="dark"] .calFooterCredit {
+  color: var(--color-text-muted, #777);
+}
+
+[data-theme="dark"] .calFooterCredit a {
+  color: var(--color-text-muted, #999);
+}
