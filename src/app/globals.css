@@ -1547,15 +1547,10 @@ a:focus, .btn:focus, button:focus{
 .parseMascot{
   width: 100px;
   height: auto;
-  animation: parseMascotFloat 3s ease-in-out infinite, parseMascotAppear 1.2s ease-out forwards;
+  animation: parseMascotAppear 1.2s ease-out forwards;
   position: relative;
   z-index: 2;
   will-change: filter, opacity;
-}
-
-@keyframes parseMascotFloat{
-  0%, 100%{ transform: translateY(0px); }
-  50%{ transform: translateY(-7px); }
 }
 
 @keyframes parseMascotAppear{
@@ -1585,10 +1580,10 @@ a:focus, .btn:focus, button:focus{
 }
 
 /* Position sparkles around the wand (upper-right of mascot) */
-.parseSpark1{ width: 9px; height: 9px; top: 6px;  right: 10px; animation: sparkTwinkle 2.0s 0.0s ease-in-out infinite; }
-.parseSpark2{ width: 6px; height: 6px; top: 18px; right: 2px;  animation: sparkTwinkle 1.7s 0.6s ease-in-out infinite; }
-.parseSpark3{ width: 7px; height: 7px; top: 2px;  right: 26px; animation: sparkTwinkle 2.3s 1.1s ease-in-out infinite; }
-.parseSpark4{ width: 5px; height: 5px; top: 32px; right: 6px;  animation: sparkTwinkle 1.5s 1.7s ease-in-out infinite; }
+.parseSpark1{ width: 14px; height: 14px; top: 4px;  right: 8px;  animation: sparkTwinkle 2.0s 0.0s ease-in-out infinite; }
+.parseSpark2{ width: 9px;  height: 9px;  top: 20px; right: 0px;  animation: sparkTwinkle 1.7s 0.6s ease-in-out infinite; }
+.parseSpark3{ width: 11px; height: 11px; top: 0px;  right: 24px; animation: sparkTwinkle 2.3s 1.1s ease-in-out infinite; }
+.parseSpark4{ width: 7px;  height: 7px;  top: 34px; right: 4px;  animation: sparkTwinkle 1.5s 1.7s ease-in-out infinite; }
 
 @keyframes sparkTwinkle{
   0%, 100%{ opacity: 0; transform: scale(0.4); }
