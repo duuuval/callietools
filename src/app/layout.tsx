@@ -21,7 +21,6 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
-  themeColor: "#D4775B",
   openGraph: {
     title: "Callie — Your events, on everyone's phone.",
     description:
@@ -33,6 +32,10 @@ export const metadata: Metadata = {
     title: "Callie — Your events, on everyone's phone.",
     images: ["/og-image.png"],
   },
+};
+
+export const viewport = {
+  themeColor: "#D4775B",
 };
 
 export default function RootLayout({
