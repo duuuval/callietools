@@ -95,12 +95,17 @@ async function compressImage(file: File): Promise<File> {
   });
 }
 
+// ─── Parse loading phrases ───────────────────────────────────
+
 const PARSE_PHRASES = [
   "Reading your image…",
   "Finding your events…",
-  "Almost there…",
-  "Hang tight...",
+  "Almost ready…",
+  "Still working on it…",
+  "Still working — promise!",
 ];
+
+const PHRASE_DELAYS = [0, 3000, 7000, 13000, 20000];
 
 const COLOR_SWATCHES = [
   { hex: "#4F6BED", label: "Callie Blue" },
@@ -239,10 +244,20 @@ export default function ManagePage({
   useEffect(() => {
     parsePhraseTimers.current.forEach(clearTimeout);
     parsePhraseTimers.current = [];
-    if (parseStatus !== "parsing") return;
-    PARSE_PHRASES.forEach((_, i) => {
-      if (i === 0) return;
-      const delay = i * 2200;
+
+    if (parseStatus !== "parsing") {
+      setParsePhrase(PARSE_PHRASES[0]);
+      setParsePhraseVisible(true);
+      return;
+    }
+
+    setParsePhrase(PARSE_PHRASES[0]);
+    setParsePhraseVisible(true);
+
+    // Schedule phrases 2–5 using explicit delays
+    // Phrase 5 ("Still working — promise!") stays indefinitely
+    PARSE_PHRASES.slice(1).forEach((_, idx) => {
+      const i = idx + 1;
       const t = setTimeout(() => {
         setParsePhraseVisible(false);
         const swap = setTimeout(() => {
@@ -250,9 +265,10 @@ export default function ManagePage({
           setParsePhraseVisible(true);
         }, 300);
         parsePhraseTimers.current.push(swap);
-      }, delay);
+      }, PHRASE_DELAYS[i]);
       parsePhraseTimers.current.push(t);
     });
+
     return () => { parsePhraseTimers.current.forEach(clearTimeout); };
   }, [parseStatus]);
 
@@ -278,17 +294,14 @@ export default function ManagePage({
       setEvents((prev) => {
         const nonEmpty = prev.filter((e) => e.title.trim() || e.start_date.trim());
 
-        // Deduplicate: skip parsed events that match an existing event on title + date + start_time
         const newOnly = parsedEvents.filter((parsed) => {
           return !nonEmpty.some((existing) => {
             const titleMatch = parsed.title.trim().toLowerCase() === existing.title.trim().toLowerCase();
             const dateMatch = parsed.start_date === existing.start_date;
             if (!titleMatch || !dateMatch) return false;
-            // If both have a start_time, it must also match
             if (parsed.start_time && existing.start_time) {
               return parsed.start_time === existing.start_time;
             }
-            // If either is blank, title + date is enough to call it a duplicate
             return true;
           });
         });
@@ -464,7 +477,7 @@ export default function ManagePage({
   };
 
   // ── Shared event card renderer ──
- function renderEventCard(ev: EventRow, globalIdx: number) {
+  function renderEventCard(ev: EventRow, globalIdx: number) {
     return (
       <div key={ev.id} className={`eventCard${ev.isNew ? " eventCardNew" : ""}`}>
         <div className="eventCardHeader">
@@ -594,7 +607,7 @@ export default function ManagePage({
         {/* ── Header ── */}
         <div style={{ marginBottom: 4 }}>
           <h1 className="createHeader" style={{ marginBottom: 4 }}>{calendar?.name}</h1>
-          <a
+          
             href={calendarUrl}
             target="_blank"
             rel="noopener noreferrer"
