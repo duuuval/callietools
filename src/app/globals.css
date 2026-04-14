@@ -845,6 +845,21 @@ a:focus, .btn:focus, button:focus{
   background: #fafafa;
 }
 
+.eventCardNew{
+  border-left: 3px solid var(--primary);
+  background: #f0f4ff;
+}
+.eventCardNewBadge{
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: #e8edff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 .eventCard .formInput{
   margin-bottom: 8px;
 }
