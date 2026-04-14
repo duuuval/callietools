@@ -243,11 +243,10 @@ export default async function CalendarPage({ params }: Props) {
           // Free footer: full distribution CTAs
           <>
             <p className="calFooterCta">
-              Run a group or class?{" "}
               <a href="/create">Create your own calendar — free</a>
             </p>
             <p className="calFooterCta calFooterUpgrade">
-              Want your logo and colors on this page?{" "}
+              Want your logo and colors on a page like this?<br />
               <a href="/upgrade">Make it yours — $10/month</a>
             </p>
             <p className="calFooterEmail">
