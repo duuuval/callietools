@@ -13,6 +13,10 @@ export async function logIcsFetch(
   const supabase = getSupabase();
   if (!supabase) return;
 
+  // Skip known bots — they monitor uptime, not subscribe to calendars
+  const ua = userAgent.toLowerCase();
+  if (ua.includes("uptimerobot")) return;
+
   const raw = `${ip}|${userAgent}`;
   const fingerprint = crypto
     .createHash("sha256")
