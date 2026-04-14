@@ -608,7 +608,7 @@ export default function ManagePage({
         <div style={{ marginBottom: 4 }}>
           <h1 className="createHeader" style={{ marginBottom: 4 }}>{calendar?.name}</h1>
           
-            href={calendarUrl}
+            <a href={calendarUrl}
             target="_blank"
             rel="noopener noreferrer"
             style={{ fontSize: "0.875rem", color: "#4F6BED" }}
