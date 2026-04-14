@@ -761,6 +761,12 @@ export default function ManagePage({
             </div>
           </div>
 
+          {parseStatus === "success" && events.some((e) => e.isNew && (e.confidence === "low" || e.confidence === "medium")) && (
+            <p style={{ fontSize: "0.8rem", color: "var(--text-muted, #666)", marginBottom: 12, lineHeight: 1.4 }}>
+              Events marked with ⚠️ had lower confidence — double-check those before saving.
+            </p>
+          )}
+
           {/* ── Upcoming events ── */}
           {upcomingEvents.length > 0 ? (
             upcomingEvents.map((ev) =>
