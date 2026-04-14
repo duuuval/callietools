@@ -29,8 +29,7 @@ export function Footer() {
         {!isUpgrade && (
           <div className="footerRow">
             <span className="footerUpgrade">
-              Want your own logo and colors on your calendar page?{" "}
-              <Link href="/upgrade">Make it yours &mdash; $10/mo</Link>
+              <Link href="/create">Create your own calendar &mdash; free</Link>
             </span>
           </div>
         )}
