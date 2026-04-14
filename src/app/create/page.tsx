@@ -94,8 +94,11 @@ const PARSE_PHRASES = [
   "Reading your image…",
   "Finding your events…",
   "Almost ready…",
-  "Hang tight…",
+  "Still working on it…",
+  "Still working — promise!",
 ];
+
+const PHRASE_DELAYS = [0, 3000, 7000, 13000, 20000];
 
 // ─── Component ───────────────────────────────────────────────
 
@@ -113,7 +116,7 @@ export default function CreatePage() {
   ]);
 
   // Flyer import state
-  const [parseStatus, setParseStatus] = useState<
+  const [parseStatus, setParseStatus] = useState
     "idle" | "parsing" | "success" | "error"
   >("idle");
   const [parseMessage, setParseMessage] = useState("");
@@ -132,7 +135,6 @@ export default function CreatePage() {
   // ── Phrase sequencer ───────────────────────────────────────
 
   useEffect(() => {
-    // Clear any running timers whenever status changes
     parsePhraseTimers.current.forEach(clearTimeout);
     parsePhraseTimers.current = [];
 
@@ -142,24 +144,21 @@ export default function CreatePage() {
       return;
     }
 
-    // Reset to first phrase immediately
     setParsePhrase(PARSE_PHRASES[0]);
     setParsePhraseVisible(true);
 
-    // Schedule phrases 2, 3, 4
-    // Phrase 4 ("Hang tight…") stays indefinitely — no loop
-    [1, 2, 3].forEach((i) => {
-      const delay = i * 3000;
+    // Schedule phrases 2–5 using explicit delays
+    // Phrase 5 ("Still working — promise!") stays indefinitely
+    PARSE_PHRASES.slice(1).forEach((_, idx) => {
+      const i = idx + 1;
       const t = setTimeout(() => {
-        // Fade out
         setParsePhraseVisible(false);
-        // Swap text mid-fade, then fade back in
         const swap = setTimeout(() => {
           setParsePhrase(PARSE_PHRASES[i]);
           setParsePhraseVisible(true);
         }, 300);
         parsePhraseTimers.current.push(swap);
-      }, delay);
+      }, PHRASE_DELAYS[i]);
       parsePhraseTimers.current.push(t);
     });
 
@@ -410,7 +409,6 @@ export default function CreatePage() {
             {parseStatus === "parsing" && (
               <div className="parseLoading">
                 <div className="parseMascotWrap" aria-hidden="true">
-                  {/* Sparkles positioned around wand area */}
                   <span className="parseSpark parseSpark1" />
                   <span className="parseSpark parseSpark2" />
                   <span className="parseSpark parseSpark3" />
