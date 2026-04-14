@@ -116,9 +116,7 @@ export default function CreatePage() {
   ]);
 
   // Flyer import state
-  const [parseStatus, setParseStatus] = useState
-    "idle" | "parsing" | "success" | "error"
-  >("idle");
+  const [parseStatus, setParseStatus] = useState<"idle" | "parsing" | "success" | "error">("idle");
   const [parseMessage, setParseMessage] = useState("");
   const [parsedCount, setParsedCount] = useState(0);
   const [dragOver, setDragOver] = useState(false);
