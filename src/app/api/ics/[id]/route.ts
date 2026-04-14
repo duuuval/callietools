@@ -1,12 +1,12 @@
 import { NextRequest } from "next/server";
 import { getCalendar, getEvents } from "@/lib/sheets";
 import { generateIcs } from "@/lib/ics";
+import { logIcsFetch } from "@/lib/ics-log";
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  // Strip .ics extension if present (e.g., /api/ics/CCPS25-26.ics → CCPS25-26)
   const rawId = params.id;
   const id = rawId.endsWith(".ics") ? rawId.slice(0, -4) : rawId;
 
@@ -23,6 +23,11 @@ export async function GET(
       });
     }
 
+    // Fire-and-forget — don't block the ICS response
+    const ua = _req.headers.get("user-agent") || "unknown";
+    const ip = _req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    logIcsFetch(id, ua, ip).catch(() => {});
+
     const displayName = cal.name
       ? `${cal.name} (CallieTools)`
       : `CallieTools - ${id}`;
@@ -34,7 +39,6 @@ export async function GET(
       headers: {
         "Content-Type": "text/calendar; charset=utf-8",
         "Content-Disposition": `inline; filename="${id}.ics"`,
-        // Cache for 10 min at edge, allow stale for 5 min while revalidating
         "Cache-Control": "public, s-maxage=600, stale-while-revalidate=300",
       },
     });
