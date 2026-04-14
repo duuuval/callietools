@@ -126,6 +126,8 @@ export async function POST(req: NextRequest) {
 
     const openaiData = await openaiRes.json();
     const raw = openaiData.choices?.[0]?.message?.content ?? "";
+    console.log("OpenAI usage:", openaiData.usage);
+    console.log("Parse result:", openaiData.choices?.[0]?.message?.content);
 
     let parsed;
     try {
