@@ -134,7 +134,7 @@ export default async function MyCalendarsDashboard({
             className="footerUpgrade"
             style={{ textAlign: "center", marginTop: 32 }}
           >
-            Want your logo and colors on your calendar?{" "}
+            Want your logo and colors on your calendar page?<br />
             <a href="/upgrade">Make it yours — $10/month.</a>
           </p>
         </div>
