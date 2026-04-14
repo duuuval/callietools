@@ -821,7 +821,7 @@ export default function ManagePage({
           <>
             <div className="divider" />
             <p style={{ textAlign: "center", fontSize: "0.875rem", color: "#666" }}>
-              Want your logo and colors on this page?{" "}
+              Want your logo and colors on your calendar page?<br />
               <a href="/upgrade" style={{ color: "#D4775B", fontWeight: 500 }}>
                 Make it yours — $10/month
               </a>
