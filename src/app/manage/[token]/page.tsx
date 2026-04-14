@@ -276,18 +276,54 @@ export default function ManagePage({
       }
       const parsedEvents: EventRow[] = data.events.map(makeEventFromParse);
       setEvents((prev) => {
-      const nonEmpty = prev.filter((e) => e.title.trim() || e.start_date.trim());
-      return [...parsedEvents, ...nonEmpty].sort((a, b) => {
+        const nonEmpty = prev.filter((e) => e.title.trim() || e.start_date.trim());
+
+        // Deduplicate: skip parsed events that match an existing event on title + date + start_time
+        const newOnly = parsedEvents.filter((parsed) => {
+          return !nonEmpty.some((existing) => {
+            const titleMatch = parsed.title.trim().toLowerCase() === existing.title.trim().toLowerCase();
+            const dateMatch = parsed.start_date === existing.start_date;
+            if (!titleMatch || !dateMatch) return false;
+            // If both have a start_time, it must also match
+            if (parsed.start_time && existing.start_time) {
+              return parsed.start_time === existing.start_time;
+            }
+            // If either is blank, title + date is enough to call it a duplicate
+            return true;
+          });
+        });
+
+        const totalParsed = parsedEvents.length;
+        const skipped = totalParsed - newOnly.length;
+
+        if (newOnly.length === 0) {
+          setParseStatus("success");
+          setParseMessage(
+            totalParsed === 1
+              ? "That event is already on your calendar — nothing was added."
+              : "All events from this upload are already on your calendar — nothing was added."
+          );
+          return nonEmpty;
+        }
+
+        setIsDirty(true);
+        setParseStatus("success");
+        if (skipped > 0) {
+          setParseMessage(
+            `We added ${newOnly.length} new event${newOnly.length !== 1 ? "s" : ""} from your upload. ${skipped} event${skipped !== 1 ? "s were" : " was"} already on your calendar and ${skipped !== 1 ? "were" : "was"} skipped. Review below, then save.`
+          );
+        } else {
+          setParseMessage(
+            `We added ${newOnly.length} event${newOnly.length !== 1 ? "s" : ""} from your upload — review below, then save your calendar.`
+          );
+        }
+
+        return [...newOnly, ...nonEmpty].sort((a, b) => {
           if (!a.start_date) return 1;
           if (!b.start_date) return -1;
           return a.start_date.localeCompare(b.start_date);
         });
       });
-      setIsDirty(true);
-      setParseStatus("success");
-      setParseMessage(
-        `We added ${parsedEvents.length} event${parsedEvents.length !== 1 ? "s" : ""} from your upload — review below, then save your calendar.`
-      );
     } catch {
       setParseStatus("error");
       setParseMessage("Something went wrong. Try again or add events manually below.");
