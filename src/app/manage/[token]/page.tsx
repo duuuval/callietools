@@ -99,6 +99,7 @@ const PARSE_PHRASES = [
   "Reading your image…",
   "Finding your events…",
   "Almost there…",
+  "Hang tight...",
 ];
 
 const COLOR_SWATCHES = [
