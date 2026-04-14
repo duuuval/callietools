@@ -18,6 +18,7 @@ Rules:
 - Use HH:MM (24-hour) for all times, or null if no time is given
 - Set all_day to true only if there is genuinely no time component
 - If end time is not specified, set end_time to null (do not guess)
+- If a date is "TBD", unclear, or cannot be determined, set start_date to "" (empty string) and confidence to "low". Do not invent a date.
 - Preserve location details even if informal (e.g. "gym", "Room 204")
 - Infer the year from context if not explicit — assume the nearest upcoming occurrence
 - Always populate source_text with the original text this event was parsed from
