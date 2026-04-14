@@ -11,6 +11,8 @@ interface EventRow {
   location: string;
   description: string;
   showDetails: boolean;
+  isNew?: boolean;
+  confidence?: "high" | "medium" | "low";
 }
 
 interface CalendarMeta {
@@ -43,6 +45,7 @@ function makeEventFromParse(e: {
   end_time?: string;
   location?: string;
   description?: string;
+  confidence?: "high" | "medium" | "low";
 }): EventRow {
   return {
     id: crypto.randomUUID(),
@@ -53,6 +56,8 @@ function makeEventFromParse(e: {
     location: e.location || "",
     description: e.description || "",
     showDetails: !!(e.location || e.description),
+    isNew: true,
+    confidence: e.confidence,
   };
 }
 
@@ -411,6 +416,7 @@ export default function ManagePage({
         throw new Error(data.error || `Something went wrong (${res.status}). Please try again.`);
       }
       setIsDirty(false);
+      setEvents((prev) => prev.map((e) => ({ ...e, isNew: false, confidence: undefined })));
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 4000);
     } catch (err) {
@@ -421,11 +427,18 @@ export default function ManagePage({
   };
 
   // ── Shared event card renderer ──
-  function renderEventCard(ev: EventRow, globalIdx: number) {
+ function renderEventCard(ev: EventRow, globalIdx: number) {
     return (
-      <div key={ev.id} className="eventCard">
+      <div key={ev.id} className={`eventCard${ev.isNew ? " eventCardNew" : ""}`}>
         <div className="eventCardHeader">
-          <span className="eventCardNum">{globalIdx + 1}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span className="eventCardNum">
+              {globalIdx + 1}
+              {ev.isNew && ev.confidence === "low" && " ⚠️"}
+              {ev.isNew && ev.confidence === "medium" && " ·"}
+            </span>
+            {ev.isNew && <span className="eventCardNewBadge">NEW</span>}
+          </div>
           {events.length > 1 && (
             <button
               type="button"
