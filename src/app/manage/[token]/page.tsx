@@ -178,6 +178,9 @@ export default function ManagePage({
   const upcomingEvents = events.filter((e) => !isPastEvent(e));
   const pastEvents = events.filter((e) => isPastEvent(e));
 
+  // ── Derived: count events with title + date (for header) ──
+  const eventCount = events.filter((e) => e.title.trim() || e.start_date.trim()).length;
+
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (isDirty || brandingDirty) e.preventDefault();
@@ -721,7 +724,26 @@ export default function ManagePage({
 
         {/* ── Events ── */}
         <div className="formGroup">
-          <label className="formLabel">Events</label>
+
+          {/* ── Event count header with Add action ── */}
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}>
+            <label className="formLabel" style={{ margin: 0 }}>
+              Events ({eventCount})
+            </label>
+            <button
+              type="button"
+              className="addEventLink"
+              onClick={addEvent}
+              style={{ padding: 0, fontSize: "0.85rem" }}
+            >
+              + Add
+            </button>
+          </div>
 
           {/* ── Flyer import ── */}
           <div style={{ marginBottom: 20 }}>
