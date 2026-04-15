@@ -21,8 +21,20 @@ interface EventInput {
 interface CreateCalendarBody {
   name: string;
   email: string;
+  timezone?: string;
   events: EventInput[];
 }
+
+// ─── Valid timezones ─────────────────────────────────────────
+
+const VALID_TIMEZONES = [
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "America/Anchorage",
+  "Pacific/Honolulu",
+];
 
 // ─── Validation ──────────────────────────────────────────────
 
@@ -49,6 +61,12 @@ function validateBody(body: unknown): {
   const email = typeof b.email === "string" ? b.email.trim().toLowerCase() : "";
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { ok: false, error: "A valid email address is required" };
+  }
+
+  // Timezone (optional — defaults to Eastern)
+  const timezone = typeof b.timezone === "string" ? b.timezone.trim() : "America/New_York";
+  if (!VALID_TIMEZONES.includes(timezone)) {
+    return { ok: false, error: "Invalid timezone" };
   }
 
   // Events
@@ -84,7 +102,7 @@ function validateBody(body: unknown): {
     });
   }
 
-  return { ok: true, data: { name, email, events } };
+  return { ok: true, data: { name, email, timezone, events } };
 }
 
 // ─── Route handler ───────────────────────────────────────────
@@ -101,7 +119,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { name, email, events } = validation.data;
+    const { name, email, timezone, events } = validation.data;
 
     // Generate unique slug
     const slug = await findUniqueSlug(name);
@@ -111,6 +129,7 @@ export async function POST(req: NextRequest) {
       id: slug,
       name,
       email,
+      timezone,
     });
 
     // Write events
