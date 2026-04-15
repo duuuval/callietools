@@ -29,6 +29,7 @@ export function CalendarClient({
 }: Props) {
   const [showAllEvents, setShowAllEvents] = useState(false);
   const [showPast, setShowPast] = useState(false);
+  const [showOtherApps, setShowOtherApps] = useState(false);
   const [stickyVisible, setStickyVisible] = useState(false);
 
   // Observe the subtitle sentinel — show sticky bar when it scrolls off screen
@@ -168,29 +169,75 @@ export function CalendarClient({
                 copy the link, and paste it into your browser manually.
               </div>
             </li>
-            <li>
+            <li style={{ marginBottom: 10 }}>
               Paste the calendar link and tap &quot;Add calendar&quot;
-              <div className="mini" style={{ marginTop: 4 }}>
-                Once added, it syncs everywhere you use Google Calendar.
-              </div>
             </li>
           </ol>
+
+          <div
+            className="helper"
+            style={{
+              fontWeight: 700,
+              fontSize: 13,
+              marginBottom: 8,
+            }}
+          >
+            Now switch to the Google Calendar app on your phone:
+          </div>
+
+          <ol
+            className="helper googleSteps"
+            start={4}
+            style={{ margin: "0 0 14px 0", paddingLeft: 20 }}
+          >
+            <li style={{ marginBottom: 10 }}>
+              Go to Settings → tap the new calendar
+            </li>
+            <li>
+              Toggle Sync to on
+            </li>
+          </ol>
+
+          <div className="mini" style={{ marginTop: 4 }}>
+            Events should appear within a couple hours.
+          </div>
         </div>
       </div>
 
-      {/* Other apps */}
+      {/* Other apps — collapsed behind accordion */}
       <div className="section" style={{ marginTop: 18 }}>
-        <div className="sectionTitle">💻 Other calendar apps</div>
-        <div className="sectionBox">
-          <div className="row">
-            <a className="btn btnSecondary" href={httpsIcs} download>
-              Download calendar file
-            </a>
+        <button
+          type="button"
+          onClick={() => setShowOtherApps(!showOtherApps)}
+          style={{
+            background: "none",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+            width: "100%",
+            textAlign: "left",
+          }}
+        >
+          <div className="sectionTitle" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>💻 Using a different calendar app?</span>
+            <span style={{ fontSize: 14, color: "var(--muted, #888)" }}>
+              {showOtherApps ? "▲" : "▼"}
+            </span>
           </div>
-          <div className="mini" style={{ marginTop: 8 }}>
-            Import this .ics file into any calendar app.
+        </button>
+        {showOtherApps && (
+          <div className="sectionBox" style={{ marginTop: 8 }}>
+            <div className="row">
+              <a className="btn btnSecondary" href={httpsIcs} download>
+                Download calendar file
+              </a>
+            </div>
+            <div className="mini" style={{ marginTop: 8 }}>
+              Import this .ics file into any calendar app. Note: this is a
+              one-time import — it won&apos;t sync future updates automatically.
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Share */}
