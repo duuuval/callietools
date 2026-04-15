@@ -164,7 +164,7 @@ export function CalendarClient({
                   Open Google Calendar (web) →
                 </a>
               </div>
-              <div className="mini" style={{ marginTop: 6 }}>
+              <div className="mini" style={{ marginTop: 6, fontStyle: "italic" }}>
                 If the Google Calendar app opens instead, long-press the button,
                 copy the link, and paste it into your browser manually.
               </div>
@@ -175,11 +175,12 @@ export function CalendarClient({
           </ol>
 
           <div
-            className="helper"
             style={{
               fontWeight: 700,
               fontSize: 13,
-              marginBottom: 8,
+              color: "var(--text)",
+              marginBottom: 6,
+              marginTop: 4,
             }}
           >
             Now switch to the Google Calendar app on your phone:
@@ -188,7 +189,7 @@ export function CalendarClient({
           <ol
             className="helper googleSteps"
             start={4}
-            style={{ margin: "0 0 14px 0", paddingLeft: 20 }}
+            style={{ margin: "0 0 8px 0", paddingLeft: 20 }}
           >
             <li style={{ marginBottom: 10 }}>
               Go to Settings → tap the new calendar
@@ -198,7 +199,7 @@ export function CalendarClient({
             </li>
           </ol>
 
-          <div className="mini" style={{ marginTop: 4 }}>
+          <div className="mini" style={{ marginTop: 6, fontStyle: "italic" }}>
             Events should appear within a couple hours.
           </div>
         </div>
@@ -232,7 +233,7 @@ export function CalendarClient({
                 Download calendar file
               </a>
             </div>
-            <div className="mini" style={{ marginTop: 8 }}>
+            <div className="mini" style={{ marginTop: 8, fontStyle: "italic" }}>
               Import this .ics file into any calendar app. Note: this is a
               one-time import — it won&apos;t sync future updates automatically.
             </div>
