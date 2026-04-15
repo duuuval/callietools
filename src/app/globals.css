@@ -431,6 +431,37 @@ a:focus, .btn:focus, button:focus{
   .schoolList{ column-count: 2; }
 }
 
+/* ── Schools page: Coming Soon button ────────────────────────────────────────
+   Swap  className="btn btnComingSoon"  →  className="btn btnPrimary"
+   and add  href="/your-slug"  (change <span> to <Link>) to activate.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+.btnComingSoon{
+  background: #e8e8e8;
+  color: #999;
+  border-color: #e8e8e8;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ── Schools page: sub-headers inside school list dropdown ───────────────── */
+
+.schoolGroupLabel{
+  font-family: var(--fontDisplay);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 20px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.schoolGroupLabel:first-of-type{
+  margin-top: 12px;
+}
+
 /* =========================
    Footer
 ========================= */
