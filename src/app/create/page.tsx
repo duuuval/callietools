@@ -88,6 +88,17 @@ async function compressImage(file: File, maxDimension = 1600, quality = 0.85): P
   });
 }
 
+// ─── Timezone options ────────────────────────────────────────
+
+const US_TIMEZONES = [
+  { value: "America/New_York", label: "Eastern" },
+  { value: "America/Chicago", label: "Central" },
+  { value: "America/Denver", label: "Mountain" },
+  { value: "America/Los_Angeles", label: "Pacific" },
+  { value: "America/Anchorage", label: "Alaska" },
+  { value: "Pacific/Honolulu", label: "Hawaii" },
+];
+
 // ─── Parse loading phrases ───────────────────────────────────
 
 const PARSE_PHRASES = [
@@ -109,6 +120,7 @@ export default function CreatePage() {
   // Form state
   const [calendarName, setCalendarName] = useState("");
   const [email, setEmail] = useState("");
+  const [timezone, setTimezone] = useState("America/New_York");
   const [events, setEvents] = useState<EventRow[]>([
     makeEmptyEvent(),
     makeEmptyEvent(),
@@ -315,6 +327,7 @@ export default function CreatePage() {
         body: JSON.stringify({
           name,
           email: trimmedEmail,
+          timezone,
           events: validEvents.map((e) => ({
             title: e.title.trim(),
             start_date: e.start_date,
@@ -512,6 +525,28 @@ export default function CreatePage() {
           <div className="formHelper">
             We&rsquo;ll send you a private link to manage your calendar. Not
             displayed publicly.
+          </div>
+        </div>
+
+        {/* ── Timezone ──────────────────────────────────── */}
+        <div className="formGroup">
+          <label className="formLabel" htmlFor="cal-timezone">
+            Timezone
+          </label>
+          <select
+            id="cal-timezone"
+            className="formInput"
+            value={timezone}
+            onChange={(e) => setTimezone(e.target.value)}
+          >
+            {US_TIMEZONES.map((tz) => (
+              <option key={tz.value} value={tz.value}>
+                {tz.label}
+              </option>
+            ))}
+          </select>
+          <div className="formHelper">
+            Event times will display in this timezone for subscribers.
           </div>
         </div>
 
