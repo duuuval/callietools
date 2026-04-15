@@ -725,26 +725,6 @@ export default function ManagePage({
         {/* ── Events ── */}
         <div className="formGroup">
 
-          {/* ── Event count header with Add action ── */}
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 16,
-          }}>
-            <label className="formLabel" style={{ margin: 0 }}>
-              Events ({eventCount})
-            </label>
-            <button
-              type="button"
-              className="addEventLink"
-              onClick={addEvent}
-              style={{ padding: 0, fontSize: "0.85rem" }}
-            >
-              + Add
-            </button>
-          </div>
-
           {/* ── Flyer import ── */}
           <div style={{ marginBottom: 20 }}>
             <p style={{ fontSize: "0.875rem", color: "var(--text-muted, #666)", marginBottom: 12, lineHeight: 1.5 }}>
@@ -831,6 +811,26 @@ export default function ManagePage({
             <div className="createOrDivider">
               <span>or add events manually</span>
             </div>
+          </div>
+
+          {/* ── Event count header with Add action ── */}
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}>
+            <label className="formLabel" style={{ margin: 0 }}>
+              Events ({eventCount})
+            </label>
+            <button
+              type="button"
+              className="addEventLink"
+              onClick={addEvent}
+              style={{ padding: 0, fontSize: "0.85rem" }}
+            >
+              + Add
+            </button>
           </div>
 
           {parseStatus === "success" && events.some((e) => e.isNew && (e.confidence === "low" || e.confidence === "medium")) && (
