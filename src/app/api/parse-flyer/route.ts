@@ -20,6 +20,7 @@ Rules:
 - If end time is not specified, set end_time to null (do not guess)
 - If a date is "TBD", unclear, or cannot be determined, set start_date to "" (empty string) and confidence to "low". Do not invent a date.
 - Preserve location details even if informal (e.g. "gym", "Room 204")
+- For locations that are recognizable venues (schools, parks, businesses, churches), append the city and state if not already included (e.g. "Woodlake Pool" → "Woodlake Pool, Midlothian, VA"). Do not add a full street address — just enough for a calendar app to find it on a map.
 - Infer the year from context if not explicit — assume the nearest upcoming occurrence
 - Always populate source_text with the original text this event was parsed from
 - Set confidence to "high", "medium", or "low" per event
