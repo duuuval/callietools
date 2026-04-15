@@ -24,18 +24,14 @@ export async function logIcsFetch(
     .digest("hex")
     .slice(0, 16);
 
+  const now = new Date().toISOString();
+
   try {
-    await supabase.from("ics_subscribers").upsert(
-      {
-        calendar_id: calendarId,
-        fingerprint,
-        last_seen_at: new Date().toISOString(),
-      },
-      {
-        onConflict: "calendar_id,fingerprint",
-        ignoreDuplicates: false,
-      }
-    );
+    await supabase.rpc("upsert_ics_subscriber", {
+      p_calendar_id: calendarId,
+      p_fingerprint: fingerprint,
+      p_now: now,
+    });
   } catch (err) {
     console.error("ICS log error (non-fatal):", err);
   }
