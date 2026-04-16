@@ -34,6 +34,11 @@ export default function HomePage() {
               Not the group chat. Not a screenshot. On their existing calendar, where every update shows up on their phone. 
               No more "when is it again?"
             </p>
+            <div className="heroDelivers">
+               <span className="heroDeliversLabel">Delivers to</span>
+               <img src="/apple-calendar-icon.png" alt="Apple Calendar" className="heroDeliversIcon" />
+               <img src="/google-calendar-icon.png" alt="Google Calendar" className="heroDeliversIcon" />
+            </div>
             <div className="heroCtas">
               <Link className="btn btnPrimary heroBtn" href="/create">
                 Create your calendar &mdash; free
