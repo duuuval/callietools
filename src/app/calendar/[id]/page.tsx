@@ -186,7 +186,7 @@ export default async function CalendarPage({ params }: Props) {
         <p className="calSubscribeIntro">
           Add this calendar to your phone — events update automatically.
         </p>
-        <p className="mini" style={{ fontStyle: "italic", marginTop: -6, marginBottom: 18 }}>
+        <p className="mini" style={{ fontStyle: "italic", marginTop: 0, marginBottom: 18 }}>
             New events typically appear within a couple hours.
         </p>
 
