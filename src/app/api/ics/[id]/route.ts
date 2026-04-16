@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getCalendar, getEvents } from "@/lib/sheets";
+import { getCalendar, getEvents } from "@/lib/data";
 import { generateIcs } from "@/lib/ics";
 import { logIcsFetch } from "@/lib/ics-log";
 
