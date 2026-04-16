@@ -197,11 +197,7 @@ export function CalendarClient({
             <li>
               Toggle Sync to on
             </li>
-          </ol>
-
-          <div className="mini" style={{ marginTop: 6, fontStyle: "italic" }}>
-            Events should appear within a couple hours.
-          </div>
+          </ol>          
         </div>
       </div>
 
