@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCalendar, getEvents } from "@/lib/sheets";
-import type { CalendarEvent } from "@/lib/sheets";
+import { getCalendar, getEvents } from "@/lib/data";
+import type { CalendarEvent } from "@/lib/data";
 import { CalendarClient } from "./CalendarClient";
 export const revalidate = 0;
 
