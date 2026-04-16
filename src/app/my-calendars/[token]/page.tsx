@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { validateDashboardToken, getCalendarsByEmail, getEvents } from "@/lib/sheets";
+import { validateDashboardToken, getCalendarsByEmail, getEvents } from "@/lib/data";
 
 export default async function MyCalendarsDashboard({
   params,

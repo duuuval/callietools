@@ -3,7 +3,7 @@ import {
   findUniqueSlug,
   createCalendar,
   appendEvents,
-} from "@/lib/sheets";
+} from "@/lib/data";
 import { sendManageLink } from "@/lib/email";
 
 // ─── Types ───────────────────────────────────────────────────

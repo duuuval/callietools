@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getEvents } from "@/lib/sheets";
+import { getEvents } from "@/lib/data";
 
 export async function GET(
   _req: NextRequest,

@@ -4,7 +4,7 @@ import {
   getEvents,
   updateEvents,
   updateCalendarBranding,
-} from "@/lib/sheets";
+} from "@/lib/data";
 
 // ─── Types ───────────────────────────────────────────────────
 

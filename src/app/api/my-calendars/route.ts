@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createDashboardToken, getCalendarsByEmail } from "@/lib/sheets";
+import { createDashboardToken, getCalendarsByEmail } from "@/lib/data";
 import { sendMyCalendarsEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
