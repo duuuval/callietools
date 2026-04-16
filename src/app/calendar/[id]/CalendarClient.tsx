@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { CopyButton } from "@/components/CopyButton";
-import type { CalendarEvent } from "@/lib/sheets";
+import type { CalendarEvent } from "@/lib/data";
 
 
 interface Props {
