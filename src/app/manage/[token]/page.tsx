@@ -192,7 +192,7 @@ export default function ManagePage({
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/api/manage/${token}`);
+        const res = await fetch(`/api/manage/${token}`, { cache: "no-store" });
         if (res.status === 404) {
           setLoadError("This manage link isn't valid. Check that you copied the full URL from your email.");
           return;
