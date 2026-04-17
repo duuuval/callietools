@@ -153,9 +153,9 @@ export function CalendarClient({
             <li style={{ marginBottom: 10 }}>
               Open Google Calendar in a browser
               <div className="row" style={{ marginTop: 8 }}>
-                
+                <a
                   className="btn btnSecondary"
-                  <a href="https://calendar.google.com/calendar/u/0/r/settings/addbyurl"
+                  href="https://calendar.google.com/calendar/u/0/r/settings/addbyurl"
                   target="_blank"
                   rel="noopener"
                   style={{ fontSize: 14 }}
