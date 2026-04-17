@@ -195,7 +195,7 @@ export function CalendarClient({
               Toggle Sync to on
             </li>
             <li>
-              Tap ☰ → find the calendar in the list → tap the checkbox to make it visible
+              Go back to ☰ → find the calendar in the list → tap the checkbox to make it visible
             </li>
           </ol>          
         </div>
