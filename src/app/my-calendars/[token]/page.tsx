@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { validateDashboardToken, getCalendarsByEmail, getEvents } from "@/lib/data";
 
+// Force dynamic rendering — this page is keyed by a time-limited token
+// and must reflect live Supabase state on every request.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function MyCalendarsDashboard({
   params,
 }: {
