@@ -178,7 +178,6 @@ export function CalendarClient({
             style={{
               fontWeight: 700,
               fontSize: 13,
-              color: "var(--text)",
               marginBottom: 6,
               marginTop: 4,
             }}
