@@ -134,7 +134,6 @@ export function CalendarClient({
           >
             ⚠️ Google requires adding shared calendars from a browser — not the app.
           </div>
-
           <ol
             className="helper googleSteps"
             style={{ margin: "0 0 14px 0", paddingLeft: 20 }}
@@ -154,9 +153,9 @@ export function CalendarClient({
             <li style={{ marginBottom: 10 }}>
               Open Google Calendar in a browser
               <div className="row" style={{ marginTop: 8 }}>
-                <a
+                
                   className="btn btnSecondary"
-                  href="https://calendar.google.com/calendar/u/0/r/settings/addbyurl"
+                  a href="https://calendar.google.com/calendar/u/0/r/settings/addbyurl"
                   target="_blank"
                   rel="noopener"
                   style={{ fontSize: 14 }}
@@ -173,7 +172,6 @@ export function CalendarClient({
               Paste the calendar link and tap &quot;Add calendar&quot;
             </li>
           </ol>
-
           <div
             style={{
               fontWeight: 600,
@@ -185,7 +183,6 @@ export function CalendarClient({
           >
             Now switch to the Google Calendar app on your phone:
           </div>
-
           <ol
             className="helper googleSteps"
             start={4}
@@ -194,8 +191,11 @@ export function CalendarClient({
             <li style={{ marginBottom: 10 }}>
               Go to Settings → tap the new calendar
             </li>
-            <li>
+            <li style={{ marginBottom: 10 }}>
               Toggle Sync to on
+            </li>
+            <li>
+              Tap ☰ → find the calendar in the list → tap the checkbox to make it visible
             </li>
           </ol>          
         </div>
