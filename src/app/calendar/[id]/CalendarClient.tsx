@@ -155,7 +155,7 @@ export function CalendarClient({
               <div className="row" style={{ marginTop: 8 }}>
                 
                   className="btn btnSecondary"
-                  a href="https://calendar.google.com/calendar/u/0/r/settings/addbyurl"
+                  <a href="https://calendar.google.com/calendar/u/0/r/settings/addbyurl"
                   target="_blank"
                   rel="noopener"
                   style={{ fontSize: 14 }}
