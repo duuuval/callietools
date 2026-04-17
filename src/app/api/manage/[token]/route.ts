@@ -6,6 +6,11 @@ import {
   updateCalendarBranding,
 } from "@/lib/data";
 
+// This route reads and writes live Supabase data on every request.
+// Must never be cached at any layer.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // ─── Types ───────────────────────────────────────────────────
 
 interface EventInput {
