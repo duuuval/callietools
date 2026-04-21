@@ -29,7 +29,7 @@ interface District {
 const DISTRICTS: District[] = [
   {
     name: "Chesterfield County Public Schools",
-    year: "2025\u20262026",
+    year: "2025\u20132026",
     href: "/CCPS25-26",
     groups: [
       {
@@ -70,7 +70,7 @@ const DISTRICTS: District[] = [
   },
   {
     name: "Henrico County Public Schools",
-    year: "2026\u20262027",
+    year: "2026\u20132027",
     href: null,
     groups: [
       {
@@ -114,7 +114,7 @@ const DISTRICTS: District[] = [
   },
   {
     name: "Hanover County Public Schools",
-    year: "2026\u20262027",
+    year: "2026\u20132027",
     href: null,
     groups: [
       {
@@ -144,7 +144,7 @@ const DISTRICTS: District[] = [
   },
   {
     name: "City of Richmond Public Schools",
-    year: "2026\u20262027",
+    year: "2026\u20132027",
     href: null,
     groups: [
       {
@@ -235,14 +235,16 @@ export default function SchoolsPage() {
             </h2>
 
             {/* ── CTA: live link or coming soon ── */}
-            {d.href ? (
-              <Link className="btn btnPrimary" href={d.href}>
-                View &amp; subscribe
-              </Link>
-            ) : (
-              <span className="btn btnComingSoon">Coming soon</span>
-            )}
-
+            <div style={{ marginTop: 16 }}>
+              {d.href ? (
+                <Link className="btn btnPrimary" href={d.href}>
+                  View &amp; subscribe
+                </Link>
+              ) : (
+                <span className="btn btnComingSoon">Coming soon</span>
+              )}
+            </div>div>
+            
             {/* ── School list with sub-headers ── */}
             <details className="schoolListDetails" style={{ marginTop: 16 }}>
               <summary className="schoolListSummary">
