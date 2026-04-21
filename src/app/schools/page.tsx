@@ -243,7 +243,7 @@ export default function SchoolsPage() {
               ) : (
                 <span className="btn btnComingSoon">Coming soon</span>
               )}
-            </div>div>
+            </div>
             
             {/* ── School list with sub-headers ── */}
             <details className="schoolListDetails" style={{ marginTop: 16 }}>
