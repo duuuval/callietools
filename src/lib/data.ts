@@ -1,3 +1,4 @@
+// src/lib/data.ts
 /**
  * Data layer router.
  *
@@ -14,8 +15,8 @@
 import * as sheets from "./sheets";
 import * as db from "./db";
 const backend = process.env.DATA_BACKEND === "supabase" ? db : sheets;
-// Re-export types (same shape in both files)
-export type { CalendarMeta, CalendarEvent } from "./sheets";
+// Re-export types (db.ts is the source of truth; sheets.ts is legacy)
+export type { CalendarMeta, CalendarEvent } from "./db";
 // Re-export functions from the selected backend
 export const getCalendar = backend.getCalendar;
 export const getCalendars = backend.getCalendars;
