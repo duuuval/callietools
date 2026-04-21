@@ -23,17 +23,14 @@ interface District {
   year: string;
   /** Calendar page path — null = Coming Soon */
   href: string | null;
-  description: string;
   groups: SchoolGroup[];
 }
 
 const DISTRICTS: District[] = [
   {
     name: "Chesterfield County Public Schools",
-    year: "2025–2026",
+    year: "2025\u20262026",
     href: "/CCPS25-26",
-    description:
-      "This calendar covers all 2025–2026 CCPS Traditional Calendar dates — holidays, half-days, early releases, teacher workdays, and breaks — for every school in the district.",
     groups: [
       {
         label: "Elementary Schools",
@@ -73,10 +70,8 @@ const DISTRICTS: District[] = [
   },
   {
     name: "Henrico County Public Schools",
-    year: "2026–2027",
+    year: "2026\u20262027",
     href: null,
-    description:
-      "Holidays, half-days, early releases, teacher workdays, and breaks for every school in the district.",
     groups: [
       {
         label: "Elementary Schools",
@@ -119,10 +114,8 @@ const DISTRICTS: District[] = [
   },
   {
     name: "Hanover County Public Schools",
-    year: "2026–2027",
+    year: "2026\u20262027",
     href: null,
-    description:
-      "Holidays, half-days, early releases, teacher workdays, and breaks for every school in the district.",
     groups: [
       {
         label: "Elementary Schools",
@@ -151,10 +144,8 @@ const DISTRICTS: District[] = [
   },
   {
     name: "City of Richmond Public Schools",
-    year: "2026–2027",
+    year: "2026\u20262027",
     href: null,
-    description:
-      "Holidays, half-days, early releases, teacher workdays, and breaks for every school in the district.",
     groups: [
       {
         label: "Preschools",
@@ -228,13 +219,20 @@ export default function SchoolsPage() {
           teacher workday is already on your calendar. No app to install,
           no manual entry.
         </p>
+        <p
+          className="schoolDesc"
+          style={{ fontSize: "0.9rem", opacity: 0.75, marginTop: 8 }}
+        >
+          Callie mirrors each district&rsquo;s published calendar. For snow
+          days and last-minute changes, your school&rsquo;s official channels
+          remain the source of truth.
+        </p>
 
         {DISTRICTS.map((d) => (
           <div className="districtCard" key={d.name}>
             <h2 className="districtName">
               {d.name} ({d.year})
             </h2>
-            <p className="districtSub">{d.description}</p>
 
             {/* ── CTA: live link or coming soon ── */}
             {d.href ? (
@@ -256,7 +254,7 @@ export default function SchoolsPage() {
                   <h3 className="schoolGroupLabel">{g.label}</h3>
                   <div
                     className="schoolList"
-                    aria-label={`${d.name} — ${g.label}`}
+                    aria-label={`${d.name} \u2014 ${g.label}`}
                   >
                     {g.schools.map((name) => (
                       <span key={name}>{name}</span>
