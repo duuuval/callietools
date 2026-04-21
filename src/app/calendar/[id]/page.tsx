@@ -6,7 +6,6 @@ import type { CalendarEvent } from "@/lib/data";
 import { CalendarClient } from "./CalendarClient";
 export const revalidate = 0;
 
-
 const EVENTS_PREVIEW_COUNT = 5;
 
 interface Props {
