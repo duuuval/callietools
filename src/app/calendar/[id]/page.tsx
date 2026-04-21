@@ -61,6 +61,7 @@ export default async function CalendarPage({ params }: Props) {
 
   // ── Paid tier detection ───────────────────────────────────
   const isPaid = cal.tier === "paid";
+  const isSchool = cal.isSchool === true;
   // Logo path convention: /public/logos/[calendarId].png
   // Drop the file and set tier="paid" in Sheets to activate.
   const logoPath = isPaid && cal.logoUrl ? cal.logoUrl : null;
@@ -186,9 +187,21 @@ export default async function CalendarPage({ params }: Props) {
         <p className="calSubscribeIntro">
           Add this calendar to your phone — events update automatically.
         </p>
-        <p className="mini" style={{ fontStyle: "italic", marginTop: 0, marginBottom: 18 }}>
+        <p className="mini" style={{ fontStyle: "italic", marginTop: 0, marginBottom: 10 }}>
             New events typically appear within a couple hours.
         </p>
+        {isSchool && (
+          <p
+            className="mini"
+            style={{ marginTop: 0, marginBottom: 18, opacity: 0.75 }}
+          >
+            Callie mirrors each district&rsquo;s published calendar. For snow
+            days and last-minute changes, your school&rsquo;s official channels
+            remain the source of truth.
+          </p>
+        )}
+
+  {/* Apple */}
 
         {/* Apple */}
 
