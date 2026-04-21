@@ -22,6 +22,7 @@ export interface CalendarMeta {
   theme?: string;
   websiteUrl?: string;
   logoUrl?: string;
+  isSchool?: boolean;
 }
 
 export interface CalendarEvent {
@@ -151,6 +152,7 @@ interface CalendarRow {
   theme: string | null;
   website_url: string | null;
   logo_url: string | null;
+  is_school: boolean | null;
   created_at: string;
   updated_at: string;
 }
@@ -179,6 +181,7 @@ function rowToCalendarMeta(row: CalendarRow): CalendarMeta {
     theme: row.theme || undefined,
     websiteUrl: row.website_url || undefined,
     logoUrl: row.logo_url || undefined,
+    isSchool: row.is_school === true,
   };
 }
 
