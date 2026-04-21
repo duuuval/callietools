@@ -1,3 +1,4 @@
+// src/app/calendar/[id]/page.tsx
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCalendar, getEvents } from "@/lib/data";
@@ -69,7 +70,10 @@ export default async function CalendarPage({ params }: Props) {
   // Theme: default to light
   const isDark = isPaid && cal.theme === "dark";
   const buttonTextColor = isLightColor(accentColor) ? "#000000" : "#ffffff";
-  
+
+  // ── School calendar detection ─────────────────────────────
+  const isSchool = cal.isSchool === true;
+
   // Split events into upcoming and past
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -190,7 +194,11 @@ export default async function CalendarPage({ params }: Props) {
             New events typically appear within a couple hours.
         </p>
 
-        {/* Apple */}
+        {isSchool && (
+          <p className="mini" style={{ opacity: 0.75, marginTop: 0, marginBottom: 18 }}>
+            Callie mirrors each district&rsquo;s published calendar. For snow days and last-minute changes, your school&rsquo;s official channels remain the source of truth.
+          </p>
+        )}
 
         {/* Apple */}
         <div className="section">
