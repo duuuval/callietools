@@ -32,7 +32,7 @@ export default function HomePage() {
             </h1>
             <p className="heroSub">
               Not the group chat. Not a screenshot. On their existing calendar, where every update shows up on their phone. 
-              No more "when is it again?"
+              <br />No more "when is it again?"
             </p>
             <div className="heroDelivers">
                <span className="heroDeliversLabel">Delivers to</span>
