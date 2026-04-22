@@ -242,28 +242,27 @@ export function UpgradePreview() {
         className="upgradePreviewStage"
         data-theme={isDark ? "dark" : "light"}
         data-paid="true"
-        style={
-          {
-            "--primary": accent,
-            "--primaryHover": accent,
-            "--primary-text": buttonTextColor,
-          } as React.CSSProperties
-        }
+        style={{
+          "--primary": accent,
+          "--pageTint": isDark
+            ? `color-mix(in srgb, ${accent} 3%, #111)`
+            : `color-mix(in srgb, ${accent} 5%, #F6F6F8)`,
+          background: "var(--pageTint)",
+        } as React.CSSProperties}
       >
         {/* Card 1: header + events */}
         <div className="card upgradePreviewCard">
-          <div className="upgradePreviewHeader">
-            <img
-              src={active.logoPath}
-              alt={active.calendarName}
-              className="calLogoImg"
-            />
-            <h1
-              className="calPageTitle"
-              style={{ margin: 0, textAlign: "right", flex: 1 }}
-            >
-              {active.calendarName}
-            </h1>
+          <div className="calBrandBand">
+            <div className="calBrandBandInner">
+              <img
+                src={active.logoPath}
+                alt={active.calendarName}
+                className="calLogoImg calLogoImgLarge"
+              />
+              <h1 className="calPageTitle calPageTitleBand">
+                {active.calendarName}
+              </h1>
+            </div>
           </div>
           <div className="divider" />
 
