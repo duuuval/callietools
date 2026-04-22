@@ -642,7 +642,7 @@ export default function ManagePage({
               }}>
                 {/* Mini card with the brand band */}
                 <div style={{
-                  margin: 12,
+                  margin: 20,
                   background: theme === "dark" ? "#242424" : "#ffffff",
                   border: `1px solid ${previewBorder}`,
                   borderRadius: 10,
