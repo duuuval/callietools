@@ -9,7 +9,7 @@ interface Props {
 
 export function AppleSubscribeButton({ webcalIcs, calendarId }: Props) {
   return (
-    
+    <a
       className="btn btnPrimary"
       href={webcalIcs}
       rel="noopener"
