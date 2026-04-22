@@ -804,16 +804,6 @@ a:focus, .btn:focus, button:focus{
   max-width: 140px;
 }
 
-/* Page background tint: body gets a muted version of the accent
-   color when a paid calendar is rendered. Uses :has() (~94% support). */
-body:has([data-paid-bg="true"]) {
-  background: var(--pageTint, var(--bg));
-}
-
-/* Fallback for older browsers without :has() support. */
-.container[data-paid-bg="true"] {
-  background: var(--pageTint, transparent);
-}
 
 /* =========================
    Create Form
