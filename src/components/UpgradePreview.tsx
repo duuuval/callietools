@@ -35,7 +35,7 @@ const ARCHETYPES: Archetype[] = [
     defaultTheme: "light",
     defaultColor: "#D4775B",
     // Warm/playful palette — updated once real logo colors reviewed
-    colors: ["#D4775B", "#E89B4E", "#8BB17C", "#6B8EBF", "#B07BC9"],
+    colors: ["#E85D75", "#F4A261", "#8BB17C", "#6B8EBF", "#B07BC9"],
     events: [
       {
         weekday: "Mon",
@@ -58,9 +58,9 @@ const ARCHETYPES: Archetype[] = [
     calendarName: "Riverside Swim Team",
     logoPath: "/logos/riverside-swim.png",
     defaultTheme: "dark",
-    defaultColor: "#4F9FD6",
+    defaultColor: "#1E3A8A",
     // Cool/sporty palette — updated once real logo colors reviewed
-    colors: ["#4F9FD6", "#2C6EA8", "#E8A33D", "#C94848", "#5AB87A"],
+    colors: ["#1E3A8A", "#4F9FD6", "#0EA5E9", "#DC2626", "#F59E0B"],
     events: [
       {
         weekday: "Tue",
@@ -84,9 +84,9 @@ const ARCHETYPES: Archetype[] = [
     calendarName: "Maple Street Moms",
     logoPath: "/logos/maple-street-moms.png",
     defaultTheme: "light",
-    defaultColor: "#8BB17C",
+    defaultColor: "#92400E",
     // Warm-community palette — updated once real logo colors reviewed
-    colors: ["#8BB17C", "#C97B9F", "#D4A54E", "#7A9EC4", "#B07BC9"],
+    colors: ["#92400E", "#C97B5E", "#B45309", "#7C2D12", "#059669"],
     events: [
       {
         weekday: "Thu",
@@ -347,4 +347,3 @@ export function UpgradePreview() {
     </div>
   );
 }
-```
