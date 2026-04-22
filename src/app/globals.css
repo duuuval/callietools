@@ -2025,16 +2025,10 @@ a:focus, .btn:focus, button:focus{
 
 .upgradePreviewStage{
   position: relative;
-  padding: 4px;
+  padding: 16px;
   border-radius: var(--radiusLg);
-  background: transparent;
-}
-
-/* Dark theme inside stage: give it a dark backdrop so cards
-   contrast properly, without affecting the rest of the page. */
-.upgradePreviewStage[data-theme="dark"]{
-  background: #1a1a1a;
-  padding: 12px;
+  /* background is set inline per-theme via the component, so it can
+     pick up the customer's accent color at low opacity (the "page tint"). */
 }
 
 .upgradePreviewStage[data-theme="dark"] .card{
