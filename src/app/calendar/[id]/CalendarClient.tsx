@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { CopyButton } from "@/components/CopyButton";
+import { logClick } from "@/lib/log-click";
 import type { CalendarEvent } from "@/lib/data";
 
 
@@ -10,6 +11,7 @@ interface Props {
   webcalIcs: string;
   vanityUrl: string;
   calendarName: string;
+  calendarId?: string;
   pastEvents: CalendarEvent[];
   remainingEvents: CalendarEvent[];
   showEventsOnly?: boolean;
@@ -21,6 +23,7 @@ export function CalendarClient({
   httpsIcs,
   vanityUrl,
   calendarName,
+  calendarId,
   pastEvents,
   remainingEvents,
   showEventsOnly = false,
@@ -50,12 +53,23 @@ export function CalendarClient({
     return () => observer.disconnect();
   }, [isPaid]);
 
+  // Log page view once per mount. Only fires from the full (non-showEventsOnly)
+  // instance since both instances mount on the same page — this avoids
+  // double-counting. Guarded on calendarId to avoid firing during the brief
+  // window where the prop hasn't been wired up from page.tsx yet.
+  useEffect(() => {
+    if (showEventsOnly) return;
+    if (!calendarId) return;
+    logClick(calendarId, "page_view");
+  }, [calendarId, showEventsOnly]);
+
   // Accent color as inline style for buttons (overrides CSS default)
   const accentStyle = accentColor
     ? { backgroundColor: accentColor, borderColor: accentColor }
     : {};
 
   const handleShare = async () => {
+    if (calendarId) logClick(calendarId, "share");
     const shareData = {
       title: calendarName,
       text: `Subscribe to ${calendarName} — events sync to your phone automatically.`,
@@ -140,7 +154,13 @@ export function CalendarClient({
           >
             <li style={{ marginBottom: 10 }}>
               Copy the calendar link
-              <div className="row" style={{ marginTop: 8 }}>
+              <div
+                className="row"
+                style={{ marginTop: 8 }}
+                onClick={() => {
+                  if (calendarId) logClick(calendarId, "google_copy");
+                }}
+              >
                 <CopyButton
                   text={httpsIcs}
                   label="Copy calendar link"
@@ -159,6 +179,9 @@ export function CalendarClient({
                   target="_blank"
                   rel="noopener"
                   style={{ fontSize: 14 }}
+                  onClick={() => {
+                    if (calendarId) logClick(calendarId, "google_open");
+                  }}
                 >
                   Open Google Calendar (web) →
                 </a>
@@ -225,7 +248,14 @@ export function CalendarClient({
         {showOtherApps && (
           <div className="sectionBox" style={{ marginTop: 8 }}>
             <div className="row">
-              <a className="btn btnSecondary" href={httpsIcs} download>
+              
+                className="btn btnSecondary"
+                href={httpsIcs}
+                download
+                onClick={() => {
+                  if (calendarId) logClick(calendarId, "other_download");
+                }}
+              >
                 Download calendar file
               </a>
             </div>
