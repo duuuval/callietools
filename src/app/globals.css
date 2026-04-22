@@ -2252,3 +2252,9 @@ body:has([data-paid-bg="true"]) {
     max-height: 230px;
   }
 }
+
+/* When the brand band has no logo (paid calendar pre-logo upload),
+   let the name sit left-aligned so it doesn't hug the right edge. */
+.calBrandBandInner:not(:has(img)) .calPageTitleBand {
+  text-align: left;
+}
