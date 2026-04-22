@@ -168,11 +168,7 @@ export default function ManagePage({
   const isPaid = calendar?.tier === "paid";
   const buttonTextColor = isLightColor(accentColor) ? "#000" : "#fff";
 
-  const previewBg = theme === "dark" ? "#1a1a1a" : "#ffffff";
   const previewBorder = theme === "dark" ? "#3a3a3a" : "#e5e5e5";
-  const previewSecondaryBg = theme === "dark" ? "#242424" : "#ffffff";
-  const previewSecondaryBorder = theme === "dark" ? "#3a3a3a" : "#e0e0e0";
-  const previewSecondaryText = theme === "dark" ? accentColor || "#4F6BED" : accentColor || "#4F6BED";
 
   // ── Derived: split events into upcoming and past ──
   const upcomingEvents = events.filter((e) => !isPastEvent(e));
@@ -628,55 +624,118 @@ export default function ManagePage({
             <div className="formGroup">
               <label className="formLabel">Your branding</label>
 
+              {/* ── Mini preview: brand band + accent buttons ─────────────
+                   Matches what the customer will see on their real calendar
+                   page. Compact by design — /manage is primarily for event
+                   management, so this preview earns its place by showing
+                   the band (the biggest visual change) plus the two button
+                   treatments (accent as fill, accent as text). */}
               <div style={{
-                marginBottom: 20,
-                padding: "20px",
-                background: previewBg,
+                marginBottom: 8,
                 borderRadius: 10,
                 border: `1px solid ${previewBorder}`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 16,
+                overflow: "hidden",
+                background: theme === "dark"
+                  ? `color-mix(in srgb, ${accentColor || "#4F6BED"} 7%, #111)`
+                  : `color-mix(in srgb, ${accentColor || "#4F6BED"} 5%, #F6F6F8)`,
                 transition: "background 0.2s, border-color 0.2s",
               }}>
-                <div style={{ flexShrink: 0 }}>
-                  {logoUrl ? (
-                    <>
+                {/* Mini card with the brand band */}
+                <div style={{
+                  margin: 12,
+                  background: theme === "dark" ? "#242424" : "#ffffff",
+                  border: `1px solid ${previewBorder}`,
+                  borderRadius: 10,
+                  overflow: "hidden",
+                }}>
+                  {/* Brand band */}
+                  <div style={{
+                    padding: "14px 16px",
+                    background: theme === "dark"
+                      ? `color-mix(in srgb, ${accentColor || "#4F6BED"} 14%, #242424)`
+                      : `color-mix(in srgb, ${accentColor || "#4F6BED"} 10%, #ffffff)`,
+                    borderBottom: `1px solid ${theme === "dark"
+                      ? `color-mix(in srgb, ${accentColor || "#4F6BED"} 30%, transparent)`
+                      : `color-mix(in srgb, ${accentColor || "#4F6BED"} 25%, transparent)`}`,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                  }}>
+                    {logoUrl ? (
                       <img
                         src={logoUrl}
                         alt={`${calendar?.name} logo`}
-                        style={{ maxHeight: 64, maxWidth: 140, objectFit: "contain", display: "block" }}
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                          const el = e.currentTarget.nextElementSibling as HTMLElement;
-                          if (el) el.style.display = "block";
-                        }}
+                        style={{ maxHeight: 44, maxWidth: 70, objectFit: "contain", flexShrink: 0 }}
                       />
-                      <p style={{ display: "none", fontSize: "0.75rem", color: "#999", fontStyle: "italic" }}>
-                        Logo not found
-                      </p>
-                    </>
-                  ) : (
-                    <p style={{ fontSize: "0.8rem", color: theme === "dark" ? "#666" : "#bbb", fontStyle: "italic", maxWidth: 140 }}>
-                      Logo not uploaded yet —{" "}
-                      <a href="mailto:hello@callietools.com" style={{ color: "#4F6BED" }}>email us your file</a>
-                    </p>
-                  )}
-                </div>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-                  <span style={{ fontSize: "0.7rem", color: theme === "dark" ? "#666" : "#bbb", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>
-                    Your buttons
-                  </span>
-                  <div style={{ padding: "8px 18px", borderRadius: 6, background: accentColor || "#4F6BED", border: `1px solid ${accentColor || "#4F6BED"}`, color: buttonTextColor, fontSize: "0.875rem", fontWeight: 500, whiteSpace: "nowrap" }}>
-                    Sync to Calendar
+                    ) : null}
+                    <div style={{
+                      flex: 1,
+                      textAlign: logoUrl ? "right" : "left",
+                      fontWeight: 900,
+                      fontSize: "1rem",
+                      letterSpacing: "-0.3px",
+                      color: theme === "dark" ? "#f0f0f0" : "#111318",
+                      lineHeight: 1.1,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}>
+                      {calendar?.name}
+                    </div>
                   </div>
-                  <div style={{ padding: "8px 18px", borderRadius: 6, background: previewSecondaryBg, border: `1px solid ${previewSecondaryBorder}`, color: previewSecondaryText, fontSize: "0.875rem", fontWeight: 500, whiteSpace: "nowrap" }}>
-                    Copy link
+
+                  {/* Body strip with primary + secondary buttons */}
+                  <div style={{
+                    padding: "16px",
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 10,
+                    flexWrap: "wrap",
+                  }}>
+                    <div style={{
+                      padding: "8px 18px",
+                      borderRadius: 6,
+                      background: accentColor || "#4F6BED",
+                      border: `1px solid ${accentColor || "#4F6BED"}`,
+                      color: buttonTextColor,
+                      fontSize: "0.875rem",
+                      fontWeight: 600,
+                      whiteSpace: "nowrap",
+                    }}>
+                      Sync to Calendar
+                    </div>
+                    <div style={{
+                      padding: "8px 18px",
+                      borderRadius: 6,
+                      background: theme === "dark" ? "#242424" : "#ffffff",
+                      border: `1px solid ${theme === "dark" ? "#3a3a3a" : "#e0e0e0"}`,
+                      color: accentColor || "#4F6BED",
+                      fontSize: "0.875rem",
+                      fontWeight: 600,
+                      whiteSpace: "nowrap",
+                    }}>
+                      Copy link
+                    </div>
                   </div>
                 </div>
               </div>
+
+              {/* Logo nudge — below the preview, not inside it */}
+              {!logoUrl && (
+                <p style={{
+                  fontSize: "0.8rem",
+                  color: "#666",
+                  marginTop: 0,
+                  marginBottom: 20,
+                  lineHeight: 1.5,
+                }}>
+                  Don&rsquo;t see your logo?{"\u00A0"}
+                  <a href="mailto:hello@callietools.com" style={{ color: "#4F6BED", fontWeight: 500 }}>
+                    Email us your logo file
+                  </a>{" "}and we&rsquo;ll add it.
+                </p>
+              )}
+              {logoUrl && <div style={{ marginBottom: 20 }} />}
 
               <div style={{ marginBottom: 20 }}>
                 <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>Page theme</p>
@@ -728,7 +787,7 @@ export default function ManagePage({
           {/* ── Flyer import ── */}
           <div style={{ marginBottom: 20 }}>
             <p style={{ fontSize: "0.875rem", color: "var(--text-muted, #666)", marginBottom: 12, lineHeight: 1.5 }}>
-              Have more events coming up? Upload an image and they'll be added to your calendar. New events show up on subscribed calendars automatically.
+              Have more events coming up? Upload an image and they&rsquo;ll be added to your calendar. New events show up on subscribed calendars automatically.
             </p>
 
             <input
