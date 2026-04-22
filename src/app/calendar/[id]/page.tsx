@@ -110,40 +110,37 @@ export default async function CalendarPage({ params }: Props) {
       className="container"
       data-theme={isDark ? "dark" : "light"}
       data-paid={isPaid ? "true" : undefined}
+      data-paid-bg={isPaid ? "true" : undefined}
       data-calendar="true"
       style={{
         "--primary": accentColor,
         "--primaryHover": accentColor,
         "--primary-text": buttonTextColor,
+        "--pageTint": isPaid
+          ? (isDark
+              ? `color-mix(in srgb, ${accentColor} 3%, #111)`
+              : `color-mix(in srgb, ${accentColor} 5%, #F6F6F8)`)
+          : undefined,
       } as React.CSSProperties}
     >
 
       {/* ── Card 1: Header + Events ── */}
       <div className="card">
         {isPaid && logoPath ? (
-          // Paid: logo left, calendar name right-aligned
-          <div
-            id="callie-sentinel"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              marginBottom: 4,
-            }}
-          >
-            <img
-              src={logoPath}
-              alt={cal.name}
-              className="calLogoImg"
-            />
-            <h1
-              className="calPageTitle"
-              style={{ margin: 0, textAlign: "right", flex: 1 }}
-            >
-              {cal.name || cal.id}
-            </h1>
-          </div>
-        ) : (
+  // Paid: tinted brand band with logo and calendar name
+  <div className="calBrandBand" id="callie-sentinel">
+    <div className="calBrandBandInner">
+      <img
+        src={logoPath}
+        alt={cal.name}
+        className="calLogoImg calLogoImgLarge"
+      />
+      <h1 className="calPageTitle calPageTitleBand">
+        {cal.name || cal.id}
+      </h1>
+    </div>
+  </div>
+) : (
           // Free: title then subtitle
           <>
             <h1 className="calPageTitle">{cal.name || cal.id}</h1>
