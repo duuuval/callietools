@@ -5,7 +5,6 @@ import { CopyButton } from "@/components/CopyButton";
 import { logClick } from "@/lib/log-click";
 import type { CalendarEvent } from "@/lib/data";
 
-
 interface Props {
   httpsIcs: string;
   webcalIcs: string;
