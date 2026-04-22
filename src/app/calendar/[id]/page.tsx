@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getCalendar, getEvents } from "@/lib/data";
 import type { CalendarEvent } from "@/lib/data";
 import { CalendarClient } from "./CalendarClient";
+import { AppleSubscribeButton } from "./AppleSubscribeButton";
 export const revalidate = 0;
 
 const EVENTS_PREVIEW_COUNT = 5;
@@ -212,9 +213,7 @@ export default async function CalendarPage({ params }: Props) {
                 btnPrimary uses var(--accent-color) so it picks up the
                 custom color automatically via the CSS variable set above.
               */}
-              <a className="btn btnPrimary" href={webcalIcs} rel="noopener">
-                Sync to Apple Calendar
-              </a>
+              <AppleSubscribeButton webcalIcs={webcalIcs} calendarId={cal.id} />
             </div>
             <div className="mini" style={{ marginTop: 10 }}>
               Opens in Apple Calendar — tap Subscribe to add it.
