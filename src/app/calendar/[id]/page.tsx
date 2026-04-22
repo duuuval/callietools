@@ -1,4 +1,3 @@
-// src/app/calendar/[id]/page.tsx
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCalendar, getEvents } from "@/lib/data";
@@ -63,7 +62,7 @@ export default async function CalendarPage({ params }: Props) {
   // ── Paid tier detection ───────────────────────────────────
   const isPaid = cal.tier === "paid";
   // Logo path convention: /public/logos/[calendarId].png
-  // Drop the file and set tier="paid" in Sheets to activate.
+  // Drop the file and set tier="paid" in Supabase to activate.
   const logoPath = isPaid && cal.logoUrl ? cal.logoUrl : null;
   // Accent color: use calendar's value, fall back to Callie blue
   const accentColor = isPaid && cal.accentColor ? cal.accentColor : "#4F6BED";
@@ -73,6 +72,22 @@ export default async function CalendarPage({ params }: Props) {
 
   // ── School calendar detection ─────────────────────────────
   const isSchool = cal.isSchool === true;
+
+  // ── Paid tier: page background tint ───────────────────────
+  // CSS variables can't be read upward (setting --pageTint on .container
+  // wouldn't reach the body). A scoped <style> tag injected at the top of
+  // the tree is the cleanest way to tint the body from a server component.
+  const pageTintStyle = isPaid ? (
+    <style>{`
+      body {
+        background: ${
+          isDark
+            ? `color-mix(in srgb, ${accentColor} 3%, #111)`
+            : `color-mix(in srgb, ${accentColor} 5%, #F6F6F8)`
+        };
+      }
+    `}</style>
+  ) : null;
 
   // Split events into upcoming and past
   const today = new Date();
@@ -105,169 +120,160 @@ export default async function CalendarPage({ params }: Props) {
   const hasMore = remainingEvents.length > 0;
 
   return (
-    // data-theme drives dark mode via CSS; accentColor injected as CSS variable
-    <div
-      className="container"
-      data-theme={isDark ? "dark" : "light"}
-      data-paid={isPaid ? "true" : undefined}
-      data-paid-bg={isPaid ? "true" : undefined}
-      data-calendar="true"
-      style={{
-        "--primary": accentColor,
-        "--primaryHover": accentColor,
-        "--primary-text": buttonTextColor,
-        "--pageTint": isPaid
-          ? (isDark
-              ? `color-mix(in srgb, ${accentColor} 3%, #111)`
-              : `color-mix(in srgb, ${accentColor} 5%, #F6F6F8)`)
-          : undefined,
-      } as React.CSSProperties}
-    >
-
-      {/* ── Card 1: Header + Events ── */}
-      <div className="card">
-        {isPaid ? (
-  // Paid: tinted brand band with calendar name (and logo if uploaded)
-  <div className="calBrandBand" id="callie-sentinel">
-    <div className="calBrandBandInner">
-      {logoPath && (
-        <img
-          src={logoPath}
-          alt={cal.name}
-          className="calLogoImg calLogoImgLarge"
-        />
-      )}
-      <h1 className="calPageTitle calPageTitleBand">
-        {cal.name || cal.id}
-      </h1>
-    </div>
-  </div>
-) : (
-  // Free: title then subtitle
-  <>
-    <h1 className="calPageTitle">{cal.name || cal.id}</h1>
-    <p className="calPageSubtitle" id="callie-sentinel">A Callie calendar</p>
-  </>
-)}
-        <div className="divider" />
-
-        {upcoming.length > 0 ? (
-          <div className="eventsSection">
-            {previewEvents.map((e, i) => (
-              <EventRow
-                key={`${e.start_date}-${e.title}-${i}`}
-                event={e}
-              />
-            ))}
-
-            {hasMore && (
-              <CalendarClient
-                httpsIcs={httpsIcs}
-                webcalIcs={webcalIcs}
-                vanityUrl={vanityUrl}
-                calendarName={cal.name || cal.id}
-                calendarId={cal.id}
-                pastEvents={past}
-                remainingEvents={remainingEvents}
-                showEventsOnly
-                isPaid={isPaid}
-                accentColor={accentColor}
-              />
-            )}
-          </div>
-        ) : (
-          <div className="eventsEmpty">
-            <p>
-              No upcoming events — subscribe to get notified when new ones are
-              added.
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* ── Card 2: Subscribe ── */}
-      <div className="card" style={{ marginTop: 16 }}>
-        <p className="calSubscribeIntro">
-          Add this calendar to your phone — events update automatically.
-        </p>
-        <p className="mini" style={{ fontStyle: "italic", marginTop: 0, marginBottom: 18 }}>
-            New events typically appear within a couple hours.
-        </p>
-
-        {isSchool && (
-          <p className="mini" style={{ opacity: 0.75, marginTop: 0, marginBottom: 18 }}>
-            Callie mirrors each district&rsquo;s published calendar. For snow days and last-minute changes, your school&rsquo;s official channels remain the source of truth.
-          </p>
-        )}
-
-        {/* Apple */}
-        <div className="section">
-          <div className="sectionTitle">
-            🍎 Apple Calendar (iPhone / iPad / Mac)
-          </div>
-          <div className="sectionBox">
-            <div className="row">
-              {/*
-                Accent color on the Apple button:
-                btnPrimary uses var(--accent-color) so it picks up the
-                custom color automatically via the CSS variable set above.
-              */}
-              <AppleSubscribeButton webcalIcs={webcalIcs} calendarId={cal.id} />
+    <>
+      {pageTintStyle}
+      {/* data-theme drives dark mode via CSS; accentColor injected as CSS variable */}
+      <div
+        className="container"
+        data-theme={isDark ? "dark" : "light"}
+        data-paid={isPaid ? "true" : undefined}
+        data-calendar="true"
+        style={{
+          "--primary": accentColor,
+          "--primaryHover": accentColor,
+          "--primary-text": buttonTextColor,
+        } as React.CSSProperties}
+      >
+        {/* ── Card 1: Header + Events ── */}
+        <div className="card">
+          {isPaid ? (
+            // Paid: tinted brand band with calendar name (and logo if uploaded)
+            <div className="calBrandBand" id="callie-sentinel">
+              <div className="calBrandBandInner">
+                {logoPath && (
+                  <img
+                    src={logoPath}
+                    alt={cal.name}
+                    className="calLogoImg calLogoImgLarge"
+                  />
+                )}
+                <h1 className="calPageTitle calPageTitleBand">
+                  {cal.name || cal.id}
+                </h1>
+              </div>
             </div>
-            <div className="mini" style={{ marginTop: 10 }}>
-              Opens in Apple Calendar — tap Subscribe to add it.
+          ) : (
+            // Free: title then subtitle
+            <>
+              <h1 className="calPageTitle">{cal.name || cal.id}</h1>
+              <p className="calPageSubtitle" id="callie-sentinel">A Callie calendar</p>
+            </>
+          )}
+          <div className="divider" />
+
+          {upcoming.length > 0 ? (
+            <div className="eventsSection">
+              {previewEvents.map((e, i) => (
+                <EventRow
+                  key={`${e.start_date}-${e.title}-${i}`}
+                  event={e}
+                />
+              ))}
+
+              {hasMore && (
+                <CalendarClient
+                  httpsIcs={httpsIcs}
+                  webcalIcs={webcalIcs}
+                  vanityUrl={vanityUrl}
+                  calendarName={cal.name || cal.id}
+                  calendarId={cal.id}
+                  pastEvents={past}
+                  remainingEvents={remainingEvents}
+                  showEventsOnly
+                  isPaid={isPaid}
+                  accentColor={accentColor}
+                />
+              )}
             </div>
-          </div>
+          ) : (
+            <div className="eventsEmpty">
+              <p>
+                No upcoming events — subscribe to get notified when new ones are
+                added.
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Google / Other / Share / Past — client component */}
-        <CalendarClient
-          httpsIcs={httpsIcs}
-          webcalIcs={webcalIcs}
-          vanityUrl={vanityUrl}
-          calendarName={cal.name || cal.id}
-          calendarId={cal.id}
-          pastEvents={past}
-          remainingEvents={remainingEvents}
-          showEventsOnly={false}
-          isPaid={isPaid}
-          accentColor={accentColor}
-        />
-      </div>
+        {/* ── Card 2: Subscribe ── */}
+        <div className="card" style={{ marginTop: 16 }}>
+          <p className="calSubscribeIntro">
+            Add this calendar to your phone — events update automatically.
+          </p>
+          <p className="mini" style={{ fontStyle: "italic", marginTop: 0, marginBottom: 18 }}>
+              New events typically appear within a couple hours.
+          </p>
 
-      {/* ── Footer ── */}
-      <div className="calFooter">
-        {isPaid ? (
-          // Paid footer: small credit only, no recruitment CTAs
-          <>
-            {cal.websiteUrl && (
-              <p className="calFooterCta">
-                <a href={cal.websiteUrl} target="_blank" rel="noopener">
-                  Visit website →
-                </a>
+          {isSchool && (
+            <p className="mini" style={{ opacity: 0.75, marginTop: 0, marginBottom: 18 }}>
+              Callie mirrors each district&rsquo;s published calendar. For snow days and last-minute changes, your school&rsquo;s official channels remain the source of truth.
+            </p>
+          )}
+
+          {/* Apple */}
+          <div className="section">
+            <div className="sectionTitle">
+              🍎 Apple Calendar (iPhone / iPad / Mac)
+            </div>
+            <div className="sectionBox">
+              <div className="row">
+                <AppleSubscribeButton webcalIcs={webcalIcs} calendarId={cal.id} />
+              </div>
+              <div className="mini" style={{ marginTop: 10 }}>
+                Opens in Apple Calendar — tap Subscribe to add it.
+              </div>
+            </div>
+          </div>
+
+          {/* Google / Other / Share / Past — client component */}
+          <CalendarClient
+            httpsIcs={httpsIcs}
+            webcalIcs={webcalIcs}
+            vanityUrl={vanityUrl}
+            calendarName={cal.name || cal.id}
+            calendarId={cal.id}
+            pastEvents={past}
+            remainingEvents={remainingEvents}
+            showEventsOnly={false}
+            isPaid={isPaid}
+            accentColor={accentColor}
+          />
+        </div>
+
+        {/* ── Footer ── */}
+        <div className="calFooter">
+          {isPaid ? (
+            // Paid footer: small credit only, no recruitment CTAs
+            <>
+              {cal.websiteUrl && (
+                <p className="calFooterCta">
+                  <a href={cal.websiteUrl} target="_blank" rel="noopener">
+                    Visit website →
+                  </a>
+                </p>
+              )}
+              <p className="calFooterCredit">
+                Powered by <a href="https://callietools.com">Callie</a>
               </p>
-            )}
-            <p className="calFooterCredit">
-              Powered by <a href="https://callietools.com">Callie</a>
-            </p>
-          </>
-        ) : (
-          // Free footer: full distribution CTAs
-          <>
-            <p className="calFooterCta">
-              <a href="/create">Create your own calendar — free</a>
-            </p>
-            <p className="calFooterCta calFooterUpgrade">
-              Want your logo and colors on a page like this?<br />
-              <a href="/upgrade">Make it yours — $10/month</a>
-            </p>
-            <p className="calFooterEmail">
-              <a href="mailto:hello@callietools.com">hello@callietools.com</a>
-            </p>
-          </>
-        )}
+            </>
+          ) : (
+            // Free footer: full distribution CTAs
+            <>
+              <p className="calFooterCta">
+                <a href="/create">Create your own calendar — free</a>
+              </p>
+              <p className="calFooterCta calFooterUpgrade">
+                Want your logo and colors on a page like this?<br />
+                <a href="/upgrade">Make it yours — $10/month</a>
+              </p>
+              <p className="calFooterEmail">
+                <a href="mailto:hello@callietools.com">hello@callietools.com</a>
+              </p>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
