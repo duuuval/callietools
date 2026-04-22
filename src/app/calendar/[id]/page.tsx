@@ -82,7 +82,7 @@ export default async function CalendarPage({ params }: Props) {
       body {
         background: ${
           isDark
-            ? `color-mix(in srgb, ${accentColor} 3%, #111)`
+            ? `color-mix(in srgb, ${accentColor} 7%, #111)`
             : `color-mix(in srgb, ${accentColor} 5%, #F6F6F8)`
         };
       }
