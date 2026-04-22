@@ -446,6 +446,28 @@ export async function updateCalendarBranding(
   }
 }
 
+// ─── Analytics — subscribe_clicks ────────────────────────────
+
+export type ClickType = "page_view" | "apple" | "google" | "copy_link";
+
+export async function logClick(
+  calendarId: string,
+  clientType: ClickType
+): Promise<void> {
+  if (!isConfigured()) return;
+
+  const client = getClient();
+  const { error } = await client.from("subscribe_clicks").insert({
+    calendar_id: calendarId,
+    client_type: clientType,
+  });
+
+  if (error) {
+    // Never throw — analytics failures must not break user flows.
+    console.error("logClick error:", error);
+  }
+}
+
 // ─── /my-calendars — Dashboard tokens ────────────────────────
 
 export async function createDashboardToken(email: string): Promise<string> {
