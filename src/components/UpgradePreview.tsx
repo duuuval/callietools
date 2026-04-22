@@ -263,7 +263,7 @@ export function UpgradePreview() {
   style={{
     "--primary": accent,
     background: isDark
-      ? `color-mix(in srgb, ${accent} 3%, #111)`
+      ? `color-mix(in srgb, ${accent} 7%, #111)`
       : `color-mix(in srgb, ${accent} 5%, #F6F6F8)`,
   } as React.CSSProperties}
 >
