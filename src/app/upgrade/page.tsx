@@ -1,6 +1,8 @@
+// src/app/upgrade/page.tsx
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Image as ImageIcon, Palette, SunMoon, ArrowLeftRight } from "lucide-react";
+import { Image as ImageIcon, Palette, SunMoon } from "lucide-react";
+import { UpgradePreview } from "@/components/UpgradePreview";
 
 export const metadata: Metadata = {
   title: "Upgrade Your Calendar",
@@ -24,38 +26,28 @@ const features = [
     title: "Light or dark theme",
     body: "Pick the look that fits your style. Dark for a bold, modern feel. Light for something clean and bright.",
   },
-  {
-    icon: <ArrowLeftRight size={22} strokeWidth={1.75} />,
-    title: "We get out of the way",
-    body: "Your branding takes the lead. We step aside — no Callie nav, no busy footer. Small \u201cPowered by Callie\u201d credits in the header and footer, and the rest is yours.",
-  },
 ];
 
 export default function UpgradePage() {
   return (
     <div className="container">
       <div className="card">
+        {/* Hero — ownership-first, reassurance folded into subhead */}
         <div className="upgradeHero">
           <h1>Make your calendar page yours</h1>
           <p>
-            Everything Callie offers is already free &mdash; no limits,
-            no expiration. The upgrade is about one thing: making the
-            page look like yours instead of ours.
+            Swap our branding for yours &mdash; your logo, your colors,
+            your theme. Everything else about Callie stays exactly as it
+            is, and stays free.
           </p>
         </div>
 
-        <div className="upgradeFreeBlock">
-          <p>
-            <strong>Always free:</strong> Create your calendar, share
-            your page, add events (including our upload an image or
-            schedule tool), update anytime &mdash; your group gets
-            every change automatically.
-          </p>
-        </div>
+        {/* Interactive preview */}
+        <UpgradePreview />
 
-        <div className="upgradePaidLabel">$10/mo adds:</div>
-
-        <div className="upgradeGrid">
+        {/* Feature cards — the specifics behind the preview */}
+        <div className="upgradePaidLabel">$10/mo makes it yours:</div>
+        <div className="upgradeGrid upgradeGridThree">
           {features.map((f) => (
             <div className="upgradeCard" key={f.title}>
               <span className="upgradeCardIcon" aria-hidden="true">
@@ -67,6 +59,7 @@ export default function UpgradePage() {
           ))}
         </div>
 
+        {/* Pricing */}
         <div className="upgradePrice">
           <p className="upgradePriceAmount">$10/mo</p>
           <p className="upgradePriceNote">
@@ -74,25 +67,31 @@ export default function UpgradePage() {
           </p>
         </div>
 
-        <div className="upgradeCtas">
-          <Link className="btn btnPrimary heroBtn" href="/create">
-            Create your calendar &mdash; free
-          </Link>
-          <p style={{ color: "var(--muted)", fontSize: "0.85rem", margin: 0 }}>
-            Start free, upgrade when you&apos;re ready.
+        {/* Existing-owner path — elevated, this is the primary conversion path */}
+        <div className="upgradeExisting">
+          <h2>Already have a Callie calendar?</h2>
+          <p>
+            Email{" "}
+            <a href="mailto:hello@callietools.com?subject=Upgrade%20my%20calendar">
+              hello@callietools.com
+            </a>{" "}
+            with your calendar name. We&rsquo;ll send a payment link and
+            help you get your branding live &mdash; usually within a day
+            or two.
           </p>
         </div>
 
         <div className="upgradeDivider" />
 
-        <div className="upgradeAlready">
-          <p>
-            Already have a Callie calendar and want to add your branding?
-            Email us your calendar name and we&apos;ll get you set up.
+        {/* Cold visitor path — demoted below existing-owner */}
+        <div className="upgradeNew">
+          <p className="upgradeNewLabel">Don&rsquo;t have one yet?</p>
+          <Link className="btn btnPrimary heroBtn" href="/create">
+            Create your calendar &mdash; free
+          </Link>
+          <p className="upgradeNewNote">
+            Start free, upgrade when you&rsquo;re ready.
           </p>
-          <a href="mailto:hello@callietools.com?subject=Upgrade%20my%20calendar">
-            hello@callietools.com
-          </a>
         </div>
       </div>
     </div>
