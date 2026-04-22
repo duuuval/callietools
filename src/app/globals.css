@@ -2218,3 +2218,88 @@ a:focus, .btn:focus, button:focus{
     max-height: 230px;
   }
 }
+
+/* ==========================================================
+   Paid tier: brand band header
+   ========================================================== */
+
+/* The band sits inside the first card, above the events list.
+   It's a tinted strip using the customer's accent color.
+   Card padding is 26px (desktop and mobile — no mobile override). */
+
+.calBrandBand {
+  margin: -26px -26px 18px;
+  padding: 20px 26px;
+  border-radius: var(--radiusLg) var(--radiusLg) 0 0;
+  background: color-mix(in srgb, var(--primary) 10%, #ffffff);
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+}
+
+.calBrandBandInner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.calPageTitleBand {
+  margin: 0;
+  flex: 1;
+  text-align: right;
+  font-size: 1.9rem;
+  line-height: 1.1;
+}
+
+/* Larger logo in the band vs. the old inline treatment */
+.calLogoImgLarge {
+  max-height: 88px;
+  max-width: 140px;
+}
+
+/* ── Dark mode: band uses dark surface + accent mix ────── */
+
+[data-theme="dark"] .calBrandBand {
+  background: color-mix(in srgb, var(--primary) 14%, #242424);
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+/* ==========================================================
+   Paid tier: page background tint
+   ========================================================== */
+
+/* Tint the body when a paid calendar is rendered.
+   Uses :has() — supported in all modern browsers (~94% coverage). */
+
+body:has([data-paid-bg="true"]) {
+  background: var(--pageTint, var(--bg));
+}
+
+/* Fallback: the container itself gets the tint for older browsers.
+   Harmless if both rules fire. */
+
+.container[data-paid-bg="true"] {
+  background: var(--pageTint, transparent);
+}
+
+/* ==========================================================
+   Mobile adjustments for brand band
+   ========================================================== */
+
+@media (max-width: 768px) {
+  .calBrandBand {
+    margin: -26px -26px 14px;
+    padding: 16px 20px;
+  }
+
+  .calBrandBandInner {
+    gap: 12px;
+  }
+
+  .calLogoImgLarge {
+    max-height: 64px;
+    max-width: 100px;
+  }
+
+  .calPageTitleBand {
+    font-size: 1.4rem;
+  }
+}
