@@ -569,6 +569,31 @@ a:focus, .btn:focus, button:focus{
   color: var(--text);
 }
 
+/* Paid tier logo base styles. Sizing is overridden by
+   .calLogoImgLarge when used inside the brand band. */
+.calLogoImg {
+  display: block;
+  max-height: 72px;
+  max-width: 120px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* Paid tier footer credit */
+.calFooterCredit {
+  font-size: 12px;
+  color: var(--color-text-muted, #999);
+  text-align: center;
+  margin-top: 4px;
+}
+
+.calFooterCredit a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* ─── Sticky CTA bar ────────────────────────────── */
 
 .callieSticky{
@@ -746,6 +771,51 @@ a:focus, .btn:focus, button:focus{
 }
 
 /* =========================
+   Calendar Page — paid tier branding
+========================= */
+
+/* Brand band: tinted strip at the top of card 1, above events.
+   Uses the customer's accent color via --primary. Paid only. */
+.calBrandBand {
+  margin: -26px -26px 18px;
+  padding: 20px 26px;
+  border-radius: var(--radiusLg) var(--radiusLg) 0 0;
+  background: color-mix(in srgb, var(--primary) 10%, #ffffff);
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+}
+
+.calBrandBandInner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.calPageTitleBand {
+  margin: 0;
+  flex: 1;
+  text-align: right;
+  font-size: 1.9rem;
+  line-height: 1.1;
+}
+
+/* Larger logo when displayed inside the brand band */
+.calLogoImgLarge {
+  max-height: 88px;
+  max-width: 140px;
+}
+
+/* Page background tint: body gets a muted version of the accent
+   color when a paid calendar is rendered. Uses :has() (~94% support). */
+body:has([data-paid-bg="true"]) {
+  background: var(--pageTint, var(--bg));
+}
+
+/* Fallback for older browsers without :has() support. */
+.container[data-paid-bg="true"] {
+  background: var(--pageTint, transparent);
+}
+
+/* =========================
    Create Form
 ========================= */
 
@@ -776,6 +846,12 @@ a:focus, .btn:focus, button:focus{
   border-radius: 16px;
   background: #fafafa;
   text-align: center;
+  cursor: pointer;
+}
+
+.flyerUploadDragOver{
+  border-color: var(--primary);
+  background: var(--primarySoft);
 }
 
 .flyerUploadInner{
@@ -1294,7 +1370,11 @@ a:focus, .btn:focus, button:focus{
 
 .schoolListToggle:hover{ text-decoration: underline; }
 
-/* ── Upgrade page ───────────────────────────────── */
+/* ==========================================================
+   Upgrade page — static layout
+   (Legacy styles — some may be unused depending on current
+   /upgrade/page.tsx. Flagged for a future cleanup pass.)
+   ========================================================== */
 
 .upgradeHero{
   text-align: center;
@@ -1430,7 +1510,7 @@ a:focus, .btn:focus, button:focus{
 }
 
 /* ==========================================================
-   Mobile
+   Mobile (global)
    ========================================================== */
 
 @media (max-width: 768px){
@@ -1551,6 +1631,25 @@ a:focus, .btn:focus, button:focus{
     align-items: flex-start;
     gap: 4px;
   }
+
+  /* Brand band scales down on mobile */
+  .calBrandBand {
+    margin: -26px -26px 14px;
+    padding: 16px 20px;
+  }
+
+  .calBrandBandInner {
+    gap: 12px;
+  }
+
+  .calLogoImgLarge {
+    max-height: 64px;
+    max-width: 100px;
+  }
+
+  .calPageTitleBand {
+    font-size: 1.4rem;
+  }
 }
 
 .footerLink{ margin-top: 8px; }
@@ -1559,21 +1658,6 @@ a:focus, .btn:focus, button:focus{
 @media (max-width: 480px){
   .eventTimeRow{ flex-direction: column; gap: 8px; }
   .eventDateField{ flex: 1; }
-}
-
-.flyerUpload{
-  margin: 4px 0;
-  padding: 28px 20px;
-  border: 2px dashed var(--border);
-  border-radius: 16px;
-  background: #fafafa;
-  text-align: center;
-  cursor: pointer;
-}
-
-.flyerUploadDragOver{
-  border-color: var(--primary);
-  background: var(--primarySoft);
 }
 
 /* =========================
@@ -1693,39 +1777,13 @@ a:focus, .btn:focus, button:focus{
   50%{      transform: translateY(-4px); opacity: 1; }
 }
 
-/* ── Paid tier: accent color on primary buttons ─────────────────────────────
-   The CSS variable --accent-color is set inline on the page container.
-   btnPrimary picks it up automatically; no per-button changes needed
-   beyond what's already passed as accentStyle in CalendarClient.
-   If your existing btnPrimary already uses a variable, map it here instead. */
-
-/* ── Paid tier: logo image ───────────────────────────────────────────────── */
-.calLogoImg {
-  display: block;
-  max-height: 72px;     /* was 56px — bigger in side-by-side context */
-  max-width: 120px;     /* constrain width so name has room */
-  width: auto;
-  object-fit: contain;
-  flex-shrink: 0;       /* don't let it compress when name is long */
-}
-
-/* ── Paid tier: footer credit (small, unobtrusive) ───────────────────────── */
-.calFooterCredit {
-  font-size: 12px;
-  color: var(--color-text-muted, #999);
-  text-align: center;
-  margin-top: 4px;
-}
-
-.calFooterCredit a {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-/* ── Dark theme ──────────────────────────────────────────────────────────────
+/* ==========================================================
+   Dark theme
    Applied when data-theme="dark" is set on the container.
-   Scope: only affects the calendar page container, not the whole site. */
+   Scope: only affects the calendar page container, not the
+   whole site.
+   ========================================================== */
+
 [data-theme="dark"] {
   --color-bg: #1a1a1a;
   --color-surface: #242424;
@@ -1757,8 +1815,8 @@ a:focus, .btn:focus, button:focus{
 }
 
 [data-theme="dark"] .sectionBox {
-  background: var(--color-surface-alt);
-  border-color: var(--color-border);
+  background: var(--color-surface-alt, #2e2e2e);
+  border-color: var(--color-border, #3a3a3a);
 }
 
 [data-theme="dark"] .calFooter {
@@ -1770,17 +1828,14 @@ a:focus, .btn:focus, button:focus{
   color: var(--color-text-muted);
 }
 
-/* ── "Add this calendar" intro text ─────────────────────────────────────── */
 [data-theme="dark"] .calSubscribeIntro {
   color: var(--color-text, #f0f0f0);
 }
 
-/* ── Section titles (Apple, Google, Other) ───────────────────────────────── */
 [data-theme="dark"] .sectionTitle {
   color: var(--color-text, #f0f0f0);
 }
 
-/* ── Secondary buttons — dark surface instead of white island ────────────── */
 [data-theme="dark"] .btnSecondary {
   background: var(--color-surface, #242424);
   color: var(--primary);
@@ -1794,34 +1849,19 @@ a:focus, .btn:focus, button:focus{
   transform: translateY(-1px);
 }
 
-/* ── Section boxes ───────────────────────────────────────────────────────── */
-[data-theme="dark"] .sectionBox {
-  background: var(--color-surface-alt, #2e2e2e);
-  border-color: var(--color-border, #3a3a3a);
-}
-
-/* ── Warning/helper box inside Google steps ──────────────────────────────── */
 [data-theme="dark"] .helper {
   background: var(--color-surface-alt, #2e2e2e) !important;
   color: var(--color-text-muted, #bbb);
 }
 
-/* ── Mini text ───────────────────────────────────────────────────────────── */
-[data-theme="dark"] .mini {
-  color: var(--color-text-muted, #999);
-}
-
-/* ── Share section subtext ───────────────────────────────────────────────── */
 [data-theme="dark"] .shareSection p {
   color: var(--color-text-muted, #999);
 }
 
-/* ── Dividers ────────────────────────────────────────────────────────────── */
 [data-theme="dark"] .divider {
   border-color: var(--color-border, #3a3a3a);
 }
 
-/* ── Footer credit ───────────────────────────────────────────────────────── */
 [data-theme="dark"] .calFooterCredit {
   color: var(--color-text-muted, #777);
 }
@@ -1830,27 +1870,23 @@ a:focus, .btn:focus, button:focus{
   color: var(--color-text-muted, #999);
 }
 
-:has([data-calendar="true"]) footer.siteFooter { 
-  display: none; 
+/* Dark mode: brand band uses dark surface + accent mix */
+[data-theme="dark"] .calBrandBand {
+  background: color-mix(in srgb, var(--primary) 14%, #242424);
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+/* Hide the site footer on calendar pages */
+:has([data-calendar="true"]) footer.siteFooter {
+  display: none;
 }
 
 /* ==========================================================
    Upgrade page — interactive preview
-   Append to end of src/app/globals.css (or wherever global
-   styles live). Reuses .card, .eventRow, .calPageTitle, etc.
+   Reuses .card, .eventRow, .calPageTitle, .calBrandBand, etc.
    so the preview stays visually in sync with the real
    calendar page automatically.
    ========================================================== */
-
-/* ── New hero/section treatments (replace old upgrade styles) ────
-   The old .upgradeHero and .upgradeFreeBlock etc. can stay in
-   the file — these selectors override where needed. If you want
-   to clean up later, the following are now unused:
-     .upgradeFreeBlock
-     .upgradePaidLabel (styled below, still used)
-   ──────────────────────────────────────────────────────────── */
-
-/* ── Preview wrapper ─────────────────────────────────────── */
 
 .upgradePreviewWrap{
   margin: 0 0 32px;
@@ -1972,6 +2008,8 @@ a:focus, .btn:focus, button:focus{
 .upgradePreviewSwatches{
   display: inline-flex;
   gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .upgradePreviewSwatch{
@@ -2041,26 +2079,16 @@ a:focus, .btn:focus, button:focus{
   background: var(--color-border, #3a3a3a);
 }
 
-/* Scale down the preview cards a bit — they're a miniature */
+/* Preview cards use smaller padding than .card (18px vs 26px). */
 .upgradePreviewCard{
   padding: 18px;
 }
 
-/* Header row inside card 1 */
-.upgradePreviewHeader{
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 4px;
-}
-
-.upgradePreviewHeader .calLogoImg{
-  max-height: 56px;
-  max-width: 96px;
-}
-
-.upgradePreviewHeader .calPageTitle{
-  font-size: 1.4rem;
+/* Brand band nested inside a preview card needs tighter negative
+   margins to match the preview card's smaller padding. */
+.upgradePreviewCard .calBrandBand{
+  margin: -18px -18px 14px;
+  padding: 16px 18px;
 }
 
 /* ── Fade-out treatment on the truncated subscribe card ── */
@@ -2165,7 +2193,7 @@ a:focus, .btn:focus, button:focus{
   margin: 0;
 }
 
-/* ── Mobile ──────────────────────────────────────────────── */
+/* ── Mobile — upgrade page ──────────────────────────────── */
 
 @media (max-width: 768px){
   .upgradeGridThree{
@@ -2205,101 +2233,22 @@ a:focus, .btn:focus, button:focus{
     padding: 14px;
   }
 
-  .upgradePreviewHeader .calPageTitle{
-    font-size: 1.15rem;
+  /* Preview card brand band on mobile: match 14px card padding */
+  .upgradePreviewCard .calBrandBand{
+    margin: -14px -14px 12px;
+    padding: 14px 16px;
   }
 
-  .upgradePreviewHeader .calLogoImg{
-    max-height: 44px;
-    max-width: 72px;
+  .upgradePreviewCard .calLogoImgLarge{
+    max-height: 52px;
+    max-width: 80px;
+  }
+
+  .upgradePreviewCard .calPageTitleBand{
+    font-size: 1.15rem;
   }
 
   .upgradePreviewCardFade{
     max-height: 230px;
-  }
-}
-
-/* ==========================================================
-   Paid tier: brand band header
-   ========================================================== */
-
-/* The band sits inside the first card, above the events list.
-   It's a tinted strip using the customer's accent color.
-   Card padding is 26px (desktop and mobile — no mobile override). */
-
-.calBrandBand {
-  margin: -26px -26px 18px;
-  padding: 20px 26px;
-  border-radius: var(--radiusLg) var(--radiusLg) 0 0;
-  background: color-mix(in srgb, var(--primary) 10%, #ffffff);
-  border-bottom: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
-}
-
-.calBrandBandInner {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.calPageTitleBand {
-  margin: 0;
-  flex: 1;
-  text-align: right;
-  font-size: 1.9rem;
-  line-height: 1.1;
-}
-
-/* Larger logo in the band vs. the old inline treatment */
-.calLogoImgLarge {
-  max-height: 88px;
-  max-width: 140px;
-}
-
-/* ── Dark mode: band uses dark surface + accent mix ────── */
-
-[data-theme="dark"] .calBrandBand {
-  background: color-mix(in srgb, var(--primary) 14%, #242424);
-  border-bottom: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
-}
-
-/* ==========================================================
-   Paid tier: page background tint
-   ========================================================== */
-
-/* Tint the body when a paid calendar is rendered.
-   Uses :has() — supported in all modern browsers (~94% coverage). */
-
-body:has([data-paid-bg="true"]) {
-  background: var(--pageTint, var(--bg));
-}
-
-/* Fallback: the container itself gets the tint for older browsers.
-   Harmless if both rules fire. */
-
-.container[data-paid-bg="true"] {
-  background: var(--pageTint, transparent);
-}
-
-/* ==========================================================
-   Mobile adjustments for brand band
-   ========================================================== */
-
-@media (max-width: 768px) {
-  .calBrandBand {
-    margin: -26px -26px 14px;
-    padding: 16px 20px;
-  }
-
-  .calBrandBandInner {
-    gap: 12px;
-  }
-
-  .calLogoImgLarge {
-    max-height: 64px;
-    max-width: 100px;
-  }
-
-  .calPageTitleBand {
-    font-size: 1.4rem;
   }
 }
