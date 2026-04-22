@@ -166,6 +166,7 @@ export default async function CalendarPage({ params }: Props) {
                 webcalIcs={webcalIcs}
                 vanityUrl={vanityUrl}
                 calendarName={cal.name || cal.id}
+                calendarId={cal.id}
                 pastEvents={past}
                 remainingEvents={remainingEvents}
                 showEventsOnly
@@ -227,6 +228,7 @@ export default async function CalendarPage({ params }: Props) {
           webcalIcs={webcalIcs}
           vanityUrl={vanityUrl}
           calendarName={cal.name || cal.id}
+          calendarId={cal.id}
           pastEvents={past}
           remainingEvents={remainingEvents}
           showEventsOnly={false}
