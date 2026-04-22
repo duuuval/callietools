@@ -2,11 +2,36 @@
 
 import { useState } from "react";
 
+/* ─── Shared palette ─────────────────────────────────────────
+
+   Matches COLOR_SWATCHES in the /create form. All archetypes
+   use the same swatches — differences between archetypes come
+   from logo + default color, not from the palette itself.
+
+   If you update this, also update COLOR_SWATCHES in the create
+   form (or better: extract both to src/lib/palette.ts).
+   ──────────────────────────────────────────────────────────── */
+
+const SHARED_PALETTE = [
+  "#4F6BED", // Callie Blue
+  "#D4775B", // Coral
+  "#2D6A4F", // Forest
+  "#5E548E", // Violet
+  "#E07A5F", // Terracotta
+  "#3A86FF", // Sky
+  "#2B9348", // Emerald
+  "#C77DFF", // Lavender
+  "#F4A261", // Amber
+  "#1D3557", // Navy
+  "#E63946", // Red
+  "#333333", // Charcoal
+];
+
 /* ─── Archetype definitions ──────────────────────────────────
 
-   To update: swap logos in /public/logos/, adjust colors,
-   or tweak sample event copy. Keep shapes stable.
-
+   To update: swap logos in /public/logos/, adjust default
+   color (must be from SHARED_PALETTE), or tweak sample event
+   copy. Keep shapes stable.
    ──────────────────────────────────────────────────────────── */
 
 type Archetype = {
@@ -16,7 +41,6 @@ type Archetype = {
   logoPath: string;
   defaultTheme: "light" | "dark";
   defaultColor: string;
-  colors: string[]; // preset swatches — first is the default
   events: {
     weekday: string;
     dateDisplay: string;
@@ -33,9 +57,7 @@ const ARCHETYPES: Archetype[] = [
     calendarName: "Kids Studio",
     logoPath: "/logos/kids-studio.png",
     defaultTheme: "light",
-    defaultColor: "#D4775B",
-    // Warm/playful palette — updated once real logo colors reviewed
-    colors: ["#E85D75", "#F4A261", "#8BB17C", "#6B8EBF", "#B07BC9"],
+    defaultColor: "#D4775B", // Coral — matches Kids Studio logo warmth
     events: [
       {
         weekday: "Mon",
@@ -58,9 +80,7 @@ const ARCHETYPES: Archetype[] = [
     calendarName: "Riverside Swim Team",
     logoPath: "/logos/riverside-swim.png",
     defaultTheme: "dark",
-    defaultColor: "#1E3A8A",
-    // Cool/sporty palette — updated once real logo colors reviewed
-    colors: ["#1E3A8A", "#4F9FD6", "#0EA5E9", "#DC2626", "#F59E0B"],
+    defaultColor: "#1D3557", // Navy — matches swim team feel
     events: [
       {
         weekday: "Tue",
@@ -84,9 +104,7 @@ const ARCHETYPES: Archetype[] = [
     calendarName: "Maple Street Moms",
     logoPath: "/logos/maple-street-moms.png",
     defaultTheme: "light",
-    defaultColor: "#92400E",
-    // Warm-community palette — updated once real logo colors reviewed
-    colors: ["#92400E", "#C97B5E", "#B45309", "#7C2D12", "#059669"],
+    defaultColor: "#2D6A4F", // Forest — warm community feel
     events: [
       {
         weekday: "Thu",
@@ -212,7 +230,7 @@ export function UpgradePreview() {
         <div className="upgradePreviewControl">
           <span className="upgradePreviewControlLabel">Color</span>
           <div className="upgradePreviewSwatches" role="group" aria-label="Color">
-            {active.colors.map((c) => {
+            {SHARED_PALETTE.map((c) => {
               const isActive = c.toLowerCase() === accent.toLowerCase();
               return (
                 <button
