@@ -448,7 +448,13 @@ export async function updateCalendarBranding(
 
 // ─── Analytics — subscribe_clicks ────────────────────────────
 
-export type ClickType = "page_view" | "apple" | "google" | "copy_link";
+export type ClickType =
+  | "page_view"
+  | "apple"
+  | "google_copy"
+  | "google_open"
+  | "other_download"
+  | "share";
 
 export async function logClick(
   calendarId: string,
