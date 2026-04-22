@@ -256,18 +256,17 @@ export function UpgradePreview() {
           so fidelity stays in sync with the production page.
           Wrapped in .upgradePreviewStage which scopes data-theme
           and the accent CSS variables locally. */}
-      <div
-        className="upgradePreviewStage"
-        data-theme={isDark ? "dark" : "light"}
-        data-paid="true"
-        style={{
-          "--primary": accent,
-          "--pageTint": isDark
-            ? `color-mix(in srgb, ${accent} 3%, #111)`
-            : `color-mix(in srgb, ${accent} 5%, #F6F6F8)`,
-          background: "var(--pageTint)",
-        } as React.CSSProperties}
-      >
+     <div
+  className="upgradePreviewStage"
+  data-theme={isDark ? "dark" : "light"}
+  data-paid="true"
+  style={{
+    "--primary": accent,
+    background: isDark
+      ? `color-mix(in srgb, ${accent} 3%, #111)`
+      : `color-mix(in srgb, ${accent} 5%, #F6F6F8)`,
+  } as React.CSSProperties}
+>
         {/* Card 1: header + events */}
         <div className="card upgradePreviewCard">
           <div className="calBrandBand">
