@@ -126,27 +126,29 @@ export default async function CalendarPage({ params }: Props) {
 
       {/* ── Card 1: Header + Events ── */}
       <div className="card">
-        {isPaid && logoPath ? (
-  // Paid: tinted brand band with logo and calendar name
+        {isPaid ? (
+  // Paid: tinted brand band with calendar name (and logo if uploaded)
   <div className="calBrandBand" id="callie-sentinel">
     <div className="calBrandBandInner">
-      <img
-        src={logoPath}
-        alt={cal.name}
-        className="calLogoImg calLogoImgLarge"
-      />
+      {logoPath && (
+        <img
+          src={logoPath}
+          alt={cal.name}
+          className="calLogoImg calLogoImgLarge"
+        />
+      )}
       <h1 className="calPageTitle calPageTitleBand">
         {cal.name || cal.id}
       </h1>
     </div>
   </div>
 ) : (
-          // Free: title then subtitle
-          <>
-            <h1 className="calPageTitle">{cal.name || cal.id}</h1>
-            <p className="calPageSubtitle" id="callie-sentinel">A Callie calendar</p>
-          </>
-        )}
+  // Free: title then subtitle
+  <>
+    <h1 className="calPageTitle">{cal.name || cal.id}</h1>
+    <p className="calPageSubtitle" id="callie-sentinel">A Callie calendar</p>
+  </>
+)}
         <div className="divider" />
 
         {upcoming.length > 0 ? (
