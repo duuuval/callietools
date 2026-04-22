@@ -248,7 +248,7 @@ export function CalendarClient({
         {showOtherApps && (
           <div className="sectionBox" style={{ marginTop: 8 }}>
             <div className="row">
-              
+              <a  
                 className="btn btnSecondary"
                 href={httpsIcs}
                 download
