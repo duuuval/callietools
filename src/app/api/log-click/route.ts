@@ -7,8 +7,10 @@ export const revalidate = 0;
 const VALID_CLIENT_TYPES: ClickType[] = [
   "page_view",
   "apple",
-  "google",
-  "copy_link",
+  "google_copy",
+  "google_open",
+  "other_download",
+  "share",
 ];
 
 export async function POST(req: NextRequest) {
