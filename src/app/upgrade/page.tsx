@@ -52,8 +52,15 @@ export default function UpgradePage() {
         </div>
         <UpgradePreview />
 
+        {/* Pricing — moved above features, headline absorbs "makes it yours" framing */}
+        <div className="upgradePrice">
+          <p className="upgradePriceAmount">$10/month makes it yours</p>
+          <p className="upgradePriceNote">
+            Cancel anytime. Usually live within a day or two.
+          </p>
+        </div>
+
         {/* Feature cards — the specifics behind the preview */}
-        <div className="upgradePaidLabel">$10/mo makes it yours:</div>
         <div className="upgradeGrid upgradeGridThree">
           {features.map((f) => (
             <div className="upgradeCard" key={f.title}>
@@ -64,14 +71,6 @@ export default function UpgradePage() {
               <p>{f.body}</p>
             </div>
           ))}
-        </div>
-
-        {/* Pricing */}
-        <div className="upgradePrice">
-          <p className="upgradePriceAmount">$10/month</p>
-          <p className="upgradePriceNote">
-            Cancel anytime. Usually live within a day or two.
-          </p>
         </div>
 
         {/* Existing-owner path — elevated with primary button, this is the primary conversion path */}
