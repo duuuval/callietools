@@ -2403,3 +2403,92 @@ a:focus, .btn:focus, button:focus{
     padding: 8px 0 44px;
   }
 }
+
+/* ==========================================================
+   Homepage — Upload pitch section
+   New section below hero. Copy + visual (flyer → phones).
+   ========================================================== */
+
+.homeSectionUpload{
+  padding: 32px 0 48px;
+}
+
+.uploadPitch{
+  max-width: 620px;
+  margin: 0 auto 28px;
+  text-align: center;
+}
+
+.uploadPitchTitle{
+  font-family: var(--fontDisplay);
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: -0.4px;
+  margin: 0 0 14px;
+  color: var(--guide); /* coral — matches hero "actually check" highlight */
+}
+
+.uploadPitchBody{
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+.uploadPitchBody:last-child{
+  margin-bottom: 0;
+}
+
+.uploadPitchBody strong{
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* Visual (flyer → phones illustration) */
+.uploadVisual{
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.uploadVisualImg{
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+/* Mobile — upload section */
+@media (max-width: 768px){
+  .homeSectionUpload{
+    padding: 20px 0 32px;
+  }
+
+  .uploadPitchTitle{
+    font-size: 1.3rem;
+  }
+
+  .uploadPitchBody{
+    font-size: 0.95rem;
+  }
+
+  .uploadVisual{
+    max-width: 380px;
+  }
+}
+
+/* ==========================================================
+   Homepage — Final CTA block
+   Reuses .upgradeExisting styling from /upgrade for visual
+   consistency. Small padding override for homepage context.
+   ========================================================== */
+
+.homeSectionFinalCta{
+  padding: 16px 0 64px;
+}
+
+@media (max-width: 768px){
+  .homeSectionFinalCta{
+    padding: 8px 0 44px;
+  }
+}
