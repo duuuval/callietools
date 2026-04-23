@@ -2492,3 +2492,19 @@ a:focus, .btn:focus, button:focus{
     padding: 8px 0 44px;
   }
 }
+
+.uploadTryIt{
+  text-align: center;
+  margin: 20px 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.uploadTryIt a{
+  color: var(--guide); /* coral — brackets the section with the headline */
+  text-decoration: none;
+}
+
+.uploadTryIt a:hover{
+  text-decoration: underline;
+}
