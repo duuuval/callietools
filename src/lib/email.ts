@@ -1,4 +1,3 @@
-// src/lib/email.ts
 // Thin Resend wrapper — transactional email for Callie
 // Sends from noreply@callietools.com
 
@@ -152,8 +151,12 @@ export async function sendMyCalendarsEmail(
         <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
         <p><strong>Your calendars:</strong></p>
         <ul style="padding-left: 0; list-style: none; margin-bottom: 16px;">${calendarLinks}</ul>
-        <p style="font-size: 13px; color: #666; margin-bottom: 32px;">
+        <p style="font-size: 13px; color: #666; margin-bottom: 24px;">
           Each manage link is permanent &mdash; bookmark any of them for quick access.
+        </p>
+        <p style="font-size: 13px; color: #666; text-align: center; margin-bottom: 32px;">
+          Want your logo and colors on your calendar page?<br />
+          <a href="https://callietools.com/upgrade" style="color: #D4775B; font-weight: 600; text-decoration: none;">Make it yours &mdash; $10/month</a>
         </p>
         <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
         <p style="font-size: 12px; color: #999;">
