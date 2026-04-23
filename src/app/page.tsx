@@ -44,8 +44,8 @@ export default function HomePage() {
                 Create your calendar &mdash; free
               </Link>
               <p className="heroConfidence">
-                No account. No credit card. Upgrade only if you want your
-                own logo and colors.
+                No account. No credit card. 
+                <br />Upgrade only if you want your own logo and colors.
               </p>
             </div>
           </div>
