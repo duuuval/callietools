@@ -124,7 +124,8 @@ export default function HomePage() {
           <p className="recognitionLine">
             Families, teams, classes, scout troops, church groups, PTAs, community
             orgs&nbsp;&mdash; if you&apos;re the one everyone asks{" "}
-            <em>&ldquo;when is it again?&rdquo;</em>, this is for you.
+            <em>&ldquo;when is it again?&rdquo;</em>, 
+            <br />this is for you.
           </p>
         </div>
       </section>
