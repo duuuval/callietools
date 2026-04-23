@@ -2292,3 +2292,114 @@ a:focus, .btn:focus, button:focus{
 .upgradeExisting .btnPrimary:hover {
   color: #fff;
 }
+
+/* ==========================================================
+   Homepage — Upload pitch section
+   New section below hero. Copy + styled preview of /create
+   upload zone. Reuses .flyerUpload class names so visual
+   stays in sync with the real upload zone automatically.
+   ========================================================== */
+
+.homeSectionUpload{
+  padding: 32px 0 48px;
+}
+
+.uploadPitch{
+  max-width: 620px;
+  margin: 0 auto 20px;
+  text-align: center;
+}
+
+.uploadPitchTitle{
+  font-family: var(--fontDisplay);
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: -0.4px;
+  margin: 0 0 14px;
+  color: var(--text);
+}
+
+.uploadPitchBody{
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+.uploadPitchBody:last-child{
+  margin-bottom: 0;
+}
+
+/* Wrap the upload preview in a Link — the entire block is
+   clickable and routes to /create. Disable default anchor
+   styles so it looks identical to the real upload zone. */
+.uploadPreviewLink{
+  display: block;
+  max-width: 520px;
+  margin: 0 auto;
+  text-decoration: none;
+  color: inherit;
+}
+
+.uploadPreviewLink:hover{
+  text-decoration: none;
+}
+
+/* Hover state: match the drag-over styling of the real upload
+   zone so the visual language is consistent. */
+.uploadPreviewLink:hover .uploadPreview{
+  border-color: var(--primary);
+  background: var(--primarySoft);
+}
+
+.uploadPreviewLink:hover .uploadPreviewBtn{
+  background: var(--primarySoft);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* The preview itself reuses .flyerUpload, so it inherits the
+   dashed border, background, and padding. Add cursor: pointer
+   since the real version has it via JS and we need it here
+   for the static link version. */
+.uploadPreview{
+  cursor: pointer;
+}
+
+/* Mobile — upload section */
+@media (max-width: 768px){
+  .homeSectionUpload{
+    padding: 20px 0 32px;
+  }
+
+  .uploadPitchTitle{
+    font-size: 1.3rem;
+  }
+
+  .uploadPitchBody{
+    font-size: 0.95rem;
+  }
+}
+
+/* ==========================================================
+   Homepage — Final CTA block
+   Reuses .upgradeExisting styling from /upgrade for visual
+   consistency. Small overrides below to handle homepage
+   context (wider button, stacked layout).
+   ========================================================== */
+
+.homeSectionFinalCta{
+  padding: 16px 0 64px;
+}
+
+/* The .upgradeExisting block already centers its button via
+   margin-top: 16px (set on .upgradeExisting .btn). The heroBtn
+   class adds the larger sizing we want for the homepage final
+   CTA. No additional overrides needed — spacing and color are
+   handled by existing .upgradeExisting rules. */
+
+@media (max-width: 768px){
+  .homeSectionFinalCta{
+    padding: 8px 0 44px;
+  }
+}
