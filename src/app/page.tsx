@@ -59,31 +59,23 @@ export default function HomePage() {
           <div className="uploadPitch">
             <h2 className="uploadPitchTitle">The hard part&apos;s done.</h2>
             <p className="uploadPitchBody">
-              You probably already have what you need: a screenshot of the
-              practice schedule, the Canva file you&apos;re about to post, a
-              photo of next month&apos;s classes.
+              You probably already have what you need&nbsp;&mdash;&nbsp;a
+              screenshot, a Canva file, a photo of the schedule.
             </p>
             <p className="uploadPitchBody">
-              Skip the typing. Upload it. Callie turns your image into a
-              calendar your people can actually use, in under a minute.
+              Skip the typing and <strong>upload it</strong>. Callie turns your
+              image into a calendar your people can actually use, in under a
+              minute.
             </p>
           </div>
 
-          {/* Styled preview of /create upload zone — non-functional, routes to /create */}
-          <Link href="/create" className="uploadPreviewLink" aria-label="Create your calendar — upload an image">
-            <div className="flyerUpload uploadPreview">
-              <div className="flyerUploadInner">
-                <div className="flyerIcon" aria-hidden="true">📄</div>
-                <p className="flyerHeadline">
-                  Upload an image of your events. We&apos;ll read it and build your calendar automatically.
-                </p>
-                <p className="flyerFormats">JPEG, PNG, or WEBP</p>
-                <span className="btn btnSecondary uploadPreviewBtn">
-                  Upload your image
-                </span>
-              </div>
-            </div>
-          </Link>
+          <div className="uploadVisual">
+            <img
+              src="/images/flyer-to-calendar.png"
+              alt="A summer camp flyer transforms into a Callie calendar page and shows up as events on a phone calendar."
+              className="uploadVisualImg"
+            />
+          </div>
         </div>
       </section>
 
