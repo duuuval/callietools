@@ -67,15 +67,7 @@ export default function HomePage() {
               image into a calendar your people can actually use, in under a
               minute.
             </p>
-          </div>
-
-          <div className="uploadVisual">
-            <img
-              src="/images/flyer-to-calendar.png"
-              alt="A summer camp flyer transforms into a Callie calendar page and shows up as events on a phone calendar."
-              className="uploadVisualImg"
-            />
-          </div>
+          </div>         
           <div className="uploadVisual">
             <img
               src="/images/flyer-to-calendar.png"
