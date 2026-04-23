@@ -188,7 +188,8 @@ export default function HomePage() {
           <div className="upgradeExisting">
             <h2>Ready to put your events on their phones?</h2>
             <p>
-              No account. No credit card. Free to create, share, and manage.
+              No account. No credit card. 
+              <br />Free to create, share, and manage.
             </p>
             <Link className="btn btnPrimary heroBtn" href="/create">
               Create your calendar &mdash; free
