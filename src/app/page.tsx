@@ -31,13 +31,13 @@ export default function HomePage() {
               people <span className="heroHighlight">actually check</span>.
             </h1>
             <p className="heroSub">
-              Not the group chat. Not a screenshot. On their existing calendar, where every update shows up on their phone. 
-              <br />No more "when is it again?"
+              Not the group chat. Not a screenshot. On their existing calendar, where every update shows up on their phone.
+              <br />No more &ldquo;when is it again?&rdquo;
             </p>
             <div className="heroDelivers">
-               <span className="heroDeliversLabel">Delivers to</span>
-               <img src="/apple-calendar-icon.png" alt="Apple Calendar" className="heroDeliversIcon" />
-               <img src="/google-calendar-icon.png" alt="Google Calendar" className="heroDeliversIcon" />
+              <span className="heroDeliversLabel">Delivers to</span>
+              <img src="/apple-calendar-icon.png" alt="Apple Calendar" className="heroDeliversIcon" />
+              <img src="/google-calendar-icon.png" alt="Google Calendar" className="heroDeliversIcon" />
             </div>
             <div className="heroCtas">
               <Link className="btn btnPrimary heroBtn" href="/create">
@@ -53,6 +53,40 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Upload section ───────────────────────────────── */}
+      <section className="homeSection homeSectionUpload">
+        <div className="container">
+          <div className="uploadPitch">
+            <h2 className="uploadPitchTitle">The hard part&apos;s done.</h2>
+            <p className="uploadPitchBody">
+              You probably already have what you need: a screenshot of the
+              practice schedule, the Canva file you&apos;re about to post, a
+              photo of next month&apos;s classes.
+            </p>
+            <p className="uploadPitchBody">
+              Skip the typing. Upload it. Callie turns your image into a
+              calendar your people can actually use, in under a minute.
+            </p>
+          </div>
+
+          {/* Styled preview of /create upload zone — non-functional, routes to /create */}
+          <Link href="/create" className="uploadPreviewLink" aria-label="Create your calendar — upload an image">
+            <div className="flyerUpload uploadPreview">
+              <div className="flyerUploadInner">
+                <div className="flyerIcon" aria-hidden="true">📄</div>
+                <p className="flyerHeadline">
+                  Upload an image of your events. We&apos;ll read it and build your calendar automatically.
+                </p>
+                <p className="flyerFormats">JPEG, PNG, or WEBP</p>
+                <span className="btn btnSecondary uploadPreviewBtn">
+                  Upload your image
+                </span>
+              </div>
+            </div>
+          </Link>
+        </div>
+      </section>
+
       {/* ── How It Works ─────────────────────────────────── */}
       <section className="homeSection">
         <div className="container">
@@ -62,20 +96,17 @@ export default function HomePage() {
             <div className="stepsRow">
               <div className="stepCard">
                 <span className="stepNum">1</span>
-                <h3 className="stepTitle">Upload your events</h3>
+                <h3 className="stepTitle">Add your events</h3>
                 <p className="stepDesc">
-                  Upload an image of your events. We'll read it and build your calendar automatically.
-                  <br />
-                  No image? You can add events manually too.
+                  Upload an image or add them manually. Callie handles the rest.
                 </p>
               </div>
 
               <div className="stepCard">
                 <span className="stepNum">2</span>
-                <h3 className="stepTitle">Share your link</h3>
+                <h3 className="stepTitle">Share your calendar</h3>
                 <p className="stepDesc">
-                  You get a calendar page with a clean URL. Send it
-                  to your people.
+                  You get a page and a link to send to your people.
                 </p>
               </div>
 
@@ -83,8 +114,8 @@ export default function HomePage() {
                 <span className="stepNum">3</span>
                 <h3 className="stepTitle">They subscribe</h3>
                 <p className="stepDesc">
-                  One tap and your events are on their phone.
-                  You update, they see it automatically.
+                  Your events are on their phone. You update, they see it
+                  automatically.
                 </p>
               </div>
             </div>
@@ -156,13 +187,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Mid-page CTA ─────────────────────────────────── */}
-      <section className="homeSection homeSectionCta">
-        <div className="container" style={{ textAlign: "center" }}>
-          <p className="midCtaLine">Get your events on their phones.</p>
-          <Link className="btn btnPrimary heroBtn" href="/create">
-            Create your calendar
-          </Link>
+      {/* ── Final CTA block (matches /upgrade existing-owner block styling) ── */}
+      <section className="homeSection homeSectionFinalCta">
+        <div className="container">
+          <div className="upgradeExisting">
+            <h2>Ready to put your events on their phones?</h2>
+            <p>
+              No account. No credit card. Free to create, share, and manage.
+            </p>
+            <Link className="btn btnPrimary heroBtn" href="/create">
+              Create your calendar &mdash; free
+            </Link>
+          </div>
         </div>
       </section>
 
