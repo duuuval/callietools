@@ -128,7 +128,7 @@ async function getSnapshotTrend(calendarId: string | null): Promise<SnapshotRow[
     .slice(0, 10);
 
   let query = sb
-    .from("snapshots")
+    .from("subscriber_snapshots")
     .select("snapshot_date, active_7d, active_30d, calendar_id")
     .gte("snapshot_date", thirtyDaysAgo)
     .order("snapshot_date", { ascending: true });
