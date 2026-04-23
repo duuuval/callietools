@@ -76,6 +76,17 @@ export default function HomePage() {
               className="uploadVisualImg"
             />
           </div>
+          <div className="uploadVisual">
+            <img
+              src="/images/flyer-to-calendar.png"
+              alt="A summer camp flyer transforms into a Callie calendar page and shows up as events on a phone calendar."
+              className="uploadVisualImg"
+            />
+          </div>
+
+          <p className="uploadTryIt">
+            <Link href="/create">Try it &rarr;</Link>
+          </p>
         </div>
       </section>
 
