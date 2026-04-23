@@ -2241,3 +2241,54 @@ a:focus, .btn:focus, button:focus{
 .calBrandBandInner:not(:has(img)) .calPageTitleBand {
   text-align: left;
 }
+
+/* ─── Upgrade page — new element styles ──────────────────
+   Add to globals.css. Covers:
+   - Anchor link below hero subhead
+   - "See how it feels" preview header
+   - Primary button text color fix inside upgradeExisting block
+   - Margin between upgradeExisting copy and button
+   ──────────────────────────────────────────────────────── */
+
+/* Anchor link under hero subhead — soft, unobtrusive */
+.upgradeHeroAnchor {
+  margin-top: 12px;
+  font-size: 0.95rem;
+}
+.upgradeHeroAnchor a {
+  color: var(--primary);
+  text-decoration: none;
+}
+.upgradeHeroAnchor a:hover {
+  text-decoration: underline;
+}
+
+/* Preview section header — centered, matches pricing block feel */
+.upgradePreviewHeader {
+  text-align: center;
+  margin: 32px 0 16px;
+}
+.upgradePreviewHeader h2 {
+  margin: 0 0 6px;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.upgradePreviewHeader p {
+  margin: 0;
+  color: var(--muted, #666);
+  font-size: 0.95rem;
+}
+
+/* Fix button text color + spacing inside existing-owner block.
+   The .btnPrimary in .upgradePrice/.upgradeExisting inherits the
+   blue-on-blue problem because --primary-text isn't set at the
+   section level. Force white here. */
+.upgradeExisting .btn {
+  margin-top: 16px;
+}
+.upgradeExisting .btnPrimary {
+  color: #fff;
+}
+.upgradeExisting .btnPrimary:hover {
+  color: #fff;
+}
