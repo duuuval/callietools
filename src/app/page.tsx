@@ -44,8 +44,7 @@ export default function HomePage() {
                 Create your calendar &mdash; free
               </Link>
               <p className="heroConfidence">
-                Completely free &mdash; create your calendar, share it with
-                your people, update it anytime. Upgrade only if you want your
+                No account. No credit card. Upgrade only if you want your
                 own logo and colors.
               </p>
             </div>
