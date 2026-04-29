@@ -30,7 +30,7 @@ const DISTRICTS: District[] = [
   {
     name: "Chesterfield County Public Schools",
     year: "2025\u20132026",
-    href: "/CCPS25-26",
+    href: "/CCPS",
     groups: [
       {
         label: "Elementary Schools",
