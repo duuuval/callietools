@@ -127,13 +127,12 @@ export default function HomeBaseClient({ token, today, data }: Props) {
   // ─── Action handlers ──────────────────────────────────────
 
   async function handleComplete(row: OutreachRow) {
+    // Pass a placeholder toast; we'll refine it after we have the response.
     const result = await call(
       "complete",
       { planned_action_id: row.action.id },
-      buildCompleteToast(row.action.action_type, result?.followup)
+      "Logged."
     );
-    // Toast was set above with placeholder (result was null at that point);
-    // refine it now that we have the result.
     if (result) {
       setToast(buildCompleteToast(row.action.action_type, result.followup));
     }
