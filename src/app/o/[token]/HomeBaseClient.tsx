@@ -541,7 +541,16 @@ function QuickCaptureBlock({
             type="text"
             value={handle}
             onChange={(e) => setHandle(e.target.value)}
-            placeholder="@handle"
+            onPaste={(e) => {
+              const pasted = e.clipboardData.getData("text");
+              const cleaned = parseHandleInput(pasted);
+              if (cleaned !== pasted) {
+                e.preventDefault();
+                setHandle(cleaned);
+              }
+            }}
+            onBlur={() => setHandle(parseHandleInput(handle))}
+            placeholder="@handle or instagram URL"
             style={styles.input}
             autoFocus
           />
@@ -723,6 +732,15 @@ function EditContactModal({
           type="text"
           value={handle}
           onChange={(e) => setHandle(e.target.value)}
+          onPaste={(e) => {
+            const pasted = e.clipboardData.getData("text");
+            const cleaned = parseHandleInput(pasted);
+            if (cleaned !== pasted) {
+              e.preventDefault();
+              setHandle(cleaned);
+            }
+          }}
+          onBlur={() => setHandle(parseHandleInput(handle))}
           style={styles.input}
         />
       </label>
@@ -901,6 +919,35 @@ function normalizeForDisplay(handle: string): string {
   let h = handle.trim();
   if (h.startsWith("@")) h = h.slice(1);
   return h.toLowerCase();
+}
+
+/**
+ * Extract a clean handle from various input shapes:
+ *   "https://www.instagram.com/scrap_rva?utm_source=..." → "scrap_rva"
+ *   "instagram.com/scrap_rva/reels/"                    → "scrap_rva"
+ *   "@scrap_rva"                                        → "scrap_rva"
+ *   "scrap_rva"                                         → "scrap_rva"
+ */
+function parseHandleInput(input: string): string {
+  let s = input.trim();
+  if (!s) return "";
+
+  // If it looks like a URL or domain, pull the first path segment
+  if (/^(https?:\/\/|www\.|instagram\.com|tiktok\.com|x\.com|twitter\.com)/i.test(s)) {
+    // Ensure there's a protocol so URL() can parse it
+    const withProto = /^https?:\/\//i.test(s) ? s : `https://${s}`;
+    try {
+      const u = new URL(withProto);
+      const firstSegment = u.pathname.split("/").filter(Boolean)[0] || "";
+      s = firstSegment;
+    } catch {
+      // Fall through and treat as plain string
+    }
+  }
+
+  // Strip leading @ and trailing slashes/whitespace, lowercase
+  s = s.replace(/^@+/, "").replace(/\/+$/, "").trim().toLowerCase();
+  return s;
 }
 
 // ─── Styles ─────────────────────────────────────────────────
