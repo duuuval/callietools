@@ -782,19 +782,14 @@ function RowMenu({
   onEditContact: () => void;
   onOpenContact: () => void;
 }) {
-  const isOverdue =
-    row.action.originally_due && row.action.originally_due < today;
-  const pushTarget = isOverdue ? "today" : "tomorrow";
-  const pushLabel = `Push to ${pushTarget}`;
-
   return (
     <Modal onClose={onClose}>
       <div style={styles.menuHeader}>@{row.contact.handle}</div>
       <button style={styles.menuItem} onClick={onLogWithDetails}>
         Log with details
       </button>
-      <button style={styles.menuItem} onClick={() => onPush(pushTarget)}>
-        {pushLabel}
+      <button style={styles.menuItem} onClick={() => onPush("tomorrow")}>
+        Push to tomorrow
       </button>
       <button style={styles.menuItem} onClick={onReschedule}>
         Reschedule
