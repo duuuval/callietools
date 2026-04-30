@@ -25,6 +25,7 @@ export type ActionType =
   | "link_sent"
   | "shared"
   | "comment"
+  | "followed"
   | "follow_up"
   | "other";
 
@@ -107,6 +108,7 @@ const SMART_FOLLOWUP: Record<ActionType, number | null> = {
   replied: null,
   shared: 14,
   comment: null,
+  followed: null,
   follow_up: null,
   other: null,
 };
@@ -434,6 +436,9 @@ export interface CreateDoneActionInput {
   notes?: string | null;
   /** If set and > 0, also creates a planned follow_up action that many days out. */
   followup_days?: number | null;
+  /** ISO timestamp. If set, overrides the default of "now" for completed_at.
+   *  Used when logging a past action (e.g. "Yesterday"). */
+  completed_at_override?: string | null;
 }
 
 /** Standalone done action (no planned action being completed). For Mode A from
@@ -441,6 +446,7 @@ export interface CreateDoneActionInput {
 export async function createDoneAction(
   input: CreateDoneActionInput
 ): Promise<{ done: OutreachAction; followup: OutreachAction | null }> {
+  const completedAt = input.completed_at_override ?? new Date().toISOString();
   const { data: done, error } = await db()
     .from("outreach_actions")
     .insert({
@@ -448,7 +454,7 @@ export async function createDoneAction(
       kind: "done",
       action_type: input.action_type,
       notes: input.notes ?? null,
-      completed_at: new Date().toISOString(),
+      completed_at: completedAt,
     })
     .select()
     .single();
