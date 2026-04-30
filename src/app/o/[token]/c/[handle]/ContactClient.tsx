@@ -217,9 +217,14 @@ export default function ContactClient({ token, today, data }: Props) {
   return (
     <div style={styles.page}>
       <header style={styles.header}>
-        <a href={`/o/${token}`} style={styles.backLink}>
-          ← Home
-        </a>
+        <div style={styles.headerNav}>
+          <a href={`/o/${token}`} style={styles.backLink}>
+            ← Home
+          </a>
+          <a href={`/o/${token}/contacts`} style={styles.backLink}>
+            All contacts →
+          </a>
+        </div>
         <div style={styles.titleRow}>
           <a
             href={`https://instagram.com/${data.contact.handle}`}
@@ -523,18 +528,13 @@ function ActionMenu({
   onMarkDead: () => void;
   onEditContact: () => void;
 }) {
-  const isOverdue =
-    action.originally_due != null && action.originally_due < today;
-  const pushTarget: "today" | "tomorrow" = isOverdue ? "today" : "tomorrow";
-  const pushLabel = `Push to ${pushTarget}`;
-
   return (
     <Modal onClose={onClose}>
       <div style={styles.menuHeader}>
         {PLANNED_LABEL[action.action_type]}
       </div>
-      <button style={styles.menuItem} onClick={() => onPush(pushTarget)}>
-        {pushLabel}
+      <button style={styles.menuItem} onClick={() => onPush("tomorrow")}>
+        Push to tomorrow
       </button>
       <button style={styles.menuItem} onClick={onReschedule}>
         Reschedule
@@ -829,6 +829,11 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     textDecoration: "none",
     marginBottom: "0.5rem",
+  },
+  headerNav: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   titleRow: {
     display: "flex",
