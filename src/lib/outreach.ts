@@ -531,14 +531,45 @@ export async function logWithDetails(input: LogWithDetailsInput): Promise<{
   return { done, followup };
 }
 
-/** Push: update due_date only. Preserves originally_due (overdue patina sticks). */
+/**
+ * Push: defer due_date by one day (or to a specified date).
+ *
+ * If the action was already overdue when pushed, originally_due is preserved
+ * — the late tag sticks. Pushing doesn't erase that you missed it.
+ *
+ * If the action was on time when pushed, originally_due moves with due_date
+ * — you're rescheduling a fresh commitment, not falling behind.
+ */
 export async function pushAction(
   actionId: string,
   newDueDate: string
 ): Promise<OutreachAction> {
+  const today = todayLocal();
+
+  // Read current state to decide whether originally_due should also update.
+  const { data: existing, error: readErr } = await db()
+    .from("outreach_actions")
+    .select("originally_due")
+    .eq("id", actionId)
+    .eq("kind", "planned")
+    .is("completed_at", null)
+    .maybeSingle();
+  if (readErr) throw readErr;
+  if (!existing) throw new Error(`Planned action ${actionId} not found`);
+
+  const wasOverdue =
+    existing.originally_due != null && existing.originally_due < today;
+
+  const update: Record<string, any> = { due_date: newDueDate };
+  if (!wasOverdue) {
+    // On-time push = fresh commitment. Move originally_due along too.
+    update.originally_due = newDueDate;
+  }
+  // If wasOverdue, leave originally_due alone — patina persists.
+
   const { data, error } = await db()
     .from("outreach_actions")
-    .update({ due_date: newDueDate })
+    .update(update)
     .eq("id", actionId)
     .eq("kind", "planned")
     .is("completed_at", null)
@@ -547,7 +578,6 @@ export async function pushAction(
   if (error) throw error;
   return data;
 }
-
 /** Reschedule: update both due_date and originally_due. Clears overdue status. */
 export async function rescheduleAction(
   actionId: string,
