@@ -134,7 +134,15 @@ function db() {
 
 // ─── Read queries ───────────────────────────────────────────
 
-/** Items where originally_due < today and still planned. */
+/**
+ * Overdue: items currently due today or earlier (so a snooze removes them
+ * from this section) AND originally committed for a past date (so the
+ * patina sticks across snoozes).
+ *
+ * A snoozed-overdue item with due_date in the future appears in Upcoming
+ * until its due_date returns to today, at which point it surfaces here
+ * again with an updated days-overdue count.
+ */
 export async function getOverdue(): Promise<OutreachRow[]> {
   const today = todayLocal();
   const { data, error } = await db()
@@ -142,6 +150,7 @@ export async function getOverdue(): Promise<OutreachRow[]> {
     .select("*, contact:outreach_contacts(*)")
     .eq("kind", "planned")
     .is("completed_at", null)
+    .lte("due_date", today)
     .lt("originally_due", today)
     .order("originally_due", { ascending: true });
   if (error) throw error;
