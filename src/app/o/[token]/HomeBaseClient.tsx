@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import {
   type ActionType,
   type HomeBaseData,
@@ -52,7 +52,6 @@ const DONE_LABEL: Record<ActionType, string> = {
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-// Quick capture intent options (subset of full action types)
 const CAPTURE_INTENTS: { value: ActionType; label: string }[] = [
   { value: "dm_sent", label: "DM" },
   { value: "calendar_built", label: "Build calendar" },
@@ -60,7 +59,6 @@ const CAPTURE_INTENTS: { value: ActionType; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
-// Quick capture timing options
 const TIMING_OPTIONS: { value: number; label: string }[] = [
   { value: 0, label: "Today" },
   { value: 1, label: "Tomorrow" },
@@ -68,12 +66,14 @@ const TIMING_OPTIONS: { value: number; label: string }[] = [
   { value: 7, label: "In 7 days" },
 ];
 
+const UPCOMING_COLLAPSED_LIMIT = 5;
+
 // ─── Types ──────────────────────────────────────────────────
 
 interface Props {
   token: string;
-  today: string; // YYYY-MM-DD
-  data: HomeBaseData;
+  today: string;
+  data: HomeBaseData & { upcoming?: OutreachRow[] };
 }
 
 // ─── Component ──────────────────────────────────────────────
@@ -88,15 +88,18 @@ export default function HomeBaseClient({ token, today, data }: Props) {
   const [reschedulingAction, setReschedulingAction] =
     useState<OutreachAction | null>(null);
   const [showQuickCapture, setShowQuickCapture] = useState(false);
+  const [upcomingExpanded, setUpcomingExpanded] = useState(false);
+  const [upcomingShowAll, setUpcomingShowAll] = useState(false);
 
-  // Toast auto-dismiss
+  // The home base data may or may not include `upcoming`; default to empty array
+  const upcoming = data.upcoming || [];
+
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 5000);
     return () => clearTimeout(t);
   }, [toast]);
 
-  // Generic API caller with token, refresh, and error handling
   async function call(
     path: string,
     body: Record<string, any>,
@@ -127,7 +130,6 @@ export default function HomeBaseClient({ token, today, data }: Props) {
   // ─── Action handlers ──────────────────────────────────────
 
   async function handleComplete(row: OutreachRow) {
-    // Pass a placeholder toast; we'll refine it after we have the response.
     const result = await call(
       "complete",
       { planned_action_id: row.action.id },
@@ -161,17 +163,23 @@ export default function HomeBaseClient({ token, today, data }: Props) {
 
   async function handleDeleteAction(row: OutreachRow) {
     setMenuRow(null);
-    if (!confirm(`Delete the planned "${PLANNED_LABEL[row.action.action_type]}" for @${row.contact.handle}?`)) return;
-    await call(
-      "delete-action",
-      { action_id: row.action.id },
-      "Deleted."
-    );
+    if (
+      !confirm(
+        `Delete the planned "${PLANNED_LABEL[row.action.action_type]}" for @${row.contact.handle}?`
+      )
+    )
+      return;
+    await call("delete-action", { action_id: row.action.id }, "Deleted.");
   }
 
   async function handleMarkDead(row: OutreachRow) {
     setMenuRow(null);
-    if (!confirm(`Mark @${row.contact.handle} as dead? Their items will stop appearing on this page.`)) return;
+    if (
+      !confirm(
+        `Mark @${row.contact.handle} as dead? Their items will stop appearing on this page.`
+      )
+    )
+      return;
     await call(
       "mark-dead",
       { contact_id: row.contact.id },
@@ -216,13 +224,43 @@ export default function HomeBaseClient({ token, today, data }: Props) {
     );
   }
 
-  // ─── Render ───────────────────────────────────────────────
+  // ─── Empty state copy ─────────────────────────────────────
+
+  const emptyTodayCopy = useMemo(() => {
+    if (data.overdue.length > 0) return null; // overdue section is doing the work
+    if (upcoming.length > 0) return "Nothing today. Upcoming below.";
+    return "Nothing scheduled. Capture someone below or come back tomorrow.";
+  }, [data.overdue.length, upcoming.length]);
+
+  // ─── Upcoming grouped by day ──────────────────────────────
+
+  const upcomingGrouped = useMemo(
+    () => groupByDueDate(upcoming),
+    [upcoming]
+  );
+
+  const upcomingVisible = useMemo(() => {
+    if (upcomingShowAll) return upcoming;
+    return upcoming.slice(0, UPCOMING_COLLAPSED_LIMIT);
+  }, [upcoming, upcomingShowAll]);
+
+  const upcomingVisibleGrouped = useMemo(
+    () => groupByDueDate(upcomingVisible),
+    [upcomingVisible]
+  );
 
   return (
     <div style={styles.page}>
       <header style={styles.header}>
-        <div style={styles.title}>Outreach</div>
-        <div style={styles.subtitle}>{formatToday(today)}</div>
+        <div style={styles.headerTopRow}>
+          <div>
+            <div style={styles.title}>Outreach</div>
+            <div style={styles.subtitle}>{formatToday(today)}</div>
+          </div>
+          <a href={`/o/${token}/contacts`} style={styles.contactsLink}>
+            All contacts →
+          </a>
+        </div>
       </header>
 
       {data.overdue.length > 0 && (
@@ -235,6 +273,7 @@ export default function HomeBaseClient({ token, today, data }: Props) {
               key={row.action.id}
               row={row}
               today={today}
+              token={token}
               showOverduePatina
               onComplete={() => handleComplete(row)}
               onMenuOpen={() => setMenuRow(row)}
@@ -251,16 +290,15 @@ export default function HomeBaseClient({ token, today, data }: Props) {
             : "Today"
         }
       >
-        {data.todayActive.length === 0 && data.overdue.length === 0 && (
-          <div style={styles.emptyState}>
-            Nothing scheduled. Capture someone below or come back tomorrow.
-          </div>
+        {data.todayActive.length === 0 && emptyTodayCopy && (
+          <div style={styles.emptyState}>{emptyTodayCopy}</div>
         )}
         {data.todayActive.map((row) => (
           <Row
             key={row.action.id}
             row={row}
             today={today}
+            token={token}
             onComplete={() => handleComplete(row)}
             onMenuOpen={() => setMenuRow(row)}
             disabled={isPending}
@@ -271,7 +309,7 @@ export default function HomeBaseClient({ token, today, data }: Props) {
       {data.todayDone.length > 0 && (
         <Section label={`Done today (${data.todayDone.length})`} dim>
           {data.todayDone.map((row) => (
-            <DoneRow key={row.action.id} row={row} />
+            <DoneRow key={row.action.id} row={row} token={token} />
           ))}
         </Section>
       )}
@@ -284,9 +322,70 @@ export default function HomeBaseClient({ token, today, data }: Props) {
         disabled={isPending}
       />
 
+      {upcoming.length > 0 && (
+        <section style={styles.section}>
+          {!upcomingExpanded ? (
+            <button
+              onClick={() => setUpcomingExpanded(true)}
+              style={styles.upcomingToggle}
+            >
+              → Upcoming ({upcoming.length})
+            </button>
+          ) : (
+            <>
+              <div
+                style={{
+                  ...styles.sectionLabel,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                }}
+              >
+                <span>Upcoming ({upcoming.length})</span>
+                <button
+                  onClick={() => {
+                    setUpcomingExpanded(false);
+                    setUpcomingShowAll(false);
+                  }}
+                  style={styles.upcomingCollapseBtn}
+                >
+                  Hide
+                </button>
+              </div>
+              <div style={styles.sectionBody}>
+                {upcomingVisibleGrouped.map(([date, rows]) => (
+                  <div key={date} style={styles.upcomingDayGroup}>
+                    <div style={styles.upcomingDayLabel}>
+                      {formatUpcomingDay(date, today)}
+                    </div>
+                    {rows.map((row) => (
+                      <UpcomingRow
+                        key={row.action.id}
+                        row={row}
+                        token={token}
+                      />
+                    ))}
+                  </div>
+                ))}
+                {upcoming.length > UPCOMING_COLLAPSED_LIMIT && (
+                  <button
+                    onClick={() => setUpcomingShowAll(!upcomingShowAll)}
+                    style={styles.upcomingShowAllBtn}
+                  >
+                    {upcomingShowAll
+                      ? "Show less"
+                      : `Show all ${upcoming.length}`}
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
       {data.recent.length > 0 && (
         <Section label="Recent" dim>
-          <RecentList rows={data.recent} />
+          <RecentList rows={data.recent} token={token} />
         </Section>
       )}
 
@@ -297,8 +396,6 @@ export default function HomeBaseClient({ token, today, data }: Props) {
           today={today}
           onClose={() => setMenuRow(null)}
           onLogWithDetails={() => {
-            // Future: open a log-with-details form. For v1, redirect to contact page
-            // where the full log form lives.
             window.location.href = `/o/${token}/c/${menuRow.contact.handle}`;
           }}
           onPush={(target) => handlePush(menuRow, target)}
@@ -376,6 +473,7 @@ function Section({
 function Row({
   row,
   today,
+  token,
   showOverduePatina,
   onComplete,
   onMenuOpen,
@@ -383,6 +481,7 @@ function Row({
 }: {
   row: OutreachRow;
   today: string;
+  token: string;
   showOverduePatina?: boolean;
   onComplete: () => void;
   onMenuOpen: () => void;
@@ -395,13 +494,17 @@ function Row({
 
   return (
     <div style={styles.row}>
-      <div style={styles.rowMain}>
+      <a
+        href={`/o/${token}/c/${row.contact.handle}`}
+        style={styles.rowMain}
+      >
         <div style={styles.rowText}>
           <a
             href={`https://instagram.com/${row.contact.handle}`}
             target="_blank"
             rel="noopener noreferrer"
             style={styles.handleLink}
+            onClick={(e) => e.stopPropagation()}
           >
             @{row.contact.handle}
           </a>
@@ -411,14 +514,12 @@ function Row({
           </span>
         </div>
         {overdueDays > 0 && (
-          <div style={styles.overduePatina}>
-            Overdue {overdueDays}d
-          </div>
+          <div style={styles.overduePatina}>Overdue {overdueDays}d</div>
         )}
         {row.action.notes && (
           <div style={styles.rowNotes}>{row.action.notes}</div>
         )}
-      </div>
+      </a>
       <div style={styles.rowControls}>
         <button
           onClick={onComplete}
@@ -443,49 +544,69 @@ function Row({
 
 // ─── Done row ───────────────────────────────────────────────
 
-function DoneRow({ row }: { row: OutreachRow }) {
+function DoneRow({ row, token }: { row: OutreachRow; token: string }) {
   return (
-    <div style={styles.doneRow}>
+    <a
+      href={`/o/${token}/c/${row.contact.handle}`}
+      style={styles.doneRow}
+    >
       <span style={styles.doneCheck}>✓</span>{" "}
       <a
         href={`https://instagram.com/${row.contact.handle}`}
         target="_blank"
         rel="noopener noreferrer"
         style={{ ...styles.handleLink, color: COLOR.muted }}
+        onClick={(e) => e.stopPropagation()}
       >
         @{row.contact.handle}
       </a>
       <span style={{ color: COLOR.muted }}>
-        {" "}— {DONE_LABEL[row.action.action_type]}
+        {" "}
+        — {DONE_LABEL[row.action.action_type]}
       </span>
-    </div>
+    </a>
   );
 }
 
 // ─── Recent list ────────────────────────────────────────────
 
-function RecentList({ rows }: { rows: OutreachRow[] }) {
+function RecentList({ rows, token }: { rows: OutreachRow[]; token: string }) {
   return (
     <ul style={styles.recentList}>
       {rows.map((row) => (
         <li key={row.action.id} style={styles.recentItem}>
-          <span style={{ color: COLOR.muted }}>
-            {row.action.completed_at
-              ? DAY_NAMES[new Date(row.action.completed_at).getDay()]
-              : ""}
-          </span>{" "}
-          — {DONE_LABEL[row.action.action_type]} to{" "}
           <a
-            href={`https://instagram.com/${row.contact.handle}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={styles.handleLink}
+            href={`/o/${token}/c/${row.contact.handle}`}
+            style={styles.recentLink}
           >
-            @{row.contact.handle}
+            <span style={{ color: COLOR.muted }}>
+              {row.action.completed_at
+                ? DAY_NAMES[new Date(row.action.completed_at).getDay()]
+                : ""}
+            </span>{" "}
+            — {DONE_LABEL[row.action.action_type]} to{" "}
+            <span style={styles.recentHandle}>@{row.contact.handle}</span>
           </a>
         </li>
       ))}
     </ul>
+  );
+}
+
+// ─── Upcoming row ───────────────────────────────────────────
+
+function UpcomingRow({ row, token }: { row: OutreachRow; token: string }) {
+  return (
+    <a
+      href={`/o/${token}/c/${row.contact.handle}`}
+      style={styles.upcomingRow}
+    >
+      <span style={styles.upcomingHandle}>@{row.contact.handle}</span>
+      <span style={styles.rowSep}> — </span>
+      <span style={styles.rowAction}>
+        {PLANNED_LABEL[row.action.action_type]}
+      </span>
+    </a>
   );
 }
 
@@ -566,9 +687,7 @@ function QuickCaptureBlock({
                 onClick={() => setActionType(opt.value)}
                 style={{
                   ...styles.toggleBtn,
-                  ...(actionType === opt.value
-                    ? styles.toggleBtnActive
-                    : {}),
+                  ...(actionType === opt.value ? styles.toggleBtnActive : {}),
                 }}
               >
                 {opt.label}
@@ -597,9 +716,7 @@ function QuickCaptureBlock({
                 onClick={() => setDaysUntil(opt.value)}
                 style={{
                   ...styles.toggleBtn,
-                  ...(daysUntil === opt.value
-                    ? styles.toggleBtnActive
-                    : {}),
+                  ...(daysUntil === opt.value ? styles.toggleBtnActive : {}),
                 }}
               >
                 {opt.label}
@@ -811,7 +928,13 @@ function RescheduleModal({
   return (
     <Modal onClose={onClose}>
       <div style={styles.menuHeader}>Reschedule</div>
-      <p style={{ color: COLOR.muted, fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+      <p
+        style={{
+          color: COLOR.muted,
+          fontSize: "0.85rem",
+          margin: "0 0 0.75rem",
+        }}
+      >
         This clears the overdue patina and sets a fresh commitment.
       </p>
       <input
@@ -833,7 +956,7 @@ function RescheduleModal({
   );
 }
 
-// ─── Generic modal wrapper ──────────────────────────────────
+// ─── Modal wrapper ──────────────────────────────────────────
 
 function Modal({
   onClose,
@@ -868,8 +991,28 @@ function Toast({
 
 // ─── Helpers ────────────────────────────────────────────────
 
+function parseHandleInput(input: string): string {
+  let s = input.trim();
+  if (!s) return "";
+  if (
+    /^(https?:\/\/|www\.|instagram\.com|tiktok\.com|x\.com|twitter\.com)/i.test(
+      s
+    )
+  ) {
+    const withProto = /^https?:\/\//i.test(s) ? s : `https://${s}`;
+    try {
+      const u = new URL(withProto);
+      const firstSegment = u.pathname.split("/").filter(Boolean)[0] || "";
+      s = firstSegment;
+    } catch {
+      // fall through
+    }
+  }
+  s = s.replace(/^@+/, "").replace(/\/+$/, "").trim().toLowerCase();
+  return s;
+}
+
 function formatToday(today: string): string {
-  // YYYY-MM-DD → "Tuesday, April 29"
   const d = new Date(today + "T00:00:00");
   const days = [
     "Sunday",
@@ -898,8 +1041,35 @@ function formatToday(today: string): string {
 }
 
 function formatDateLong(date: string): string {
-  // YYYY-MM-DD → "Tuesday, May 6"
   return formatToday(date);
+}
+
+function formatUpcomingDay(date: string, today: string): string {
+  // "Tomorrow" / "Wed, Apr 30" / "Mon, May 5"
+  const todayDate = new Date(today + "T00:00:00");
+  const dueDate = new Date(date + "T00:00:00");
+  const diff = Math.round(
+    (dueDate.getTime() - todayDate.getTime()) / (24 * 3600 * 1000)
+  );
+  if (diff === 1) return "Tomorrow";
+  const dayShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
+    dueDate.getDay()
+  ];
+  const monthShort = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ][dueDate.getMonth()];
+  return `${dayShort}, ${monthShort} ${dueDate.getDate()}`;
 }
 
 function buildCompleteToast(
@@ -921,33 +1091,17 @@ function normalizeForDisplay(handle: string): string {
   return h.toLowerCase();
 }
 
-/**
- * Extract a clean handle from various input shapes:
- *   "https://www.instagram.com/scrap_rva?utm_source=..." → "scrap_rva"
- *   "instagram.com/scrap_rva/reels/"                    → "scrap_rva"
- *   "@scrap_rva"                                        → "scrap_rva"
- *   "scrap_rva"                                         → "scrap_rva"
- */
-function parseHandleInput(input: string): string {
-  let s = input.trim();
-  if (!s) return "";
-
-  // If it looks like a URL or domain, pull the first path segment
-  if (/^(https?:\/\/|www\.|instagram\.com|tiktok\.com|x\.com|twitter\.com)/i.test(s)) {
-    // Ensure there's a protocol so URL() can parse it
-    const withProto = /^https?:\/\//i.test(s) ? s : `https://${s}`;
-    try {
-      const u = new URL(withProto);
-      const firstSegment = u.pathname.split("/").filter(Boolean)[0] || "";
-      s = firstSegment;
-    } catch {
-      // Fall through and treat as plain string
-    }
+function groupByDueDate(rows: OutreachRow[]): [string, OutreachRow[]][] {
+  const map = new Map<string, OutreachRow[]>();
+  for (const r of rows) {
+    const date = r.action.due_date || "";
+    if (!date) continue;
+    const arr = map.get(date) || [];
+    arr.push(r);
+    map.set(date, arr);
   }
-
-  // Strip leading @ and trailing slashes/whitespace, lowercase
-  s = s.replace(/^@+/, "").replace(/\/+$/, "").trim().toLowerCase();
-  return s;
+  // Sort by date ascending
+  return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 }
 
 // ─── Styles ─────────────────────────────────────────────────
@@ -966,6 +1120,12 @@ const styles: Record<string, React.CSSProperties> = {
   header: {
     padding: "0.5rem 0 1rem",
   },
+  headerTopRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: "1rem",
+  },
   title: {
     fontSize: "1.5rem",
     fontWeight: 700,
@@ -975,6 +1135,13 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "0.85rem",
     color: COLOR.muted,
     marginTop: "0.25rem",
+  },
+  contactsLink: {
+    color: COLOR.accent,
+    fontSize: "0.85rem",
+    fontWeight: 600,
+    textDecoration: "none",
+    paddingTop: "0.4rem",
   },
   section: {
     marginBottom: "1.5rem",
@@ -1015,6 +1182,9 @@ const styles: Record<string, React.CSSProperties> = {
   rowMain: {
     flex: 1,
     minWidth: 0,
+    color: COLOR.text,
+    textDecoration: "none",
+    cursor: "pointer",
   },
   rowText: {
     fontSize: "0.95rem",
@@ -1083,6 +1253,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "0.9rem",
     textDecoration: "line-through",
     textDecorationColor: COLOR.muted,
+    color: COLOR.text,
+    display: "block",
   },
   doneCheck: {
     color: COLOR.success,
@@ -1100,6 +1272,80 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "0.85rem",
     padding: "0.35rem 0",
     borderBottom: `1px solid ${COLOR.border}`,
+  },
+  recentLink: {
+    color: COLOR.text,
+    textDecoration: "none",
+    display: "block",
+  },
+  recentHandle: {
+    color: COLOR.accent,
+    fontWeight: 600,
+  },
+  upcomingToggle: {
+    width: "100%",
+    background: COLOR.card,
+    border: `1px solid ${COLOR.border}`,
+    borderRadius: "12px",
+    padding: "0.85rem 1rem",
+    color: COLOR.muted,
+    fontSize: "0.85rem",
+    fontWeight: 600,
+    cursor: "pointer",
+    textAlign: "left",
+    fontFamily: "inherit",
+  },
+  upcomingCollapseBtn: {
+    border: "none",
+    background: "transparent",
+    color: COLOR.muted,
+    fontSize: "0.7rem",
+    fontWeight: 700,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    cursor: "pointer",
+    fontFamily: "inherit",
+    padding: 0,
+  },
+  upcomingDayGroup: {
+    background: COLOR.card,
+    border: `1px solid ${COLOR.border}`,
+    borderRadius: "12px",
+    padding: "0.75rem 1rem",
+    boxShadow: COLOR.shadow,
+  },
+  upcomingDayLabel: {
+    fontSize: "0.7rem",
+    fontWeight: 700,
+    color: COLOR.muted,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    marginBottom: "0.5rem",
+  },
+  upcomingRow: {
+    display: "block",
+    padding: "0.4rem 0",
+    fontSize: "0.9rem",
+    color: COLOR.text,
+    textDecoration: "none",
+    borderTop: `1px solid ${COLOR.border}`,
+  },
+  upcomingHandle: {
+    color: COLOR.accent,
+    fontWeight: 600,
+  },
+  upcomingShowAllBtn: {
+    width: "100%",
+    background: "transparent",
+    border: `1px solid ${COLOR.border}`,
+    borderRadius: "10px",
+    padding: "0.65rem",
+    color: COLOR.accent,
+    fontSize: "0.85rem",
+    fontWeight: 600,
+    cursor: "pointer",
+    fontFamily: "inherit",
+    marginTop: "0.5rem",
   },
   captureCollapsed: {
     width: "100%",
