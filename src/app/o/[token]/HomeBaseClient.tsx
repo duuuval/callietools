@@ -35,6 +35,7 @@ const PLANNED_LABEL: Record<ActionType, string> = {
   replied: "Reply",
   shared: "Share",
   comment: "Comment",
+  followed: "Follow",
   follow_up: "Follow up",
   other: "Reach out",
 };
@@ -46,6 +47,7 @@ const DONE_LABEL: Record<ActionType, string> = {
   replied: "Replied",
   shared: "Shared",
   comment: "Commented",
+  followed: "Followed",
   follow_up: "Followed up",
   other: "Reached out",
 };
@@ -57,6 +59,30 @@ const CAPTURE_INTENTS: { value: ActionType; label: string }[] = [
   { value: "calendar_built", label: "Build calendar" },
   { value: "comment", label: "Comment" },
   { value: "other", label: "Other" },
+];
+
+const LOG_INTENTS: { value: ActionType; label: string }[] = [
+  { value: "followed", label: "Followed" },
+  { value: "comment", label: "Commented" },
+  { value: "dm_sent", label: "DM sent" },
+  { value: "replied", label: "Replied" },
+  { value: "calendar_built", label: "Built calendar" },
+  { value: "link_sent", label: "Sent link" },
+  { value: "shared", label: "They shared" },
+  { value: "follow_up", label: "Followed up" },
+  { value: "other", label: "Other" },
+];
+
+const WHEN_HAPPENED_OPTIONS: { value: number; label: string }[] = [
+  { value: 0, label: "Today" },
+  { value: -1, label: "Yesterday" },
+];
+
+const LOG_FOLLOWUP_OPTIONS: { value: number | null; label: string }[] = [
+  { value: null, label: "None" },
+  { value: 3, label: "In 3 days" },
+  { value: 7, label: "In 7 days" },
+  { value: 14, label: "In 14 days" },
 ];
 
 const TIMING_OPTIONS: { value: number; label: string }[] = [
@@ -224,6 +250,39 @@ export default function HomeBaseClient({ token, today, data }: Props) {
     );
   }
 
+  async function handleQuickLog(payload: {
+    handle: string;
+    action_type: ActionType;
+    notes: string | null;
+    when_offset_days: number; // 0 = today, -1 = yesterday
+    followup_days: number | null;
+  }) {
+    setShowQuickCapture(false);
+    // Compute completed_at override if Yesterday
+    let completed_at_override: string | null = null;
+    if (payload.when_offset_days < 0) {
+      const d = new Date();
+      d.setDate(d.getDate() + payload.when_offset_days);
+      completed_at_override = d.toISOString();
+    }
+    const whenLabel = payload.when_offset_days === 0 ? "today" : "yesterday";
+    const followupLabel =
+      payload.followup_days != null && payload.followup_days > 0
+        ? ` Follow-up in ${payload.followup_days} days.`
+        : "";
+    await call(
+      "log",
+      {
+        handle: payload.handle,
+        action_type: payload.action_type,
+        notes: payload.notes,
+        followup_days: payload.followup_days,
+        completed_at_override,
+      },
+      `Logged ${whenLabel} for @${normalizeForDisplay(payload.handle)}.${followupLabel}`
+    );
+  }
+
   // ─── Empty state copy ─────────────────────────────────────
 
   const emptyTodayCopy = useMemo(() => {
@@ -318,7 +377,8 @@ export default function HomeBaseClient({ token, today, data }: Props) {
         expanded={showQuickCapture}
         onExpand={() => setShowQuickCapture(true)}
         onCollapse={() => setShowQuickCapture(false)}
-        onSubmit={handleQuickCapture}
+        onSubmitSchedule={handleQuickCapture}
+        onSubmitLog={handleQuickLog}
         disabled={isPending}
       />
 
@@ -616,30 +676,49 @@ function QuickCaptureBlock({
   expanded,
   onExpand,
   onCollapse,
-  onSubmit,
+  onSubmitSchedule,
+  onSubmitLog,
   disabled,
 }: {
   expanded: boolean;
   onExpand: () => void;
   onCollapse: () => void;
-  onSubmit: (p: {
+  onSubmitSchedule: (p: {
     handle: string;
     action_type: ActionType;
     notes: string | null;
     days_until: number;
   }) => void;
+  onSubmitLog: (p: {
+    handle: string;
+    action_type: ActionType;
+    notes: string | null;
+    when_offset_days: number;
+    followup_days: number | null;
+  }) => void;
   disabled?: boolean;
 }) {
+  const [mode, setMode] = useState<"schedule" | "log">("schedule");
   const [handle, setHandle] = useState("");
-  const [actionType, setActionType] = useState<ActionType>("dm_sent");
-  const [notes, setNotes] = useState("");
+  // Schedule mode state
+  const [scheduleAction, setScheduleAction] = useState<ActionType>("dm_sent");
   const [daysUntil, setDaysUntil] = useState(1);
+  // Log mode state
+  const [logAction, setLogAction] = useState<ActionType>("followed");
+  const [whenOffset, setWhenOffset] = useState(0); // 0 = today, -1 = yesterday
+  const [followup, setFollowup] = useState<number | null>(null);
+  // Shared
+  const [notes, setNotes] = useState("");
 
   function reset() {
+    setMode("schedule");
     setHandle("");
-    setActionType("dm_sent");
-    setNotes("");
+    setScheduleAction("dm_sent");
     setDaysUntil(1);
+    setLogAction("followed");
+    setWhenOffset(0);
+    setFollowup(null);
+    setNotes("");
   }
 
   if (!expanded) {
@@ -656,6 +735,30 @@ function QuickCaptureBlock({
     <section style={styles.section}>
       <div style={styles.sectionLabel}>Quick capture</div>
       <div style={styles.captureCard}>
+        {/* Mode toggle — segmented control */}
+        <div style={styles.modeToggle}>
+          <button
+            type="button"
+            onClick={() => setMode("schedule")}
+            style={{
+              ...styles.modeToggleBtn,
+              ...(mode === "schedule" ? styles.modeToggleBtnActive : {}),
+            }}
+          >
+            Schedule action
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("log")}
+            style={{
+              ...styles.modeToggleBtn,
+              ...(mode === "log" ? styles.modeToggleBtnActive : {}),
+            }}
+          >
+            Log past action
+          </button>
+        </div>
+
         <label style={styles.label}>
           Handle
           <input
@@ -677,70 +780,163 @@ function QuickCaptureBlock({
           />
         </label>
 
-        <label style={styles.label}>
-          Action
-          <div style={styles.btnGroup}>
-            {CAPTURE_INTENTS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setActionType(opt.value)}
-                style={{
-                  ...styles.toggleBtn,
-                  ...(actionType === opt.value ? styles.toggleBtnActive : {}),
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </label>
+        {mode === "schedule" ? (
+          <>
+            <label style={styles.label}>
+              Action
+              <div style={styles.btnGroup}>
+                {CAPTURE_INTENTS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setScheduleAction(opt.value)}
+                    style={{
+                      ...styles.toggleBtn,
+                      ...(scheduleAction === opt.value
+                        ? styles.toggleBtnActive
+                        : {}),
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </label>
 
-        <label style={styles.label}>
-          Notes (optional)
-          <input
-            type="text"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            style={styles.input}
-          />
-        </label>
+            <label style={styles.label}>
+              Notes (optional)
+              <input
+                type="text"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                style={styles.input}
+              />
+            </label>
 
-        <label style={styles.label}>
-          When
-          <div style={styles.btnGroup}>
-            {TIMING_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setDaysUntil(opt.value)}
-                style={{
-                  ...styles.toggleBtn,
-                  ...(daysUntil === opt.value ? styles.toggleBtnActive : {}),
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </label>
+            <label style={styles.label}>
+              When
+              <div style={styles.btnGroup}>
+                {TIMING_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setDaysUntil(opt.value)}
+                    style={{
+                      ...styles.toggleBtn,
+                      ...(daysUntil === opt.value
+                        ? styles.toggleBtnActive
+                        : {}),
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </label>
+          </>
+        ) : (
+          <>
+            <label style={styles.label}>
+              What happened
+              <div style={styles.btnGroup}>
+                {LOG_INTENTS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setLogAction(opt.value)}
+                    style={{
+                      ...styles.toggleBtn,
+                      ...(logAction === opt.value
+                        ? styles.toggleBtnActive
+                        : {}),
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </label>
+
+            <label style={styles.label}>
+              When
+              <div style={styles.btnGroup}>
+                {WHEN_HAPPENED_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setWhenOffset(opt.value)}
+                    style={{
+                      ...styles.toggleBtn,
+                      ...(whenOffset === opt.value
+                        ? styles.toggleBtnActive
+                        : {}),
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </label>
+
+            <label style={styles.label}>
+              Notes (optional)
+              <input
+                type="text"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                style={styles.input}
+              />
+            </label>
+
+            <label style={styles.label}>
+              Follow up
+              <div style={styles.btnGroup}>
+                {LOG_FOLLOWUP_OPTIONS.map((opt) => (
+                  <button
+                    key={String(opt.value)}
+                    type="button"
+                    onClick={() => setFollowup(opt.value)}
+                    style={{
+                      ...styles.toggleBtn,
+                      ...(followup === opt.value
+                        ? styles.toggleBtnActive
+                        : {}),
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </label>
+          </>
+        )}
 
         <div style={styles.actions}>
           <button
             onClick={() => {
               if (!handle.trim()) return;
-              onSubmit({
-                handle: handle.trim(),
-                action_type: actionType,
-                notes: notes.trim() || null,
-                days_until: daysUntil,
-              });
+              if (mode === "schedule") {
+                onSubmitSchedule({
+                  handle: handle.trim(),
+                  action_type: scheduleAction,
+                  notes: notes.trim() || null,
+                  days_until: daysUntil,
+                });
+              } else {
+                onSubmitLog({
+                  handle: handle.trim(),
+                  action_type: logAction,
+                  notes: notes.trim() || null,
+                  when_offset_days: whenOffset,
+                  followup_days: followup,
+                });
+              }
               reset();
             }}
             disabled={disabled || !handle.trim()}
             style={styles.btnPrimary}
           >
-            Capture
+            {mode === "schedule" ? "Capture" : "Log"}
           </button>
           <button
             onClick={() => {
@@ -1363,6 +1559,31 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     flexDirection: "column",
     gap: "0.85rem",
+  },
+  modeToggle: {
+    display: "flex",
+    background: COLOR.bg,
+    borderRadius: "8px",
+    padding: "0.25rem",
+    gap: "0.25rem",
+  },
+  modeToggleBtn: {
+    flex: 1,
+    border: "none",
+    background: "transparent",
+    color: COLOR.muted,
+    padding: "0.55rem 0.5rem",
+    borderRadius: "6px",
+    fontSize: "0.85rem",
+    fontWeight: 600,
+    cursor: "pointer",
+    fontFamily: "inherit",
+    transition: "all 0.15s ease",
+  },
+  modeToggleBtnActive: {
+    background: COLOR.card,
+    color: COLOR.text,
+    boxShadow: "0 1px 3px rgba(17, 19, 24, 0.08)",
   },
   label: {
     display: "flex",
