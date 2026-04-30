@@ -22,6 +22,9 @@ interface Body {
   notes?: string | null;
   /** null/0 = no follow-up. Positive = schedule follow-up that many days out. */
   followup_days?: number | null;
+  /** ISO timestamp. If set, overrides the default of "now" for completed_at.
+   *  Used by Quick Capture Log mode when logging "Yesterday". Ignored in Mode 1. */
+  completed_at_override?: string | null;
 }
 
 export async function POST(req: NextRequest) {
@@ -73,6 +76,7 @@ export async function POST(req: NextRequest) {
       action_type: body.action_type,
       notes: body.notes ?? null,
       followup_days: body.followup_days ?? null,
+      completed_at_override: body.completed_at_override ?? null,
     });
     return NextResponse.json(result);
   } catch (err: any) {
