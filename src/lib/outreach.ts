@@ -259,16 +259,34 @@ export interface HomeBaseData {
   todayActive: OutreachRow[];
   todayDone: OutreachRow[];
   recent: OutreachRow[];
+  upcoming: OutreachRow[];
 }
 
 export async function getHomeBaseData(): Promise<HomeBaseData> {
-  const [overdue, todayActive, todayDone, recent] = await Promise.all([
+  const [overdue, todayActive, todayDone, recent, upcoming] = await Promise.all([
     getOverdue(),
     getTodayActive(),
     getTodayDone(),
     getRecent(10),
+    getUpcoming(),
   ]);
-  return { overdue, todayActive, todayDone, recent };
+  return { overdue, todayActive, todayDone, recent, upcoming };
+}
+
+/** Planned actions due after today, not yet completed. Sorted by due_date asc. */
+export async function getUpcoming(): Promise<OutreachRow[]> {
+  const today = todayLocal();
+  const { data, error } = await db()
+    .from("outreach_actions")
+    .select("*, contact:outreach_contacts(*)")
+    .eq("kind", "planned")
+    .is("completed_at", null)
+    .gt("due_date", today)
+    .order("due_date", { ascending: true });
+  if (error) throw error;
+  return (data || [])
+    .filter((row: any) => !row.contact?.is_dead)
+    .map((row: any) => ({ action: stripContact(row), contact: row.contact }));
 }
 
 export interface ContactPageData {
