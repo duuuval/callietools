@@ -32,6 +32,7 @@ const PLANNED_LABEL: Record<ActionType, string> = {
   replied: "Reply",
   shared: "Share",
   comment: "Comment",
+  followed: "Follow",
   follow_up: "Follow up",
   other: "Reach out",
 };
@@ -43,17 +44,19 @@ const DONE_LABEL: Record<ActionType, string> = {
   replied: "Replied",
   shared: "Shared",
   comment: "Commented",
+  followed: "Followed",
   follow_up: "Followed up",
   other: "Reached out",
 };
 
 const LOG_ACTIONS: { value: ActionType; label: string }[] = [
+  { value: "followed", label: "Followed" },
+  { value: "comment", label: "Commented" },
   { value: "dm_sent", label: "DM sent" },
   { value: "replied", label: "Replied" },
   { value: "calendar_built", label: "Built calendar" },
   { value: "link_sent", label: "Sent link" },
   { value: "shared", label: "They shared" },
-  { value: "comment", label: "Commented" },
   { value: "follow_up", label: "Followed up" },
   { value: "other", label: "Other" },
 ];
