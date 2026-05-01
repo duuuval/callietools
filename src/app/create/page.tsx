@@ -599,12 +599,11 @@ export default function CreatePage() {
               <div className="claimStepHeader">
                 <span className="claimStepBadge">2</span>
                 <label className="claimStepLabel" htmlFor="cal-email">
-                  Where should we send your link to manage your calendar?
+                  Where should we send the link to manage your calendar?
                 </label>
               </div>
               <div className="formHelper claimStepIntro">
-                This link is where you can edit events and share with your
-                people anytime.
+                You'll use it to edit events and share with your people anytime.
               </div>
               <input
                 id="cal-email"
@@ -671,7 +670,7 @@ export default function CreatePage() {
             </button>
 
             <p className="claimEditNote">
-              Edit anything before sharing with your people.
+              Claim now — you can edit anything before sharing with your people.
             </p>
 
             {/* Events preview — below the claim button, as confirmation */}
