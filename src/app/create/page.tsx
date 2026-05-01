@@ -546,12 +546,17 @@ export default function CreatePage() {
               </div>
               <h2 className="claimHeader">Your calendar is ready.</h2>
               <p className="claimSubhead">
-                We pulled {parsedCount} event{parsedCount !== 1 ? "s" : ""} from
-                your image.
+                We pulled{" "}
+                <strong className="claimCount">
+                  {parsedCount} event{parsedCount !== 1 ? "s" : ""}
+                </strong>{" "}
+                from your image.
               </p>
             </div>
 
-            <p className="claimSteps">Just 2 quick steps to claim it</p>
+            <p className="claimSteps">
+              Just 2 quick steps to claim it so you can share and edit
+            </p>
 
             {/* Step 1 — Name */}
             <div className="claimStep">
@@ -594,8 +599,12 @@ export default function CreatePage() {
               <div className="claimStepHeader">
                 <span className="claimStepBadge">2</span>
                 <label className="claimStepLabel" htmlFor="cal-email">
-                  Where should we send your manage link?
+                  Where should we send your link to manage your calendar?
                 </label>
+              </div>
+              <div className="formHelper claimStepIntro">
+                This link is where you can edit events and share with your
+                people anytime.
               </div>
               <input
                 id="cal-email"
@@ -607,7 +616,7 @@ export default function CreatePage() {
                 autoComplete="email"
               />
               <div className="formHelper">
-                We&rsquo;ll only use this to send your manage link.
+                We&rsquo;ll only use this to send your link.
               </div>
 
               {/* Timezone — collapsed */}
