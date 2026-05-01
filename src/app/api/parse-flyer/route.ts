@@ -27,9 +27,25 @@ Rules:
 - If anything is ambiguous across multiple events, note it in parse_notes
 - If you cannot find any events, return an empty events array and explain in parse_notes
 
+Calendar name (calendar_name field):
+The calendar_name should capture the EVERGREEN identity of the calendar — what the user will call it months from now when they're still adding events to it. This is NOT a label for the specific image you're parsing. Strip all time-bound qualifiers from the calendar name:
+- Remove specific months ("March", "April", "March & April")
+- Remove seasons tied to a year ("Spring 2026", "Fall Schedule")
+- Remove quarters or date ranges ("Q2 Schedule", "Week of April 15")
+- Remove year references ("2026 Events", "2025-2026 Season")
+Keep the organizational identity: the group, instructor, business, or program name.
+Examples:
+- Input image titled "MomCo Events March & April 2026" → calendar_name: "MomCo Events"
+- Input image titled "Spring 2026 Yoga Schedule with Sarah" → calendar_name: "Yoga with Sarah"
+- Input image titled "Troop 142 Fall Calendar" → calendar_name: "Troop 142"
+- Input image titled "Riverside Swim Team — 2025-2026 Season" → calendar_name: "Riverside Swim Team"
+- Input image titled "Q2 Trivia Nights at The Tap Room" → calendar_name: "The Tap Room Trivia"
+- Input image titled "April Workshops at Studio B" → calendar_name: "Studio B Workshops"
+If the image only contains a date range with no organizational identity, use a descriptive name based on the event content. Avoid generic names like "Events" or "Calendar". When in doubt, ask: will this name still make sense when they add events for next month? Next year? If no, strip more.
+
 Return ONLY valid JSON matching this exact schema, no markdown, no explanation:
 {
-  "calendar_name": "string — inferred from the flyer content",
+  "calendar_name": "string — evergreen calendar identity (see rules above)",
   "events": [
     {
       "title": "string",
