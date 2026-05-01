@@ -99,6 +99,18 @@ const US_TIMEZONES = [
   { value: "Pacific/Honolulu", label: "Hawaii" },
 ];
 
+// Map browser timezone to closest US timezone in the list above.
+// If the browser returns something not in the list, default to Eastern.
+function detectBrowserTimezone(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (US_TIMEZONES.some((t) => t.value === tz)) return tz;
+  } catch {
+    // ignore
+  }
+  return "America/New_York";
+}
+
 // ─── Parse loading phrases ───────────────────────────────────
 
 const PARSE_PHRASES = [
@@ -110,6 +122,31 @@ const PARSE_PHRASES = [
 ];
 
 const PHRASE_DELAYS = [0, 3000, 7000, 13000, 20000];
+
+// ─── Date/time formatting for preview list ──────────────────
+
+function formatPreviewDate(isoDate: string): string {
+  if (!isoDate || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) return "";
+  // Build a Date in local time so we don't shift across midnight UTC
+  const [y, m, d] = isoDate.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function formatPreviewTime(time24: string): string {
+  if (!time24 || !/^\d{2}:\d{2}$/.test(time24)) return "";
+  const [h, m] = time24.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 === 0 ? 12 : h % 12;
+  if (m === 0) return `${hour12}${period}`;
+  return `${hour12}:${String(m).padStart(2, "0")}${period}`;
+}
+
+const PREVIEW_VISIBLE_COUNT = 5;
 
 // ─── Component ───────────────────────────────────────────────
 
@@ -137,10 +174,19 @@ export default function CreatePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // Manual entry expansion (only relevant when no parse has happened)
+  const [manualExpanded, setManualExpanded] = useState(false);
+
   // Parse loading phrase state
   const [parsePhrase, setParsePhrase] = useState(PARSE_PHRASES[0]);
   const [parsePhraseVisible, setParsePhraseVisible] = useState(true);
   const parsePhraseTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  // ── Detect browser timezone on mount ──────────────────────
+
+  useEffect(() => {
+    setTimezone(detectBrowserTimezone());
+  }, []);
 
   // ── Phrase sequencer ───────────────────────────────────────
 
@@ -157,8 +203,6 @@ export default function CreatePage() {
     setParsePhrase(PARSE_PHRASES[0]);
     setParsePhraseVisible(true);
 
-    // Schedule phrases 2–5 using explicit delays
-    // Phrase 5 ("Still working — promise!") stays indefinitely
     PARSE_PHRASES.slice(1).forEach((_, idx) => {
       const i = idx + 1;
       const t = setTimeout(() => {
@@ -218,9 +262,7 @@ export default function CreatePage() {
 
       setParsedCount(parsedEvents.length);
       setParseStatus("success");
-      setParseMessage(
-        `We pulled ${parsedEvents.length} event${parsedEvents.length !== 1 ? "s" : ""} from your upload\u202F— review and confirm below.`
-      );
+      setParseMessage("");
     } catch {
       setParseStatus("error");
       setParseMessage("Something went wrong. Try again or add events manually below.");
@@ -260,7 +302,7 @@ export default function CreatePage() {
     fileInputRef.current?.click();
   }, [parseStatus]);
 
-  // ── Event row helpers ──────────────────────────────────────
+  // ── Event row helpers (manual entry only) ──────────────────
 
   const updateEvent = useCallback(
     (id: string, field: keyof EventRow, value: string | boolean) => {
@@ -363,11 +405,19 @@ export default function CreatePage() {
   // ── Render ─────────────────────────────────────────────────
 
   const slug = slugPreview(calendarName);
+  const showClaimForm = parseStatus === "success";
+  const showManualForm = manualExpanded && parseStatus !== "success";
+
+  // Preview events (sorted by date, soonest first when possible)
+  const previewEvents = [...events]
+    .filter((e) => e.title.trim() && e.start_date.trim())
+    .sort((a, b) => a.start_date.localeCompare(b.start_date));
+  const visiblePreview = previewEvents.slice(0, PREVIEW_VISIBLE_COUNT);
+  const hiddenPreviewCount = Math.max(0, previewEvents.length - PREVIEW_VISIBLE_COUNT);
 
   return (
     <div className="container">
       <div className="card">
-        {/* ── Confidence block ──────────────────────────── */}
         <h1 className="createHeader">Create your calendar</h1>
         <p className="createSubhead">
           Add your events, share the link — your people subscribe once and stay
@@ -376,7 +426,7 @@ export default function CreatePage() {
 
         <div className="divider" />
 
-        {/* ── Image import ──────────────────────────────── */}
+        {/* ── Image import (always rendered; collapses after success) ── */}
         <input
           ref={fileInputRef}
           type="file"
@@ -385,294 +435,445 @@ export default function CreatePage() {
           onChange={handleFileInput}
         />
 
-        <div
-          className={`flyerUpload${dragOver ? " flyerUploadDragOver" : ""}${parseStatus === "parsing" ? " flyerUploadParsing" : ""}`}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onClick={triggerFilePicker}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && triggerFilePicker()}
-          style={{ cursor: parseStatus === "parsing" ? "wait" : "pointer" }}
-        >
-          <div className="flyerUploadInner">
-
-            {/* ── Idle state ──────────────────────────── */}
-            {parseStatus === "idle" && (
-              <>
-                <div className="flyerIcon" aria-hidden="true">📄</div>
-                <p className="flyerHeadline">
-                  Upload an image of your events. We'll read it and build your calendar automatically.
-                </p>
-                <p className="flyerFormats">JPEG, PNG, or WEBP</p>
-                <button
-                  type="button"
-                  className="btn btnSecondary"
-                  onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}
-                >
-                  Upload your image
-                </button>
-              </>
-            )}
-
-            {/* ── Parsing state ───────────────────────── */}
-            {parseStatus === "parsing" && (
-              <div className="parseLoading">
-                <div className="parseMascotWrap" aria-hidden="true">
-                  <span className="parseSpark parseSpark1" />
-                  <span className="parseSpark parseSpark2" />
-                  <span className="parseSpark parseSpark3" />
-                  <span className="parseSpark parseSpark4" />
-                  <img
-                    src="/callie-mascot.png"
-                    alt=""
-                    className="parseMascot"
-                  />
-                </div>
-                <p
-                  className="parsePhrase"
-                  style={{ opacity: parsePhraseVisible ? 1 : 0 }}
-                >
-                  {parsePhrase}
-                </p>
-                <div className="parseDots" aria-label="Loading">
-                  <span className="parseDot" />
-                  <span className="parseDot" />
-                  <span className="parseDot" />
-                </div>
-              </div>
-            )}
-
-            {/* ── Success state ───────────────────────── */}
-            {parseStatus === "success" && (
-              <>
-                <div className="flyerIcon" aria-hidden="true">✅</div>
-                <p className="flyerHeadline">{parseMessage}</p>
-                <button
-                  type="button"
-                  className="btn btnSecondary"
-                  onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}
-                >
-                  Upload a different image
-                </button>
-              </>
-            )}
-
-            {/* ── Error state ─────────────────────────── */}
-            {parseStatus === "error" && (
-              <>
-                <div className="flyerIcon" aria-hidden="true">📄</div>
-                <p className="flyerHeadline" style={{ color: "var(--color-error, #c0392b)" }}>
-                  {parseMessage}
-                </p>
-                <button
-                  type="button"
-                  className="btn btnSecondary"
-                  onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}
-                >
-                  Try again
-                </button>
-              </>
-            )}
-
-          </div>
-        </div>
-
-        <div className="createOrDivider">
-          <span>or add events manually</span>
-        </div>
-
-        {/* ── Calendar name ─────────────────────────────── */}
-        <div className="formGroup">
-          <label className="formLabel" htmlFor="cal-name">
-            Calendar name
-          </label>
-          <input
-            id="cal-name"
-            type="text"
-            className="formInput"
-            placeholder="e.g., Woolridge PTA"
-            value={calendarName}
-            onChange={(e) => setCalendarName(e.target.value)}
-            maxLength={100}
-            autoComplete="off"
-          />
-          <div className="formHelper">
-            This is the name people will see when they subscribe.
-          </div>
-          {calendarName.trim() && (
-            <div className="slugPreview">
-              callietools.com/<strong>{slug}</strong>
-            </div>
-          )}
-        </div>
-
-        {/* ── Email ─────────────────────────────────────── */}
-        <div className="formGroup">
-          <label className="formLabel" htmlFor="cal-email">
-            Your email
-          </label>
-          <input
-            id="cal-email"
-            type="email"
-            className="formInput"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-          />
-          <div className="formHelper">
-            We&rsquo;ll send you a private link to manage your calendar. Not
-            displayed publicly.
-          </div>
-        </div>
-
-        {/* ── Timezone ──────────────────────────────────── */}
-        <div className="formGroup">
-          <label className="formLabel" htmlFor="cal-timezone">
-            Timezone
-          </label>
-          <select
-            id="cal-timezone"
-            className="formInput"
-            value={timezone}
-            onChange={(e) => setTimezone(e.target.value)}
+        {parseStatus !== "success" && (
+          <div
+            className={`flyerUpload flyerUploadHero${dragOver ? " flyerUploadDragOver" : ""}${parseStatus === "parsing" ? " flyerUploadParsing" : ""}${parseStatus === "idle" ? " flyerUploadIdle" : ""}`}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onClick={triggerFilePicker}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && triggerFilePicker()}
+            style={{ cursor: parseStatus === "parsing" ? "wait" : "pointer" }}
           >
-            {US_TIMEZONES.map((tz) => (
-              <option key={tz.value} value={tz.value}>
-                {tz.label}
-              </option>
-            ))}
-          </select>
-          <div className="formHelper">
-            Event times will display in this timezone for subscribers.
-          </div>
-        </div>
-
-        <div className="divider" />
-
-        {/* ── Events ────────────────────────────────────── */}
-        <div className="formGroup">
-          <label className="formLabel">Events</label>
-
-          {parsedCount > 0 && parseStatus === "success" && (
-            <p className="flyerFormats" style={{ marginBottom: 12 }}>
-              Events marked with ⚠️ had lower confidence — double-check those before submitting.
-            </p>
-          )}
-
-          {events.map((ev, idx) => (
-            <div key={ev.id} className="eventCard">
-              <div className="eventCardHeader">
-                <span className="eventCardNum">
-                  {idx + 1}
-                  {ev.confidence === "low" && " ⚠️"}
-                  {ev.confidence === "medium" && " ·"}
-                </span>
-                {events.length > 1 && (
+            <div className="flyerUploadInner">
+              {/* ── Idle state ──────────────────────────── */}
+              {parseStatus === "idle" && (
+                <>
+                  <div className="flyerHeroMascot" aria-hidden="true">
+                    <img src="/callie-mascot.png" alt="" />
+                  </div>
+                  <p className="flyerHeadline">
+                    Upload an image of your events. We&rsquo;ll handle the rest.
+                  </p>
+                  <p className="flyerFormats">JPEG, PNG, or WEBP</p>
                   <button
                     type="button"
-                    className="eventCardRemove"
-                    onClick={() => removeEvent(ev.id)}
-                    aria-label={`Remove event ${idx + 1}`}
+                    className="btn btnPrimary"
+                    onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}
                   >
-                    ✕
+                    Upload your image
                   </button>
-                )}
-              </div>
+                </>
+              )}
 
-              <input
-                type="text"
-                className="formInput"
-                placeholder="Event title"
-                value={ev.title}
-                onChange={(e) => updateEvent(ev.id, "title", e.target.value)}
-                autoComplete="off"
-              />
-
-              <div className="eventTimeRow">
-                <div className="eventTimeField eventDateField">
-                  <label className="formLabelSmall">Date</label>
-                  <input
-                    type="date"
-                    className="formInput"
-                    value={ev.start_date}
-                    onChange={(e) => updateEvent(ev.id, "start_date", e.target.value)}
-                  />
+              {/* ── Parsing state ───────────────────────── */}
+              {parseStatus === "parsing" && (
+                <div className="parseLoading">
+                  <div className="parseMascotWrap" aria-hidden="true">
+                    <span className="parseSpark parseSpark1" />
+                    <span className="parseSpark parseSpark2" />
+                    <span className="parseSpark parseSpark3" />
+                    <span className="parseSpark parseSpark4" />
+                    <img
+                      src="/callie-mascot.png"
+                      alt=""
+                      className="parseMascot"
+                    />
+                  </div>
+                  <p
+                    className="parsePhrase"
+                    style={{ opacity: parsePhraseVisible ? 1 : 0 }}
+                  >
+                    {parsePhrase}
+                  </p>
+                  <div className="parseDots" aria-label="Loading">
+                    <span className="parseDot" />
+                    <span className="parseDot" />
+                    <span className="parseDot" />
+                  </div>
                 </div>
-                <div className="eventTimeField">
-                  <label className="formLabelSmall">Start</label>
-                  <input
-                    type="time"
-                    className="formInput"
-                    step="900"
-                    value={ev.start_time}
-                    onChange={(e) => updateEvent(ev.id, "start_time", e.target.value)}
-                  />
-                </div>
-                <div className="eventTimeField">
-                  <label className="formLabelSmall">End</label>
-                  <input
-                    type="time"
-                    className="formInput"
-                    step="900"
-                    value={ev.end_time}
-                    onChange={(e) => updateEvent(ev.id, "end_time", e.target.value)}
-                  />
-                </div>
-              </div>
+              )}
 
-              <input
-                type="text"
-                className="formInput"
-                placeholder="Location (optional)"
-                value={ev.location}
-                onChange={(e) => updateEvent(ev.id, "location", e.target.value)}
-                autoComplete="off"
-              />
-
-              <button
-                type="button"
-                className="eventDetailsToggle"
-                onClick={() => updateEvent(ev.id, "showDetails", !ev.showDetails)}
-              >
-                {ev.showDetails ? "− Hide details" : "+ More details"}
-              </button>
-
-              {ev.showDetails && (
-                <textarea
-                  className="formInput formTextarea"
-                  placeholder="Description (optional)"
-                  rows={3}
-                  value={ev.description}
-                  onChange={(e) => updateEvent(ev.id, "description", e.target.value)}
-                />
+              {/* ── Error state ─────────────────────────── */}
+              {parseStatus === "error" && (
+                <>
+                  <div className="flyerIcon" aria-hidden="true">📄</div>
+                  <p className="flyerHeadline" style={{ color: "var(--color-error, #c0392b)" }}>
+                    {parseMessage}
+                  </p>
+                  <button
+                    type="button"
+                    className="btn btnSecondary"
+                    onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}
+                  >
+                    Try again
+                  </button>
+                </>
               )}
             </div>
-          ))}
-
-          <button type="button" className="addEventLink" onClick={addEvent}>
-            + Add event
-          </button>
-        </div>
-
-        <div className="divider" />
-
-        {error && (
-          <div className="error" style={{ marginBottom: 16 }}>
-            {error}
           </div>
         )}
 
-        <button
-          type="button"
-          className="btn btnPrimary createSubmit"
-          onClick={handleSubmit}
-          disabled={submitting}
-        >
-          {submitting ? "Creating…" : "Create my calendar"}
-        </button>
+        {/* ── Manual escape hatch (only when no parse success) ── */}
+        {parseStatus !== "success" && !manualExpanded && (
+          <div className="manualLinkWrap">
+            <button
+              type="button"
+              className="manualLink"
+              onClick={() => setManualExpanded(true)}
+            >
+              or add events manually
+            </button>
+          </div>
+        )}
+
+        {/* ── Post-parse claim form ─────────────────────── */}
+        {showClaimForm && (
+          <div className="claimSection">
+            <p className="parseSuccessLine">
+              <span className="parseSuccessCheck" aria-hidden="true">✓</span>{" "}
+              Pulled {parsedCount} event{parsedCount !== 1 ? "s" : ""} from your image.{" "}
+              <button
+                type="button"
+                className="parseSuccessRetry"
+                onClick={triggerFilePicker}
+              >
+                Upload a different image
+              </button>
+            </p>
+
+            <h2 className="claimHeader">
+              Your calendar is ready. Claim it now and edit anything that
+              isn&rsquo;t perfect before sharing with your people.
+            </h2>
+
+            {/* Calendar name */}
+            <div className="formGroup">
+              <label className="formLabel" htmlFor="cal-name">
+                Calendar name
+              </label>
+              <input
+                id="cal-name"
+                type="text"
+                className="formInput"
+                placeholder="e.g., Woolridge PTA"
+                value={calendarName}
+                onChange={(e) => setCalendarName(e.target.value)}
+                maxLength={100}
+                autoComplete="off"
+              />
+              <div className="formHelper">
+                This is the name people see when they subscribe.
+              </div>
+              {calendarName.trim() && (
+                <>
+                  <div className="slugPreview">
+                    callietools.com/<strong>{slug}</strong>
+                  </div>
+                  <div className="formHelper">
+                    This is your calendar going forward — you&rsquo;ll keep
+                    adding future events to it. We suggest avoiding days and
+                    months in the title, since this URL is permanent. Your
+                    calendar name can be updated anytime from the manage page.
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Email */}
+            <div className="formGroup">
+              <label className="formLabel" htmlFor="cal-email">
+                Your email
+              </label>
+              <input
+                id="cal-email"
+                type="email"
+                className="formInput"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
+              <div className="formHelper">
+                We&rsquo;ll send you a manage link so you can update your
+                calendar later. We won&rsquo;t email you for anything else.
+              </div>
+            </div>
+
+            {/* Timezone */}
+            <div className="formGroup">
+              <label className="formLabel" htmlFor="cal-timezone">
+                Timezone
+              </label>
+              <select
+                id="cal-timezone"
+                className="formInput"
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+              >
+                {US_TIMEZONES.map((tz) => (
+                  <option key={tz.value} value={tz.value}>
+                    {tz.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Events preview (non-editable) */}
+            {previewEvents.length > 0 && (
+              <div className="formGroup">
+                <label className="formLabel">Events we found</label>
+                <ul className="previewList">
+                  {visiblePreview.map((ev) => (
+                    <li key={ev.id} className="previewItem">
+                      <div className="previewDate">
+                        {formatPreviewDate(ev.start_date)}
+                      </div>
+                      <div className="previewBody">
+                        <div className="previewTitle">
+                          {ev.title}
+                          {ev.confidence === "low" && (
+                            <span className="previewFlag" title="Lower confidence — double-check this on the manage page">
+                              {" "}⚠️
+                            </span>
+                          )}
+                        </div>
+                        {(ev.start_time || ev.location) && (
+                          <div className="previewMeta">
+                            {ev.start_time && (
+                              <span>{formatPreviewTime(ev.start_time)}</span>
+                            )}
+                            {ev.start_time && ev.location && <span> · </span>}
+                            {ev.location && <span>{ev.location}</span>}
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                {hiddenPreviewCount > 0 && (
+                  <p className="previewMore">
+                    + {hiddenPreviewCount} more event
+                    {hiddenPreviewCount !== 1 ? "s" : ""}
+                  </p>
+                )}
+                <p className="formHelper">
+                  Edit any event later from your manage page.
+                </p>
+              </div>
+            )}
+
+            {error && (
+              <div className="error" style={{ marginBottom: 16 }}>
+                {error}
+              </div>
+            )}
+
+            <button
+              type="button"
+              className="btn btnPrimary createSubmit"
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? "Creating…" : "Claim my calendar"}
+            </button>
+          </div>
+        )}
+
+        {/* ── Manual entry form (expanded escape hatch) ──── */}
+        {showManualForm && (
+          <div className="manualSection">
+            <div className="divider" />
+
+            {/* Calendar name */}
+            <div className="formGroup">
+              <label className="formLabel" htmlFor="cal-name-manual">
+                Calendar name
+              </label>
+              <input
+                id="cal-name-manual"
+                type="text"
+                className="formInput"
+                placeholder="e.g., Woolridge PTA"
+                value={calendarName}
+                onChange={(e) => setCalendarName(e.target.value)}
+                maxLength={100}
+                autoComplete="off"
+              />
+              <div className="formHelper">
+                This is the name people see when they subscribe.
+              </div>
+              {calendarName.trim() && (
+                <>
+                  <div className="slugPreview">
+                    callietools.com/<strong>{slug}</strong>
+                  </div>
+                  <div className="formHelper">
+                    This is your calendar going forward — you&rsquo;ll keep
+                    adding future events to it. We suggest avoiding days and
+                    months in the title, since this URL is permanent. Your
+                    calendar name can be updated anytime from the manage page.
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Email */}
+            <div className="formGroup">
+              <label className="formLabel" htmlFor="cal-email-manual">
+                Your email
+              </label>
+              <input
+                id="cal-email-manual"
+                type="email"
+                className="formInput"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
+              <div className="formHelper">
+                We&rsquo;ll send you a manage link so you can update your
+                calendar later. We won&rsquo;t email you for anything else.
+              </div>
+            </div>
+
+            {/* Timezone */}
+            <div className="formGroup">
+              <label className="formLabel" htmlFor="cal-timezone-manual">
+                Timezone
+              </label>
+              <select
+                id="cal-timezone-manual"
+                className="formInput"
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+              >
+                {US_TIMEZONES.map((tz) => (
+                  <option key={tz.value} value={tz.value}>
+                    {tz.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="divider" />
+
+            {/* Events */}
+            <div className="formGroup">
+              <label className="formLabel">Events</label>
+
+              {events.map((ev, idx) => (
+                <div key={ev.id} className="eventCard">
+                  <div className="eventCardHeader">
+                    <span className="eventCardNum">{idx + 1}</span>
+                    {events.length > 1 && (
+                      <button
+                        type="button"
+                        className="eventCardRemove"
+                        onClick={() => removeEvent(ev.id)}
+                        aria-label={`Remove event ${idx + 1}`}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  <input
+                    type="text"
+                    className="formInput"
+                    placeholder="Event title"
+                    value={ev.title}
+                    onChange={(e) => updateEvent(ev.id, "title", e.target.value)}
+                    autoComplete="off"
+                  />
+
+                  <div className="eventTimeRow">
+                    <div className="eventTimeField eventDateField">
+                      <label className="formLabelSmall">Date</label>
+                      <input
+                        type="date"
+                        className="formInput"
+                        value={ev.start_date}
+                        onChange={(e) => updateEvent(ev.id, "start_date", e.target.value)}
+                      />
+                    </div>
+                    <div className="eventTimeField">
+                      <label className="formLabelSmall">Start</label>
+                      <input
+                        type="time"
+                        className="formInput"
+                        step="900"
+                        value={ev.start_time}
+                        onChange={(e) => updateEvent(ev.id, "start_time", e.target.value)}
+                      />
+                    </div>
+                    <div className="eventTimeField">
+                      <label className="formLabelSmall">End</label>
+                      <input
+                        type="time"
+                        className="formInput"
+                        step="900"
+                        value={ev.end_time}
+                        onChange={(e) => updateEvent(ev.id, "end_time", e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <input
+                    type="text"
+                    className="formInput"
+                    placeholder="Location (optional)"
+                    value={ev.location}
+                    onChange={(e) => updateEvent(ev.id, "location", e.target.value)}
+                    autoComplete="off"
+                  />
+
+                  <button
+                    type="button"
+                    className="eventDetailsToggle"
+                    onClick={() => updateEvent(ev.id, "showDetails", !ev.showDetails)}
+                  >
+                    {ev.showDetails ? "− Hide details" : "+ More details"}
+                  </button>
+
+                  {ev.showDetails && (
+                    <textarea
+                      className="formInput formTextarea"
+                      placeholder="Description (optional)"
+                      rows={3}
+                      value={ev.description}
+                      onChange={(e) => updateEvent(ev.id, "description", e.target.value)}
+                    />
+                  )}
+                </div>
+              ))}
+
+              <button type="button" className="addEventLink" onClick={addEvent}>
+                + Add event
+              </button>
+            </div>
+
+            <div className="divider" />
+
+            {error && (
+              <div className="error" style={{ marginBottom: 16 }}>
+                {error}
+              </div>
+            )}
+
+            <button
+              type="button"
+              className="btn btnPrimary createSubmit"
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? "Creating…" : "Create my calendar"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
