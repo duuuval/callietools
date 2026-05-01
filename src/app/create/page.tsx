@@ -99,6 +99,10 @@ const US_TIMEZONES = [
   { value: "Pacific/Honolulu", label: "Hawaii" },
 ];
 
+function tzLabel(value: string): string {
+  return US_TIMEZONES.find((t) => t.value === value)?.label ?? "Eastern";
+}
+
 // Map browser timezone to closest US timezone in the list above.
 // If the browser returns something not in the list, default to Eastern.
 function detectBrowserTimezone(): string {
@@ -116,7 +120,7 @@ function detectBrowserTimezone(): string {
 const PARSE_PHRASES = [
   "Reading your image…",
   "Finding your events…",
-  "Almost ready…",
+  "Starting your calendar…",
   "Still working on it…",
   "Still working — promise!",
 ];
@@ -127,7 +131,6 @@ const PHRASE_DELAYS = [0, 3000, 7000, 13000, 20000];
 
 function formatPreviewDate(isoDate: string): string {
   if (!isoDate || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) return "";
-  // Build a Date in local time so we don't shift across midnight UTC
   const [y, m, d] = isoDate.split("-").map(Number);
   const date = new Date(y, m - 1, d);
   return date.toLocaleDateString(undefined, {
@@ -176,6 +179,9 @@ export default function CreatePage() {
 
   // Manual entry expansion (only relevant when no parse has happened)
   const [manualExpanded, setManualExpanded] = useState(false);
+
+  // Timezone editor expansion (only on claim form)
+  const [tzEditorOpen, setTzEditorOpen] = useState(false);
 
   // Parse loading phrase state
   const [parsePhrase, setParsePhrase] = useState(PARSE_PHRASES[0]);
@@ -302,6 +308,15 @@ export default function CreatePage() {
     fileInputRef.current?.click();
   }, [parseStatus]);
 
+  // Reset back to idle (used by "try again" link below preview)
+  const resetToIdle = useCallback(() => {
+    setParseStatus("idle");
+    setParseMessage("");
+    setParsedCount(0);
+    setEvents([makeEmptyEvent(), makeEmptyEvent(), makeEmptyEvent()]);
+    setError("");
+  }, []);
+
   // ── Event row helpers (manual entry only) ──────────────────
 
   const updateEvent = useCallback(
@@ -426,7 +441,7 @@ export default function CreatePage() {
 
         <div className="divider" />
 
-        {/* ── Image import (always rendered; collapses after success) ── */}
+        {/* ── Image import (drop zone, parsing, error) ──── */}
         <input
           ref={fileInputRef}
           type="file"
@@ -448,7 +463,6 @@ export default function CreatePage() {
             style={{ cursor: parseStatus === "parsing" ? "wait" : "pointer" }}
           >
             <div className="flyerUploadInner">
-              {/* ── Idle state ──────────────────────────── */}
               {parseStatus === "idle" && (
                 <>
                   <div className="flyerHeroMascot" aria-hidden="true">
@@ -468,7 +482,6 @@ export default function CreatePage() {
                 </>
               )}
 
-              {/* ── Parsing state ───────────────────────── */}
               {parseStatus === "parsing" && (
                 <div className="parseLoading">
                   <div className="parseMascotWrap" aria-hidden="true">
@@ -476,11 +489,7 @@ export default function CreatePage() {
                     <span className="parseSpark parseSpark2" />
                     <span className="parseSpark parseSpark3" />
                     <span className="parseSpark parseSpark4" />
-                    <img
-                      src="/callie-mascot.png"
-                      alt=""
-                      className="parseMascot"
-                    />
+                    <img src="/callie-mascot.png" alt="" className="parseMascot" />
                   </div>
                   <p
                     className="parsePhrase"
@@ -496,7 +505,6 @@ export default function CreatePage() {
                 </div>
               )}
 
-              {/* ── Error state ─────────────────────────── */}
               {parseStatus === "error" && (
                 <>
                   <div className="flyerIcon" aria-hidden="true">📄</div>
@@ -516,7 +524,6 @@ export default function CreatePage() {
           </div>
         )}
 
-        {/* ── Manual escape hatch (only when no parse success) ── */}
         {parseStatus !== "success" && !manualExpanded && (
           <div className="manualLinkWrap">
             <button
@@ -529,31 +536,31 @@ export default function CreatePage() {
           </div>
         )}
 
-        {/* ── Post-parse claim form ─────────────────────── */}
+        {/* ── Post-parse claim view ──────────────────────── */}
         {showClaimForm && (
           <div className="claimSection">
-            <p className="parseSuccessLine">
-              <span className="parseSuccessCheck" aria-hidden="true">✓</span>{" "}
-              Pulled {parsedCount} event{parsedCount !== 1 ? "s" : ""} from your image.{" "}
-              <button
-                type="button"
-                className="parseSuccessRetry"
-                onClick={triggerFilePicker}
-              >
-                Upload a different image
-              </button>
-            </p>
+            {/* Celebration header — mascot + framing line */}
+            <div className="claimCelebrate">
+              <div className="claimMascot" aria-hidden="true">
+                <img src="/callie-mascot.png" alt="" />
+              </div>
+              <h2 className="claimHeader">Your calendar is ready.</h2>
+              <p className="claimSubhead">
+                We pulled {parsedCount} event{parsedCount !== 1 ? "s" : ""} from
+                your image.
+              </p>
+            </div>
 
-            <h2 className="claimHeader">
-              Your calendar is ready. Claim it now and edit anything that
-              isn&rsquo;t perfect before sharing with your people.
-            </h2>
+            <p className="claimSteps">Just 2 quick steps to claim it</p>
 
-            {/* Calendar name */}
-            <div className="formGroup">
-              <label className="formLabel" htmlFor="cal-name">
-                Calendar name
-              </label>
+            {/* Step 1 — Name */}
+            <div className="claimStep">
+              <div className="claimStepHeader">
+                <span className="claimStepBadge">1</span>
+                <label className="claimStepLabel" htmlFor="cal-name">
+                  Name your calendar
+                </label>
+              </div>
               <input
                 id="cal-name"
                 type="text"
@@ -565,28 +572,31 @@ export default function CreatePage() {
                 autoComplete="off"
               />
               <div className="formHelper">
-                This is the name people see when they subscribe.
+                This is what people see when they subscribe.
               </div>
               {calendarName.trim() && (
-                <>
+                <div className="claimAddress">
+                  <div className="claimAddressLabel">Your web address</div>
                   <div className="slugPreview">
                     callietools.com/<strong>{slug}</strong>
                   </div>
                   <div className="formHelper">
-                    This is your calendar going forward — you&rsquo;ll keep
-                    adding future events to it. We suggest avoiding days and
-                    months in the title, since this URL is permanent. Your
-                    calendar name can be updated anytime from the manage page.
+                    This is your calendar&rsquo;s permanent web address — it
+                    can&rsquo;t be changed later. Avoid days and months in your
+                    name so this stays relevant when you add future events.
                   </div>
-                </>
+                </div>
               )}
             </div>
 
-            {/* Email */}
-            <div className="formGroup">
-              <label className="formLabel" htmlFor="cal-email">
-                Your email
-              </label>
+            {/* Step 2 — Email */}
+            <div className="claimStep">
+              <div className="claimStepHeader">
+                <span className="claimStepBadge">2</span>
+                <label className="claimStepLabel" htmlFor="cal-email">
+                  Where should we send your manage link?
+                </label>
+              </div>
               <input
                 id="cal-email"
                 type="email"
@@ -597,34 +607,68 @@ export default function CreatePage() {
                 autoComplete="email"
               />
               <div className="formHelper">
-                We&rsquo;ll send you a manage link so you can update your
-                calendar later. We won&rsquo;t email you for anything else.
+                We&rsquo;ll only use this to send your manage link.
+              </div>
+
+              {/* Timezone — collapsed */}
+              <div className="tzRow">
+                {!tzEditorOpen ? (
+                  <span className="tzLine">
+                    Timezone: <strong>{tzLabel(timezone)}</strong>
+                    {" · "}
+                    <button
+                      type="button"
+                      className="tzChange"
+                      onClick={() => setTzEditorOpen(true)}
+                    >
+                      change
+                    </button>
+                  </span>
+                ) : (
+                  <div className="tzEditor">
+                    <label className="formLabelSmall" htmlFor="cal-tz">
+                      Timezone
+                    </label>
+                    <select
+                      id="cal-tz"
+                      className="formInput"
+                      value={timezone}
+                      onChange={(e) => setTimezone(e.target.value)}
+                    >
+                      {US_TIMEZONES.map((tz) => (
+                        <option key={tz.value} value={tz.value}>
+                          {tz.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Timezone */}
-            <div className="formGroup">
-              <label className="formLabel" htmlFor="cal-timezone">
-                Timezone
-              </label>
-              <select
-                id="cal-timezone"
-                className="formInput"
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-              >
-                {US_TIMEZONES.map((tz) => (
-                  <option key={tz.value} value={tz.value}>
-                    {tz.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {error && (
+              <div className="error" style={{ marginBottom: 16 }}>
+                {error}
+              </div>
+            )}
 
-            {/* Events preview (non-editable) */}
+            <button
+              type="button"
+              className="btn btnPrimary createSubmit claimSubmit"
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? "Creating…" : "Claim my calendar"}
+            </button>
+
+            <p className="claimEditNote">
+              Edit anything before sharing with your people.
+            </p>
+
+            {/* Events preview — below the claim button, as confirmation */}
             {previewEvents.length > 0 && (
-              <div className="formGroup">
-                <label className="formLabel">Events we found</label>
+              <div className="previewWrap">
+                <div className="previewHeader">Events we found</div>
                 <ul className="previewList">
                   {visiblePreview.map((ev) => (
                     <li key={ev.id} className="previewItem">
@@ -659,26 +703,19 @@ export default function CreatePage() {
                     {hiddenPreviewCount !== 1 ? "s" : ""}
                   </p>
                 )}
-                <p className="formHelper">
-                  Edit any event later from your manage page.
-                </p>
               </div>
             )}
 
-            {error && (
-              <div className="error" style={{ marginBottom: 16 }}>
-                {error}
-              </div>
-            )}
-
-            <button
-              type="button"
-              className="btn btnPrimary createSubmit"
-              onClick={handleSubmit}
-              disabled={submitting}
-            >
-              {submitting ? "Creating…" : "Claim my calendar"}
-            </button>
+            {/* Bottom escape hatch */}
+            <div className="claimRetryWrap">
+              <button
+                type="button"
+                className="manualLink"
+                onClick={resetToIdle}
+              >
+                Try again with a different image
+              </button>
+            </div>
           </div>
         )}
 
@@ -687,7 +724,6 @@ export default function CreatePage() {
           <div className="manualSection">
             <div className="divider" />
 
-            {/* Calendar name */}
             <div className="formGroup">
               <label className="formLabel" htmlFor="cal-name-manual">
                 Calendar name
@@ -703,24 +739,23 @@ export default function CreatePage() {
                 autoComplete="off"
               />
               <div className="formHelper">
-                This is the name people see when they subscribe.
+                This is what people see when they subscribe.
               </div>
               {calendarName.trim() && (
-                <>
+                <div className="claimAddress">
+                  <div className="claimAddressLabel">Your web address</div>
                   <div className="slugPreview">
                     callietools.com/<strong>{slug}</strong>
                   </div>
                   <div className="formHelper">
-                    This is your calendar going forward — you&rsquo;ll keep
-                    adding future events to it. We suggest avoiding days and
-                    months in the title, since this URL is permanent. Your
-                    calendar name can be updated anytime from the manage page.
+                    This is your calendar&rsquo;s permanent web address — it
+                    can&rsquo;t be changed later. Avoid days and months in your
+                    name so this stays relevant when you add future events.
                   </div>
-                </>
+                </div>
               )}
             </div>
 
-            {/* Email */}
             <div className="formGroup">
               <label className="formLabel" htmlFor="cal-email-manual">
                 Your email
@@ -735,12 +770,10 @@ export default function CreatePage() {
                 autoComplete="email"
               />
               <div className="formHelper">
-                We&rsquo;ll send you a manage link so you can update your
-                calendar later. We won&rsquo;t email you for anything else.
+                We&rsquo;ll only use this to send your manage link.
               </div>
             </div>
 
-            {/* Timezone */}
             <div className="formGroup">
               <label className="formLabel" htmlFor="cal-timezone-manual">
                 Timezone
@@ -761,7 +794,6 @@ export default function CreatePage() {
 
             <div className="divider" />
 
-            {/* Events */}
             <div className="formGroup">
               <label className="formLabel">Events</label>
 
