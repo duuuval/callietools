@@ -2756,3 +2756,401 @@ a:focus, .btn:focus, button:focus{
 [data-theme="dark"] .previewList{
   background: rgba(255, 255, 255, 0.02);
 }
+
+/* ==========================================================
+   /create rework — drop zone hero, manual escape, claim form
+   with steps, celebration header, preview list
+   ========================================================== */
+
+/* ── Hero drop zone — bigger, alive, mobile-first ────────── */
+
+.flyerUploadHero{
+  margin: 8px 0 0;
+  padding: 36px 20px 32px;
+  border-radius: 18px;
+  border-width: 2.5px;
+}
+
+.flyerUploadHero.flyerUploadIdle{
+  animation: heroPulse 3.6s ease-in-out infinite;
+  border-color: var(--accent);
+  background: linear-gradient(
+    180deg,
+    #fff 0%,
+    rgba(212, 119, 91, 0.04) 100%
+  );
+}
+
+@keyframes heroPulse{
+  0%, 100%{
+    box-shadow: 0 0 0 0 rgba(212, 119, 91, 0);
+  }
+  50%{
+    box-shadow: 0 0 0 6px rgba(212, 119, 91, 0.06);
+  }
+}
+
+.flyerUploadHero.flyerUploadDragOver{
+  border-color: var(--primary);
+  background: var(--primarySoft);
+  transform: scale(1.01);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.flyerHeroMascot{
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: heroMascotFloat 4.2s ease-in-out infinite;
+}
+
+.flyerHeroMascot img{
+  width: 100%;
+  height: auto;
+}
+
+@keyframes heroMascotFloat{
+  0%, 100%{ transform: translateY(0); }
+  50%{ transform: translateY(-4px); }
+}
+
+.flyerUploadHero .flyerHeadline{
+  font-size: 1.05rem;
+  line-height: 1.4;
+  margin-bottom: 6px;
+  max-width: 280px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.flyerUploadHero .flyerFormats{
+  margin-bottom: 16px;
+}
+
+/* ── Manual entry escape hatch (top, before parse) ───────── */
+
+.manualLinkWrap{
+  text-align: center;
+  margin: 18px 0 4px;
+}
+
+.manualLink{
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 12px;
+  text-decoration: underline;
+  text-decoration-color: rgba(91, 97, 110, 0.3);
+  text-underline-offset: 3px;
+  font-family: inherit;
+}
+
+.manualLink:hover{
+  color: var(--text);
+  text-decoration-color: var(--text);
+}
+
+/* ── Manual section (when expanded) ──────────────────────── */
+
+.manualSection{
+  /* Uses existing form styles */
+}
+
+/* ── Post-parse claim section ────────────────────────────── */
+
+.claimSection{
+  margin-top: 8px;
+}
+
+/* Celebration block: mascot, header, subhead */
+.claimCelebrate{
+  text-align: center;
+  margin: 12px 0 28px;
+  padding: 8px 0 0;
+}
+
+.claimMascot{
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: claimMascotEnter 0.6s ease-out;
+}
+
+.claimMascot img{
+  width: 100%;
+  height: auto;
+}
+
+@keyframes claimMascotEnter{
+  0%{
+    opacity: 0;
+    transform: scale(0.7) translateY(-6px);
+  }
+  60%{
+    opacity: 1;
+    transform: scale(1.05) translateY(0);
+  }
+  100%{
+    transform: scale(1);
+  }
+}
+
+.claimHeader{
+  font-family: var(--fontDisplay);
+  font-weight: 900;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  letter-spacing: -0.4px;
+  margin: 0 0 6px;
+  color: var(--text);
+}
+
+.claimSubhead{
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* "Just 2 quick steps" lead-in */
+.claimSteps{
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--accent);
+  text-align: center;
+  margin: 0 0 18px;
+}
+
+/* ── Step blocks ─────────────────────────────────────────── */
+
+.claimStep{
+  margin-bottom: 22px;
+}
+
+.claimStepHeader{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.claimStepBadge{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.claimStepLabel{
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+/* Web address block (under step 1's name input) */
+.claimAddress{
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(212, 119, 91, 0.05);
+  border: 1px solid rgba(212, 119, 91, 0.18);
+  border-radius: 10px;
+}
+
+.claimAddressLabel{
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.claimAddress .slugPreview{
+  margin-top: 0;
+  font-size: 0.88rem;
+}
+
+.claimAddress .formHelper{
+  margin-top: 8px;
+}
+
+/* ── Timezone (collapsed) ────────────────────────────────── */
+
+.tzRow{
+  margin-top: 10px;
+}
+
+.tzLine{
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.tzLine strong{
+  color: var(--text);
+  font-weight: 700;
+}
+
+.tzChange{
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tzChange:hover{
+  color: var(--text);
+}
+
+.tzEditor{
+  margin-top: 4px;
+}
+
+/* ── Claim submit + edit note ────────────────────────────── */
+
+.claimSubmit{
+  margin-top: 8px;
+}
+
+.claimEditNote{
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 12px 0 28px;
+}
+
+/* ── Preview list (below claim button) ───────────────────── */
+
+.previewWrap{
+  margin-top: 8px;
+}
+
+.previewHeader{
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.previewList{
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fafafa;
+}
+
+.previewItem{
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.previewItem:last-child{
+  border-bottom: none;
+}
+
+.previewDate{
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  width: 78px;
+  padding-top: 1px;
+  line-height: 1.3;
+}
+
+.previewBody{
+  flex: 1;
+  min-width: 0;
+}
+
+.previewTitle{
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+  word-wrap: break-word;
+}
+
+.previewFlag{
+  font-size: 0.85rem;
+}
+
+.previewMeta{
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.previewMore{
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 8px 0 0;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ── Bottom retry hatch ──────────────────────────────────── */
+
+.claimRetryWrap{
+  text-align: center;
+  margin: 28px 0 4px;
+}
+
+/* ── Dark theme overrides ────────────────────────────────── */
+
+[data-theme="dark"] .flyerUploadHero.flyerUploadIdle{
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02) 0%,
+    rgba(212, 119, 91, 0.06) 100%
+  );
+}
+
+[data-theme="dark"] .claimAddress{
+  background: rgba(212, 119, 91, 0.08);
+  border-color: rgba(212, 119, 91, 0.25);
+}
+
+[data-theme="dark"] .previewList{
+  background: rgba(255, 255, 255, 0.02);
+}
+
+[data-theme="dark"] .claimStepBadge{
+  color: #fff;
+}
