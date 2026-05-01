@@ -170,6 +170,7 @@ export default function CreatePage() {
   // Flyer import state
   const [parseStatus, setParseStatus] = useState<"idle" | "parsing" | "success" | "error">("idle");
   const [parseMessage, setParseMessage] = useState("");
+  const [parseSubline, setParseSubline] = useState("");
   const [parsedCount, setParsedCount] = useState(0);
   const [dragOver, setDragOver] = useState(false);
 
@@ -249,7 +250,11 @@ export default function CreatePage() {
 
       if (!res.ok) {
         setParseStatus("error");
-        setParseMessage(data.error || "We couldn't read that. Try a sharper image, or add events manually below.");
+        setParseMessage(data.error || "We couldn't read that image.");
+        setParseSubline(
+          data.hint ||
+            "Try a clearer photo, or one that shows dates and times — flyers, schedules, and screenshots all work."
+        );
         return;
       }
 
@@ -269,9 +274,11 @@ export default function CreatePage() {
       setParsedCount(parsedEvents.length);
       setParseStatus("success");
       setParseMessage("");
+      setParseSubline("");
     } catch {
       setParseStatus("error");
-      setParseMessage("Something went wrong. Try again or add events manually below.");
+      setParseMessage("Something went wrong on our end.");
+      setParseSubline("Try again, or add events manually below.");
     }
   }, [parseStatus, calendarName]);
 
@@ -511,6 +518,20 @@ export default function CreatePage() {
                   <p className="flyerHeadline" style={{ color: "var(--color-error, #c0392b)" }}>
                     {parseMessage}
                   </p>
+                  {parseSubline && (
+                    <p
+                      style={{
+                        color: "var(--muted)",
+                        fontSize: "0.95rem",
+                        lineHeight: 1.5,
+                        marginTop: "-4px",
+                        marginBottom: "16px",
+                        maxWidth: "44ch",
+                      }}
+                    >
+                      {parseSubline}
+                    </p>
+                  )}
                   <button
                     type="button"
                     className="btn btnSecondary"
