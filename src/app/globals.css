@@ -2508,3 +2508,251 @@ a:focus, .btn:focus, button:focus{
 .uploadTryIt a:hover{
   text-decoration: underline;
 }
+
+/* ==========================================================
+   /create rework — drop zone hero, manual escape, claim form, preview list
+   ========================================================== */
+
+/* ── Hero drop zone — bigger, alive, mobile-first ────────── */
+
+.flyerUploadHero{
+  margin: 8px 0 0;
+  padding: 36px 20px 32px;
+  border-radius: 18px;
+  border-width: 2.5px;
+}
+
+.flyerUploadHero.flyerUploadIdle{
+  animation: heroPulse 3.6s ease-in-out infinite;
+  border-color: var(--accent);
+  background: linear-gradient(
+    180deg,
+    #fff 0%,
+    rgba(212, 119, 91, 0.04) 100%
+  );
+}
+
+@keyframes heroPulse{
+  0%, 100%{
+    box-shadow: 0 0 0 0 rgba(212, 119, 91, 0);
+  }
+  50%{
+    box-shadow: 0 0 0 6px rgba(212, 119, 91, 0.06);
+  }
+}
+
+.flyerUploadHero.flyerUploadDragOver{
+  border-color: var(--primary);
+  background: var(--primarySoft);
+  transform: scale(1.01);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+/* Hero mascot in idle state — small, ambient, above the headline */
+.flyerHeroMascot{
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: heroMascotFloat 4.2s ease-in-out infinite;
+}
+
+.flyerHeroMascot img{
+  width: 100%;
+  height: auto;
+}
+
+@keyframes heroMascotFloat{
+  0%, 100%{ transform: translateY(0); }
+  50%{ transform: translateY(-4px); }
+}
+
+/* Slightly larger headline in the hero state */
+.flyerUploadHero .flyerHeadline{
+  font-size: 1.05rem;
+  line-height: 1.4;
+  margin-bottom: 6px;
+  max-width: 280px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.flyerUploadHero .flyerFormats{
+  margin-bottom: 16px;
+}
+
+/* ── Manual entry escape hatch ───────────────────────────── */
+
+.manualLinkWrap{
+  text-align: center;
+  margin: 18px 0 4px;
+}
+
+.manualLink{
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 12px;
+  text-decoration: underline;
+  text-decoration-color: rgba(91, 97, 110, 0.3);
+  text-underline-offset: 3px;
+  font-family: inherit;
+}
+
+.manualLink:hover{
+  color: var(--text);
+  text-decoration-color: var(--text);
+}
+
+/* ── Manual section (when expanded) ──────────────────────── */
+
+.manualSection{
+  /* No additional treatment — uses existing form styles */
+}
+
+/* ── Post-parse claim section ────────────────────────────── */
+
+.claimSection{
+  margin-top: 4px;
+}
+
+/* Compact "we pulled N events" line at the top of the claim section */
+.parseSuccessLine{
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  background: rgba(212, 119, 91, 0.06);
+  border-radius: 10px;
+  line-height: 1.4;
+}
+
+.parseSuccessCheck{
+  color: var(--accent);
+  font-weight: 900;
+  font-size: 1rem;
+}
+
+.parseSuccessRetry{
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  margin-left: auto;
+}
+
+.parseSuccessRetry:hover{
+  color: var(--text);
+}
+
+/* The big confident framing header */
+.claimHeader{
+  font-family: var(--fontDisplay);
+  font-weight: 800;
+  font-size: 1.15rem;
+  line-height: 1.4;
+  letter-spacing: -0.2px;
+  margin: 0 0 22px;
+  color: var(--text);
+}
+
+/* ── Preview list (non-editable events) ──────────────────── */
+
+.previewList{
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fafafa;
+}
+
+.previewItem{
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.previewItem:last-child{
+  border-bottom: none;
+}
+
+.previewDate{
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  width: 78px;
+  padding-top: 1px;
+  line-height: 1.3;
+}
+
+.previewBody{
+  flex: 1;
+  min-width: 0;
+}
+
+.previewTitle{
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+  word-wrap: break-word;
+}
+
+.previewFlag{
+  font-size: 0.85rem;
+}
+
+.previewMeta{
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.previewMore{
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 8px 0 0;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ── Dark theme overrides for new classes ────────────────── */
+
+[data-theme="dark"] .flyerUploadHero.flyerUploadIdle{
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02) 0%,
+    rgba(212, 119, 91, 0.06) 100%
+  );
+}
+
+[data-theme="dark"] .parseSuccessLine{
+  background: rgba(212, 119, 91, 0.10);
+}
+
+[data-theme="dark"] .previewList{
+  background: rgba(255, 255, 255, 0.02);
+}
