@@ -158,20 +158,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate we got something useful
-    if (!parsed.events || !Array.isArray(parsed.events)) {
-      return NextResponse.json(
-        { error: "No events could be extracted. Try a sharper image or add events manually." },
-        { status: 422 }
-      );
-    }
-
-    if (parsed.events.length === 0) {
+    // Validate we got something useful. For both the malformed-response case
+    // and the zero-events case, return a generic message — never surface the
+    // model's `parse_notes` to the user (it can describe the image content in
+    // ways that are weird, embarrassing, or privacy-sensitive). Log the
+    // model's reason server-side for our own debugging.
+    if (!parsed.events || !Array.isArray(parsed.events) || parsed.events.length === 0) {
+      console.warn("parse-flyer: no events extracted", {
+        model_reason: parsed.parse_notes ?? null,
+        events_field_present: parsed.events !== undefined,
+        events_is_array: Array.isArray(parsed.events),
+        events_length: Array.isArray(parsed.events) ? parsed.events.length : null,
+      });
       return NextResponse.json(
         {
-          error:
-            parsed.parse_notes ||
-            "We couldn't find any events in that image. Try a sharper photo, or add your events manually below.",
+          error: "Couldn't find any events in that image.",
+          hint: "Try a clearer photo, or one that shows dates and times — flyers, schedules, and screenshots all work.",
         },
         { status: 422 }
       );
