@@ -586,7 +586,7 @@ export default function CreatePage() {
                     callietools.com/<strong>{slug}</strong>
                   </div>
                   <div className="formHelper">
-                    This is your calendar&rsquo;s permanent web address — it
+                    This is your calendar&rsquo;s permanent web address&#8288;&mdash;it
                     can&rsquo;t be changed later. Avoid days and months in your
                     name so this stays relevant when you add future events.
                   </div>
