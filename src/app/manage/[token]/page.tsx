@@ -130,6 +130,37 @@ function isLightColor(hex: string): boolean {
   return (r * 299 + g * 587 + b * 114) / 1000 > 155;
 }
 
+// ─── Date / time formatting for collapsed rows ───────────────
+
+function formatRowDate(isoDate: string): string {
+  if (!isoDate || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) return "";
+  const [y, m, d] = isoDate.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  const currentYear = new Date().getFullYear();
+  const showYear = y !== currentYear;
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    ...(showYear ? { year: "numeric" } : {}),
+  });
+}
+
+function formatRowTime(time24: string): string {
+  if (!time24 || !/^\d{2}:\d{2}$/.test(time24)) return "";
+  const [h, m] = time24.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 === 0 ? 12 : h % 12;
+  if (m === 0) return `${hour12} ${period}`;
+  return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
+}
+
+// ─── Toast component (inline, no library) ────────────────────
+
+interface Toast {
+  id: string;
+  message: string;
+}
+
 export default function ManagePage({
   params,
 }: {
@@ -143,6 +174,26 @@ export default function ManagePage({
   const [events, setEvents] = useState<EventRow[]>([]);
   const [pastExpanded, setPastExpanded] = useState(false);
 
+  // ── Per-row UI state (which rows are expanded for editing) ──
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  // Snapshot of rows when they were expanded — for Cancel discard
+  const editSnapshots = useRef<Map<string, EventRow>>(new Map());
+  // Track which rows are brand-new (unsaved) — Cancel on these removes the row entirely
+  const newUnsavedRows = useRef<Set<string>>(new Set());
+  // Refs to row containers for scroll-into-view
+  const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  // Refs for focus management
+  const titleInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+
+  // ── Branding state (paid only) ──
+  const [brandingExpanded, setBrandingExpanded] = useState(false);
+  const [accentColor, setAccentColor] = useState("");
+  const [hexInput, setHexInput] = useState("");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [brandingDirty, setBrandingDirty] = useState(false);
+  const [brandingSubmitting, setBrandingSubmitting] = useState(false);
+  const [brandingSaveError, setBrandingSaveError] = useState("");
+
   // ── Flyer import state ──
   const [parseStatus, setParseStatus] = useState<"idle" | "parsing" | "success" | "error">("idle");
   const [parseMessage, setParseMessage] = useState("");
@@ -151,40 +202,54 @@ export default function ManagePage({
   const [dragOver, setDragOver] = useState(false);
   const parsePhraseTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadCardRef = useRef<HTMLDivElement>(null);
 
-  const [accentColor, setAccentColor] = useState("");
-  const [hexInput, setHexInput] = useState("");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [brandingDirty, setBrandingDirty] = useState(false);
-  const [brandingSubmitting, setBrandingSubmitting] = useState(false);
-  const [brandingSaveError, setBrandingSaveError] = useState("");
-  const [brandingSaveSuccess, setBrandingSaveSuccess] = useState(false);
+  // ── Save state (per-event inline) ──
+  const [savingRowId, setSavingRowId] = useState<string | null>(null);
 
-  const [submitting, setSubmitting] = useState(false);
-  const [saveError, setSaveError] = useState("");
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
+  // ── Delete confirm dialog ──
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+
+  // ── Toasts ──
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const showToast = useCallback((message: string) => {
+    const id = crypto.randomUUID();
+    setToasts((prev) => [...prev, { id, message }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3000);
+  }, []);
 
   const isPaid = calendar?.tier === "paid";
   const buttonTextColor = isLightColor(accentColor) ? "#000" : "#fff";
 
-  const previewBorder = theme === "dark" ? "#3a3a3a" : "#e5e5e5";
+  // ── Derived ──
+  const upcomingEvents = events
+    .filter((e) => !isPastEvent(e))
+    .sort((a, b) => {
+      if (!a.start_date) return 1;
+      if (!b.start_date) return -1;
+      const dateCompare = a.start_date.localeCompare(b.start_date);
+      if (dateCompare !== 0) return dateCompare;
+      // Events without start_time sort first within their date
+      if (!a.start_time && b.start_time) return -1;
+      if (a.start_time && !b.start_time) return 1;
+      return a.start_time.localeCompare(b.start_time);
+    });
+  const pastEvents = events
+    .filter((e) => isPastEvent(e))
+    .sort((a, b) => b.start_date.localeCompare(a.start_date));
 
-  // ── Derived: split events into upcoming and past ──
-  const upcomingEvents = events.filter((e) => !isPastEvent(e));
-  const pastEvents = events.filter((e) => isPastEvent(e));
+  const upcomingCount = upcomingEvents.length;
+  const pastCount = pastEvents.length;
+  const totalCount = events.filter((e) => e.title.trim() || e.start_date.trim()).length;
 
-  // ── Derived: count events with title + date (for header) ──
-  const eventCount = events.filter((e) => e.title.trim() || e.start_date.trim()).length;
+  // Has any branding been set on this calendar?
+  const hasBranding = !!(accentColor || (calendar?.theme && calendar.theme !== "light") || calendar?.logoUrl);
 
-  useEffect(() => {
-    const handler = (e: BeforeUnloadEvent) => {
-      if (isDirty || brandingDirty) e.preventDefault();
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [isDirty, brandingDirty]);
-
+  // ── Load calendar ──
   useEffect(() => {
     async function load() {
       try {
@@ -205,30 +270,24 @@ export default function ManagePage({
         setTheme(data.calendar.theme === "dark" ? "dark" : "light");
         setEvents(
           data.events.length > 0
-            ? data.events
-                .map((e: {
-                  title: string;
-                  start_date: string;
-                  start_time: string;
-                  end_time: string;
-                  location: string;
-                  description: string;
-                }) => ({
-                  id: crypto.randomUUID(),
-                  title: e.title,
-                  start_date: e.start_date,
-                  start_time: e.start_time || "",
-                  end_time: e.end_time || "",
-                  location: e.location || "",
-                  description: e.description || "",
-                  showDetails: !!(e.location || e.description),
-                }))
-                .sort((a: EventRow, b: EventRow) => {
-                  if (!a.start_date) return 1;
-                  if (!b.start_date) return -1;
-                  return a.start_date.localeCompare(b.start_date);
-                })
-            : [makeEmptyEvent()]
+            ? data.events.map((e: {
+                title: string;
+                start_date: string;
+                start_time: string;
+                end_time: string;
+                location: string;
+                description: string;
+              }) => ({
+                id: crypto.randomUUID(),
+                title: e.title,
+                start_date: e.start_date,
+                start_time: e.start_time || "",
+                end_time: e.end_time || "",
+                location: e.location || "",
+                description: e.description || "",
+                showDetails: !!(e.location || e.description),
+              }))
+            : []
         );
       } catch {
         setLoadError("Something went wrong loading your calendar. Please try again.");
@@ -253,8 +312,6 @@ export default function ManagePage({
     setParsePhrase(PARSE_PHRASES[0]);
     setParsePhraseVisible(true);
 
-    // Schedule phrases 2–5 using explicit delays
-    // Phrase 5 ("Still working — promise!") stays indefinitely
     PARSE_PHRASES.slice(1).forEach((_, idx) => {
       const i = idx + 1;
       const t = setTimeout(() => {
@@ -271,6 +328,161 @@ export default function ManagePage({
     return () => { parsePhraseTimers.current.forEach(clearTimeout); };
   }, [parseStatus]);
 
+  // ── Helper: persist events array to server ──
+  const persistEvents = useCallback(async (eventsToSave: EventRow[]): Promise<boolean> => {
+    const validEvents = eventsToSave.filter((e) => e.title.trim() && e.start_date.trim());
+    try {
+      const res = await fetch(`/api/manage/${token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          events: validEvents.map((e) => ({
+            title: e.title.trim(),
+            start_date: e.start_date,
+            start_time: e.start_time || "",
+            end_date: e.start_date,
+            end_time: e.end_time || "",
+            location: e.location.trim(),
+            description: e.description.trim(),
+          })),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Something went wrong (${res.status}).`);
+      }
+      return true;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Couldn't save. Please try again.";
+      showToast(message);
+      return false;
+    }
+  }, [token, showToast]);
+
+  // ── Row expand / collapse ──
+  const expandRow = useCallback((id: string) => {
+    setEvents((prev) => {
+      const ev = prev.find((e) => e.id === id);
+      if (ev) editSnapshots.current.set(id, { ...ev });
+      return prev;
+    });
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  }, []);
+
+  const collapseRow = useCallback((id: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+    editSnapshots.current.delete(id);
+  }, []);
+
+  // ── Update field on a row ──
+  const updateEvent = useCallback(
+    (id: string, field: keyof EventRow, value: string | boolean) => {
+      setEvents((prev) => prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
+    }, []
+  );
+
+  // ── Save individual row (inline) ──
+  const handleSaveRow = useCallback(async (id: string) => {
+    const ev = events.find((e) => e.id === id);
+    if (!ev) return;
+
+    if (!ev.title.trim()) {
+      showToast("Add a title before saving.");
+      return;
+    }
+    if (!ev.start_date.trim()) {
+      showToast("Add a date before saving.");
+      return;
+    }
+
+    setSavingRowId(id);
+    const success = await persistEvents(events);
+    setSavingRowId(null);
+
+    if (success) {
+      // Clear isNew + confidence flags after successful save
+      setEvents((prev) => prev.map((e) =>
+        e.id === id ? { ...e, isNew: false, confidence: undefined } : e
+      ));
+      newUnsavedRows.current.delete(id);
+      collapseRow(id);
+      showToast("Event saved.");
+    }
+  }, [events, persistEvents, showToast, collapseRow]);
+
+  // ── Cancel edit on a row ──
+  const handleCancelRow = useCallback((id: string) => {
+    // If this is a brand-new unsaved row, remove it entirely
+    if (newUnsavedRows.current.has(id)) {
+      newUnsavedRows.current.delete(id);
+      setEvents((prev) => prev.filter((e) => e.id !== id));
+      setExpandedRows((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      editSnapshots.current.delete(id);
+      return;
+    }
+
+    // Otherwise restore from snapshot
+    const snapshot = editSnapshots.current.get(id);
+    if (snapshot) {
+      setEvents((prev) => prev.map((e) => (e.id === id ? snapshot : e)));
+    }
+    collapseRow(id);
+  }, [collapseRow]);
+
+  // ── Add new event manually ──
+  const handleAddManual = useCallback(() => {
+    const newEvent = makeEmptyEvent();
+    newUnsavedRows.current.add(newEvent.id);
+    editSnapshots.current.set(newEvent.id, { ...newEvent });
+    setEvents((prev) => [newEvent, ...prev]);
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      next.add(newEvent.id);
+      return next;
+    });
+    // Scroll to and focus the new row after render
+    setTimeout(() => {
+      const row = rowRefs.current.get(newEvent.id);
+      if (row) row.scrollIntoView({ behavior: "smooth", block: "center" });
+      const titleInput = titleInputRefs.current.get(newEvent.id);
+      if (titleInput) titleInput.focus();
+    }, 100);
+  }, []);
+
+  // ── Delete event (with confirm) ──
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!deleteConfirmId) return;
+    setDeleteSubmitting(true);
+    const nextEvents = events.filter((e) => e.id !== deleteConfirmId);
+    const success = await persistEvents(nextEvents);
+    setDeleteSubmitting(false);
+
+    if (success) {
+      setEvents(nextEvents);
+      newUnsavedRows.current.delete(deleteConfirmId);
+      editSnapshots.current.delete(deleteConfirmId);
+      setExpandedRows((prev) => {
+        const next = new Set(prev);
+        next.delete(deleteConfirmId);
+        return next;
+      });
+      setDeleteConfirmId(null);
+      showToast("Event deleted.");
+    }
+  }, [deleteConfirmId, events, persistEvents, showToast]);
+
   // ── Flyer import ──
   const handleFile = useCallback(async (file: File) => {
     if (parseStatus === "parsing") return;
@@ -286,61 +498,63 @@ export default function ManagePage({
       const data = await res.json();
       if (!res.ok) {
         setParseStatus("error");
-        setParseMessage(data.error || "We couldn't read that. Try a sharper image, or add events manually below.");
+        setParseMessage(data.error || "We couldn't read that. Try a sharper image, or add events manually.");
         return;
       }
       const parsedEvents: EventRow[] = data.events.map(makeEventFromParse);
-      setEvents((prev) => {
-        const nonEmpty = prev.filter((e) => e.title.trim() || e.start_date.trim());
 
-        const newOnly = parsedEvents.filter((parsed) => {
-          return !nonEmpty.some((existing) => {
-            const titleMatch = parsed.title.trim().toLowerCase() === existing.title.trim().toLowerCase();
-            const dateMatch = parsed.start_date === existing.start_date;
-            if (!titleMatch || !dateMatch) return false;
-            if (parsed.start_time && existing.start_time) {
-              return parsed.start_time === existing.start_time;
-            }
-            return true;
-          });
+      // Filter duplicates against existing events
+      const newOnly = parsedEvents.filter((parsed) => {
+        return !events.some((existing) => {
+          const titleMatch = parsed.title.trim().toLowerCase() === existing.title.trim().toLowerCase();
+          const dateMatch = parsed.start_date === existing.start_date;
+          if (!titleMatch || !dateMatch) return false;
+          if (parsed.start_time && existing.start_time) {
+            return parsed.start_time === existing.start_time;
+          }
+          return true;
         });
+      });
 
-        const totalParsed = parsedEvents.length;
-        const skipped = totalParsed - newOnly.length;
+      const skipped = parsedEvents.length - newOnly.length;
 
-        if (newOnly.length === 0) {
-          setParseStatus("success");
-          setParseMessage(
-            totalParsed === 1
-              ? "That event is already on your calendar — nothing was added."
-              : "All events from this upload are already on your calendar — nothing was added."
-          );
-          return nonEmpty;
-        }
+      if (newOnly.length === 0) {
+        setParseStatus("success");
+        setParseMessage(
+          parsedEvents.length === 1
+            ? "That event is already on your calendar — nothing was added."
+            : "All events from this upload are already on your calendar — nothing was added."
+        );
+        return;
+      }
 
-        setIsDirty(true);
+      // Merge new events into local state, then persist immediately
+      const merged = [...newOnly, ...events];
+      const success = await persistEvents(merged);
+
+      if (success) {
+        // Clear isNew flags on persisted events (they're real now)
+        setEvents(merged.map((e) => ({ ...e, isNew: false, confidence: undefined })));
         setParseStatus("success");
         if (skipped > 0) {
           setParseMessage(
-            `We added ${newOnly.length} new event${newOnly.length !== 1 ? "s" : ""} from your upload. ${skipped} event${skipped !== 1 ? "s were" : " was"} already on your calendar and ${skipped !== 1 ? "were" : "was"} skipped. Review below, then save.`
+            `Added ${newOnly.length} new event${newOnly.length !== 1 ? "s" : ""}. ${skipped} already existed.`
           );
         } else {
           setParseMessage(
-            `We added ${newOnly.length} event${newOnly.length !== 1 ? "s" : ""} from your upload — review below, then save your calendar.`
+            `Added ${newOnly.length} event${newOnly.length !== 1 ? "s" : ""}.`
           );
         }
-
-        return [...newOnly, ...nonEmpty].sort((a, b) => {
-          if (!a.start_date) return 1;
-          if (!b.start_date) return -1;
-          return a.start_date.localeCompare(b.start_date);
-        });
-      });
+        showToast(`Added ${newOnly.length} event${newOnly.length !== 1 ? "s" : ""}.`);
+      } else {
+        setParseStatus("error");
+        setParseMessage("Couldn't save the new events. Please try again.");
+      }
     } catch {
       setParseStatus("error");
-      setParseMessage("Something went wrong. Try again or add events manually below.");
+      setParseMessage("Something went wrong. Try again or add events manually.");
     }
-  }, [parseStatus]);
+  }, [parseStatus, events, persistEvents, showToast]);
 
   const triggerFilePicker = () => fileInputRef.current?.click();
 
@@ -366,6 +580,13 @@ export default function ManagePage({
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setDragOver(true); };
   const handleDragLeave = () => setDragOver(false);
 
+  // ── Scroll to upload zone (from "Add what's next" button) ──
+  const scrollToUpload = useCallback(() => {
+    if (uploadCardRef.current) {
+      uploadCardRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, []);
+
   // ── Branding handlers ──
   const handleSwatchClick = (hex: string) => {
     setAccentColor(hex);
@@ -386,7 +607,6 @@ export default function ManagePage({
 
   const handleBrandingSave = async () => {
     setBrandingSaveError("");
-    setBrandingSaveSuccess(false);
     if (accentColor && !/^#[0-9A-Fa-f]{6}$/.test(accentColor)) {
       setBrandingSaveError("Enter a valid hex color like #4F6BED");
       return;
@@ -403,8 +623,8 @@ export default function ManagePage({
         throw new Error(data.error || "Something went wrong. Please try again.");
       }
       setBrandingDirty(false);
-      setBrandingSaveSuccess(true);
-      setTimeout(() => setBrandingSaveSuccess(false), 4000);
+      setBrandingExpanded(false);
+      showToast("Branding saved.");
     } catch (err) {
       setBrandingSaveError(
         err instanceof Error ? err.message : "Something went wrong. Please try again."
@@ -414,93 +634,131 @@ export default function ManagePage({
     }
   };
 
-  // ── Event handlers ──
-  const updateEvent = useCallback(
-    (id: string, field: keyof EventRow, value: string | boolean) => {
-      setEvents((prev) => prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
-      setIsDirty(true);
-    }, []
-  );
-
-  const removeEvent = useCallback((id: string) => {
-    setEvents((prev) => {
-      const next = prev.filter((e) => e.id !== id);
-      return next.length > 0 ? next : [makeEmptyEvent()];
-    });
-    setIsDirty(true);
-  }, []);
-
-  const addEvent = useCallback(() => {
-    setEvents((prev) => [...prev, makeEmptyEvent()]);
-    setIsDirty(true);
-  }, []);
-
-  const handleSave = async () => {
-    setSaveError("");
-    setSaveSuccess(false);
-    const validEvents = events.filter((e) => e.title.trim() && e.start_date.trim());
-    if (validEvents.length === 0) {
-      setSaveError("Add at least one event with a title and date.");
-      return;
+  // ── Copy link to clipboard ──
+  const handleCopyLink = useCallback(() => {
+    if (!calendar) return;
+    const url = `https://callietools.com/${calendar.id}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(
+        () => showToast("Link copied."),
+        () => showToast("Couldn't copy — select the URL manually.")
+      );
+    } else {
+      showToast("Couldn't copy — select the URL manually.");
     }
-    setSubmitting(true);
-    try {
-      const res = await fetch(`/api/manage/${token}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          events: validEvents.map((e) => ({
-            title: e.title.trim(),
-            start_date: e.start_date,
-            start_time: e.start_time || "",
-            end_date: e.start_date,
-            end_time: e.end_time || "",
-            location: e.location.trim(),
-            description: e.description.trim(),
-          })),
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Something went wrong (${res.status}). Please try again.`);
-      }
-      setIsDirty(false);
-      setEvents((prev) => prev.map((e) => ({ ...e, isNew: false, confidence: undefined })));
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 4000);
-    } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  }, [calendar, showToast]);
 
-  // ── Shared event card renderer ──
-  function renderEventCard(ev: EventRow, globalIdx: number) {
+  // ── Loading / error states ──
+  if (loading) {
     return (
-      <div key={ev.id} className={`eventCard${ev.isNew ? " eventCardNew" : ""}`}>
-        <div className="eventCardHeader">
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span className="eventCardNum">
-              {globalIdx + 1}
-              {ev.isNew && ev.confidence === "low" && " ⚠️"}
-              {ev.isNew && ev.confidence === "medium" && " ·"}
-            </span>
-            {ev.isNew && <span className="eventCardNewBadge">NEW</span>}
-          </div>
-          {events.length > 1 && (
-            <button
-              type="button"
-              className="eventCardRemove"
-              onClick={() => removeEvent(ev.id)}
-              aria-label={`Remove event ${globalIdx + 1}`}
-            >
-              ✕
-            </button>
-          )}
+      <div className="container">
+        <div className="card" style={{ textAlign: "center", padding: "48px 24px" }}>
+          <p style={{ color: "var(--text-muted, #666)" }}>Loading your calendar…</p>
         </div>
+      </div>
+    );
+  }
 
+  if (loadError) {
+    return (
+      <div className="container">
+        <div className="card" style={{ textAlign: "center", padding: "48px 24px" }}>
+          <h1 style={{ fontSize: "1.25rem", marginBottom: 12 }}>Manage link not found</h1>
+          <p style={{ color: "var(--text-muted, #666)", marginBottom: 24 }}>{loadError}</p>
+          <a href="/recover" className="btn btnPrimary" style={{ display: "inline-block" }}>
+            Recover your manage link
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  const calendarUrl = `https://callietools.com/${calendar?.id}`;
+  const calendarUrlDisplay = `callietools.com/${calendar?.id}`;
+  const logoUrl = calendar?.logoUrl || null;
+
+  // ─────────────────────────────────────────────────────────────
+  // ── Render: Collapsed event row (upcoming only) ──
+  // ─────────────────────────────────────────────────────────────
+  function renderCollapsedRow(ev: EventRow) {
+    const dateStr = formatRowDate(ev.start_date);
+    const timeStr = ev.start_time ? formatRowTime(ev.start_time) : "All day";
+    const title = ev.title.trim() || "(Untitled event)";
+
+    return (
+      <div
+        key={ev.id}
+        ref={(el) => {
+          if (el) rowRefs.current.set(ev.id, el);
+          else rowRefs.current.delete(ev.id);
+        }}
+        className="manageRowCollapsed"
+        onClick={() => expandRow(ev.id)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            expandRow(ev.id);
+          }
+        }}
+      >
+        <div className="manageRowContent">
+          <span className="manageRowDate">{dateStr || "No date"}</span>
+          <span className="manageRowSep">·</span>
+          <span className="manageRowTitle">{title}</span>
+          {(ev.start_time || ev.location) && (
+            <>
+              <span className="manageRowSep">·</span>
+              <span className="manageRowMeta">
+                {timeStr}
+                {ev.location && <> · {ev.location}</>}
+              </span>
+            </>
+          )}
+          {ev.isNew && <span className="eventCardNewBadge" style={{ marginLeft: 8 }}>NEW</span>}
+        </div>
+        <div className="manageRowActions" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            className="manageRowChevron"
+            onClick={() => expandRow(ev.id)}
+            aria-label="Edit event"
+          >
+            ▾
+          </button>
+          <button
+            type="button"
+            className="manageRowDelete"
+            onClick={() => setDeleteConfirmId(ev.id)}
+            aria-label="Delete event"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // ── Render: Expanded event row (full edit form) ──
+  // ─────────────────────────────────────────────────────────────
+  function renderExpandedRow(ev: EventRow) {
+    const isSaving = savingRowId === ev.id;
+    return (
+      <div
+        key={ev.id}
+        ref={(el) => {
+          if (el) rowRefs.current.set(ev.id, el);
+          else rowRefs.current.delete(ev.id);
+        }}
+        className={`eventCard${ev.isNew ? " eventCardNew" : ""}`}
+      >
         <input
+          ref={(el) => {
+            if (el) titleInputRefs.current.set(ev.id, el);
+            else titleInputRefs.current.delete(ev.id);
+          }}
           type="text"
           className="formInput"
           placeholder="Event title"
@@ -565,231 +823,283 @@ export default function ManagePage({
             onChange={(e) => updateEvent(ev.id, "description", e.target.value)}
           />
         )}
-      </div>
-    );
-  }
 
-  if (loading) {
-    return (
-      <div className="container">
-        <div className="card" style={{ textAlign: "center", padding: "48px 24px" }}>
-          <p style={{ color: "var(--text-muted, #666)" }}>Loading your calendar…</p>
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+          marginTop: 16,
+          paddingTop: 12,
+          borderTop: "1px solid #eee",
+        }}>
+          <button
+            type="button"
+            className="manualLink"
+            onClick={() => handleCancelRow(ev.id)}
+            disabled={isSaving}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn btnPrimary"
+            onClick={() => handleSaveRow(ev.id)}
+            disabled={isSaving}
+            style={{ minWidth: 120 }}
+          >
+            {isSaving ? "Saving…" : "Save event"}
+          </button>
         </div>
       </div>
     );
   }
 
-  if (loadError) {
+  // ─────────────────────────────────────────────────────────────
+  // ── Render: Read-only past event row ──
+  // ─────────────────────────────────────────────────────────────
+  function renderPastRow(ev: EventRow) {
+    const dateStr = formatRowDate(ev.start_date);
+    const timeStr = ev.start_time ? formatRowTime(ev.start_time) : "All day";
     return (
-      <div className="container">
-        <div className="card" style={{ textAlign: "center", padding: "48px 24px" }}>
-          <h1 style={{ fontSize: "1.25rem", marginBottom: 12 }}>Manage link not found</h1>
-          <p style={{ color: "var(--text-muted, #666)", marginBottom: 24 }}>{loadError}</p>
-          <a href="/recover" className="btn btnPrimary" style={{ display: "inline-block" }}>
-            Recover your manage link
-          </a>
-        </div>
+      <div key={ev.id} className="managePastRow">
+        <span className="manageRowDate">{dateStr}</span>
+        <span className="manageRowSep">·</span>
+        <span className="manageRowTitle">{ev.title.trim() || "(Untitled event)"}</span>
+        {(ev.start_time || ev.location) && (
+          <>
+            <span className="manageRowSep">·</span>
+            <span className="manageRowMeta">
+              {timeStr}
+              {ev.location && <> · {ev.location}</>}
+            </span>
+          </>
+        )}
       </div>
     );
   }
 
-  const calendarUrl = `https://callietools.com/${calendar?.id}`;
-  const logoUrl = calendar?.logoUrl || null;
-  const accentStyle = accentColor
-    ? { backgroundColor: accentColor, borderColor: accentColor, color: buttonTextColor }
-    : {};
-
+  // ─────────────────────────────────────────────────────────────
+  // ── Main render ──
+  // ─────────────────────────────────────────────────────────────
   return (
     <div className="container">
       <div className="card">
 
-        {/* ── Header ── */}
-        <div style={{ marginBottom: 4 }}>
-          <h1 className="createHeader" style={{ marginBottom: 4 }}>{calendar?.name}</h1>
-          
-            <a href={calendarUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ fontSize: "0.875rem", color: "#4F6BED" }}
-          >
-            View calendar page →
-          </a>
+        {/* ═══════════════════════════════════════════════════════
+            ZONE 1 — Home base
+            ═══════════════════════════════════════════════════════ */}
+        <div style={{ marginBottom: 8 }}>
+          <h1 className="createHeader" style={{ marginBottom: 16 }}>
+            {calendar?.name}
+          </h1>
+
+          {/* URL strip */}
+          <div className="manageUrlStrip">
+            <div className="manageUrlText">
+              <span className="manageUrlIcon" aria-hidden="true">🔗</span>
+              <span className="manageUrlValue">{calendarUrlDisplay}</span>
+            </div>
+            <div className="manageUrlButtons">
+              <button
+                type="button"
+                className="btn btnSecondary manageUrlBtn"
+                onClick={handleCopyLink}
+              >
+                Copy link
+              </button>
+              <a
+                href={calendarUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btnSecondary manageUrlBtn"
+              >
+                See what your people see ↗
+              </a>
+            </div>
+          </div>
+
+          {/* At-a-glance line */}
+          {totalCount > 0 && (
+            <div className="manageAtGlance">
+              {upcomingCount > 0 ? (
+                <>
+                  {upcomingCount} upcoming · {pastCount} past
+                </>
+              ) : (
+                <>
+                  No upcoming · {pastCount} past
+                  <button
+                    type="button"
+                    className="manageAtGlanceCta"
+                    onClick={scrollToUpload}
+                  >
+                    Add what&rsquo;s next ▸
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="divider" />
 
-        {/* ── Branding section (paid only) ── */}
-        {isPaid && (
+        {/* ═══════════════════════════════════════════════════════
+            ZONE 3 — Branding (paid) OR Upgrade reminder (free)
+            ═══════════════════════════════════════════════════════ */}
+        {isPaid ? (
           <>
-            <div className="formGroup">
-              <label className="formLabel">Your branding</label>
-
-              {/* ── Mini preview: brand band + accent buttons ─────────────
-                   Matches what the customer will see on their real calendar
-                   page. Compact by design — /manage is primarily for event
-                   management, so this preview earns its place by showing
-                   the band (the biggest visual change) plus the two button
-                   treatments (accent as fill, accent as text). */}
-              <div style={{
-                marginBottom: 8,
-                borderRadius: 10,
-                border: `1px solid ${previewBorder}`,
-                overflow: "hidden",
-                background: theme === "dark"
-                  ? `color-mix(in srgb, ${accentColor || "#4F6BED"} 7%, #111)`
-                  : `color-mix(in srgb, ${accentColor || "#4F6BED"} 5%, #F6F6F8)`,
-                transition: "background 0.2s, border-color 0.2s",
-              }}>
-                {/* Mini card with the brand band */}
-                <div style={{
-                  margin: 20,
-                  background: theme === "dark" ? "#242424" : "#ffffff",
-                  border: `1px solid ${previewBorder}`,
-                  borderRadius: 10,
-                  overflow: "hidden",
-                }}>
-                  {/* Brand band */}
-                  <div style={{
-                    padding: "14px 16px",
-                    background: theme === "dark"
-                      ? `color-mix(in srgb, ${accentColor || "#4F6BED"} 14%, #242424)`
-                      : `color-mix(in srgb, ${accentColor || "#4F6BED"} 10%, #ffffff)`,
-                    borderBottom: `1px solid ${theme === "dark"
-                      ? `color-mix(in srgb, ${accentColor || "#4F6BED"} 30%, transparent)`
-                      : `color-mix(in srgb, ${accentColor || "#4F6BED"} 25%, transparent)`}`,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                  }}>
-                    {logoUrl ? (
-                      <img
-                        src={logoUrl}
-                        alt={`${calendar?.name} logo`}
-                        style={{ maxHeight: 44, maxWidth: 70, objectFit: "contain", flexShrink: 0 }}
-                      />
-                    ) : null}
-                    <div style={{
-                      flex: 1,
-                      textAlign: logoUrl ? "right" : "left",
-                      fontWeight: 900,
-                      fontSize: "1rem",
-                      letterSpacing: "-0.3px",
-                      color: theme === "dark" ? "#f0f0f0" : "#111318",
-                      lineHeight: 1.1,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}>
-                      {calendar?.name}
-                    </div>
-                  </div>
-
-                  {/* Body strip with primary + secondary buttons */}
-                  <div style={{
-                    padding: "16px",
-                    display: "flex",
-                    justifyContent: "center",
-                    gap: 10,
-                    flexWrap: "wrap",
-                  }}>
-                    <div style={{
-                      padding: "8px 18px",
-                      borderRadius: 6,
-                      background: accentColor || "#4F6BED",
-                      border: `1px solid ${accentColor || "#4F6BED"}`,
-                      color: buttonTextColor,
-                      fontSize: "0.875rem",
-                      fontWeight: 600,
-                      whiteSpace: "nowrap",
-                    }}>
-                      Sync to Calendar
-                    </div>
-                    <div style={{
-                      padding: "8px 18px",
-                      borderRadius: 6,
-                      background: theme === "dark" ? "#242424" : "#ffffff",
-                      border: `1px solid ${theme === "dark" ? "#3a3a3a" : "#e0e0e0"}`,
-                      color: accentColor || "#4F6BED",
-                      fontSize: "0.875rem",
-                      fontWeight: 600,
-                      whiteSpace: "nowrap",
-                    }}>
-                      Copy link
-                    </div>
+            <div className="manageBrandingZone">
+              {!brandingExpanded ? (
+                <div className="manageBrandingChip">
+                  <div className="manageBrandingChipLabel">Your branding</div>
+                  <div className="manageBrandingChipRow">
+                    {hasBranding ? (
+                      <>
+                        {logoUrl ? (
+                          <img
+                            src={logoUrl}
+                            alt=""
+                            className="manageBrandingChipLogo"
+                          />
+                        ) : (
+                          <span className="manageBrandingChipNoLogo">No logo yet</span>
+                        )}
+                        {accentColor && (
+                          <span
+                            className="manageBrandingChipSwatch"
+                            style={{ background: accentColor }}
+                            aria-label={`Accent color ${accentColor}`}
+                          />
+                        )}
+                        <span className="manageBrandingChipTheme">
+                          {theme === "dark" ? "🌙 Dark" : "☀️ Light"}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="manageBrandingChipPrompt">
+                        Set your logo, color, and theme
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btnSecondary manageBrandingEditBtn"
+                      onClick={() => setBrandingExpanded(true)}
+                    >
+                      Edit ▸
+                    </button>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="manageBrandingExpanded">
+                  <div className="manageBrandingChipLabel" style={{ marginBottom: 16 }}>
+                    Your branding
+                  </div>
 
-              {/* Logo nudge — below the preview, not inside it */}
-              {!logoUrl && (
-                <p style={{
-                  fontSize: "0.8rem",
-                  color: "#666",
-                  marginTop: 0,
-                  marginBottom: 20,
-                  lineHeight: 1.5,
-                }}>
-                  Don&rsquo;t see your logo?{"\u00A0"}
-                  <a href="mailto:hello@callietools.com" style={{ color: "#4F6BED", fontWeight: 500 }}>
-                    Email us your logo file
-                  </a>{" "}and we&rsquo;ll add it.
-                </p>
-              )}
-              {logoUrl && <div style={{ marginBottom: 20 }} />}
-
-              <div style={{ marginBottom: 20 }}>
-                <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>Page theme</p>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button type="button" onClick={() => handleThemeToggle("light")} style={{ padding: "8px 20px", borderRadius: 6, border: theme === "light" ? "2px solid #333" : "2px solid #ddd", background: theme === "light" ? "#fff" : "transparent", fontWeight: theme === "light" ? 600 : 400, cursor: "pointer", fontSize: "0.875rem" }}>
-                    ☀️ Light
-                  </button>
-                  <button type="button" onClick={() => handleThemeToggle("dark")} style={{ padding: "8px 20px", borderRadius: 6, border: theme === "dark" ? "2px solid #333" : "2px solid #ddd", background: theme === "dark" ? "#1a1a1a" : "transparent", color: theme === "dark" ? "#f0f0f0" : "inherit", fontWeight: theme === "dark" ? 600 : 400, cursor: "pointer", fontSize: "0.875rem" }}>
-                    🌙 Dark
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 20 }}>
-                <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>Accent color</p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
-                  {COLOR_SWATCHES.map((swatch) => (
-                    <button key={swatch.hex} type="button" title={swatch.label} onClick={() => handleSwatchClick(swatch.hex)} style={{ width: 28, height: 28, borderRadius: "50%", background: swatch.hex, border: accentColor === swatch.hex ? "3px solid #333" : "2px solid transparent", outline: accentColor === swatch.hex ? "2px solid #fff" : "none", cursor: "pointer", padding: 0, boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }} aria-label={swatch.label} />
-                  ))}
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  {accentColor && (
-                    <div style={{ width: 24, height: 24, borderRadius: 4, background: accentColor, border: "1px solid rgba(0,0,0,0.1)", flexShrink: 0 }} />
+                  {!logoUrl && (
+                    <p style={{
+                      fontSize: "0.8rem",
+                      color: "#666",
+                      marginTop: 0,
+                      marginBottom: 20,
+                      lineHeight: 1.5,
+                    }}>
+                      Don&rsquo;t see your logo?{"\u00A0"}
+                      <a href="mailto:hello@callietools.com" style={{ color: "#4F6BED", fontWeight: 500 }}>
+                        Email us your logo file
+                      </a>{" "}and we&rsquo;ll add it.
+                    </p>
                   )}
-                  <input type="text" className="formInput" placeholder="#4F6BED" value={hexInput} onChange={(e) => handleHexInput(e.target.value)} style={{ maxWidth: 120, fontFamily: "monospace", fontSize: "0.875rem" }} maxLength={7} autoComplete="off" spellCheck={false} />
-                  <span style={{ fontSize: "0.75rem", color: "#999" }}>or pick a color above</span>
-                </div>
-              </div>
 
-              {brandingSaveError && <div className="error" style={{ marginBottom: 12 }}>{brandingSaveError}</div>}
-              {brandingSaveSuccess && (
-                <div style={{ marginBottom: 12, padding: "10px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, color: "#166534", fontSize: "0.875rem" }}>
-                  ✓ Branding saved — view your calendar page to see changes.
+                  <div style={{ marginBottom: 20 }}>
+                    <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>Page theme</p>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button type="button" onClick={() => handleThemeToggle("light")} style={{ padding: "8px 20px", borderRadius: 6, border: theme === "light" ? "2px solid #333" : "2px solid #ddd", background: theme === "light" ? "#fff" : "transparent", fontWeight: theme === "light" ? 600 : 400, cursor: "pointer", fontSize: "0.875rem" }}>
+                        ☀️ Light
+                      </button>
+                      <button type="button" onClick={() => handleThemeToggle("dark")} style={{ padding: "8px 20px", borderRadius: 6, border: theme === "dark" ? "2px solid #333" : "2px solid #ddd", background: theme === "dark" ? "#1a1a1a" : "transparent", color: theme === "dark" ? "#f0f0f0" : "inherit", fontWeight: theme === "dark" ? 600 : 400, cursor: "pointer", fontSize: "0.875rem" }}>
+                        🌙 Dark
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: 20 }}>
+                    <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 8, fontWeight: 500 }}>Accent color</p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+                      {COLOR_SWATCHES.map((swatch) => (
+                        <button key={swatch.hex} type="button" title={swatch.label} onClick={() => handleSwatchClick(swatch.hex)} style={{ width: 28, height: 28, borderRadius: "50%", background: swatch.hex, border: accentColor === swatch.hex ? "3px solid #333" : "2px solid transparent", outline: accentColor === swatch.hex ? "2px solid #fff" : "none", cursor: "pointer", padding: 0, boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }} aria-label={swatch.label} />
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      {accentColor && (
+                        <div style={{ width: 24, height: 24, borderRadius: 4, background: accentColor, border: "1px solid rgba(0,0,0,0.1)", flexShrink: 0 }} />
+                      )}
+                      <input type="text" className="formInput" placeholder="#4F6BED" value={hexInput} onChange={(e) => handleHexInput(e.target.value)} style={{ maxWidth: 120, fontFamily: "monospace", fontSize: "0.875rem" }} maxLength={7} autoComplete="off" spellCheck={false} />
+                      <span style={{ fontSize: "0.75rem", color: "#999" }}>or pick a color above</span>
+                    </div>
+                  </div>
+
+                  {brandingSaveError && <div className="error" style={{ marginBottom: 12 }}>{brandingSaveError}</div>}
+
+                  <div style={{ display: "flex", gap: 12, justifyContent: "space-between", alignItems: "center" }}>
+                    <button
+                      type="button"
+                      className="manualLink"
+                      onClick={() => {
+                        setBrandingExpanded(false);
+                        setBrandingDirty(false);
+                        // Restore from calendar state
+                        const color = calendar?.accentColor || "";
+                        setAccentColor(color);
+                        setHexInput(color);
+                        setTheme(calendar?.theme === "dark" ? "dark" : "light");
+                        setBrandingSaveError("");
+                      }}
+                      disabled={brandingSubmitting}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btnPrimary"
+                      onClick={handleBrandingSave}
+                      disabled={brandingSubmitting || !brandingDirty}
+                      style={{
+                        minWidth: 140,
+                        opacity: (!brandingDirty || brandingSubmitting) ? 0.6 : 1,
+                      }}
+                    >
+                      {brandingSubmitting ? "Saving…" : "Save branding"}
+                    </button>
+                  </div>
                 </div>
               )}
-
-              <button type="button" className="btn btnPrimary" onClick={handleBrandingSave} disabled={brandingSubmitting || !brandingDirty} style={{ ...accentStyle, opacity: (!brandingDirty || brandingSubmitting) ? 0.6 : 1 }}>
-                {brandingSubmitting ? "Saving…" : "Save branding"}
-              </button>
             </div>
-
+            <div className="divider" />
+          </>
+        ) : (
+          <>
+            <div className="manageUpgradeReminder">
+              <div className="manageUpgradeHeadline">
+                Want your logo and colors here?
+              </div>
+              <a href="/upgrade" className="manageUpgradeCta">
+                Make it yours — $10/month  →
+              </a>
+            </div>
             <div className="divider" />
           </>
         )}
 
-        {/* ── Events ── */}
+        {/* ═══════════════════════════════════════════════════════
+            ZONE 2 — Events
+            ═══════════════════════════════════════════════════════ */}
         <div className="formGroup">
 
-          {/* ── Flyer import ── */}
-          <div style={{ marginBottom: 20 }}>
-            <p style={{ fontSize: "0.875rem", color: "var(--text-muted, #666)", marginBottom: 12, lineHeight: 1.5 }}>
-              Have more events coming up? Upload an image and they&rsquo;ll be added to your calendar. New events show up on subscribed calendars automatically.
-            </p>
+          {/* ── Add CTAs (Drop a flyer | + Add event manually) ── */}
+          <div className="manageAddCtas" ref={uploadCardRef}>
 
+            {/* Drop a flyer card */}
             <input
               ref={fileInputRef}
               type="file"
@@ -797,188 +1107,618 @@ export default function ManagePage({
               style={{ display: "none" }}
               onChange={handleFileInput}
             />
-
             <div
-              className={`flyerUpload${dragOver ? " flyerUploadDragOver" : ""}${parseStatus === "parsing" ? " flyerUploadParsing" : ""}`}
+              className={`manageAddCard manageAddCardUpload${dragOver ? " manageAddCardDragOver" : ""}${parseStatus === "parsing" ? " manageAddCardParsing" : ""}`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
-              onClick={triggerFilePicker}
+              onClick={() => parseStatus !== "parsing" && triggerFilePicker()}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && triggerFilePicker()}
+              onKeyDown={(e) => e.key === "Enter" && parseStatus !== "parsing" && triggerFilePicker()}
               style={{ cursor: parseStatus === "parsing" ? "wait" : "pointer" }}
             >
-              <div className="flyerUploadInner">
-
-                {parseStatus === "idle" && (
-                  <>
-                    <div className="flyerIcon" aria-hidden="true">📄</div>
-                    <p className="flyerHeadline">Upload an image of your events</p>
-                    <p className="flyerFormats">JPEG, PNG, or WEBP</p>
-                    <button type="button" className="btn btnSecondary" onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}>
-                      Upload image
-                    </button>
-                  </>
-                )}
-
-                {parseStatus === "parsing" && (
-                  <div className="parseLoading">
-                    <div className="parseMascotWrap" aria-hidden="true">
-                      <span className="parseSpark parseSpark1" />
-                      <span className="parseSpark parseSpark2" />
-                      <span className="parseSpark parseSpark3" />
-                      <span className="parseSpark parseSpark4" />
-                      <img src="/callie-mascot.png" alt="" className="parseMascot" />
-                    </div>
-                    <p className="parsePhrase" style={{ opacity: parsePhraseVisible ? 1 : 0 }}>
-                      {parsePhrase}
-                    </p>
-                    <div className="parseDots" aria-label="Loading">
-                      <span className="parseDot" />
-                      <span className="parseDot" />
-                      <span className="parseDot" />
-                    </div>
+              {parseStatus === "idle" && (
+                <>
+                  <img src="/callie-mascot.png" alt="" className="manageAddMascot" />
+                  <div className="manageAddCardHeadline">Drop a flyer</div>
+                  <div className="manageAddCardSub">JPEG, PNG, or WEBP</div>
+                </>
+              )}
+              {parseStatus === "parsing" && (
+                <div className="parseLoading">
+                  <div className="parseMascotWrap" aria-hidden="true">
+                    <span className="parseSpark parseSpark1" />
+                    <span className="parseSpark parseSpark2" />
+                    <span className="parseSpark parseSpark3" />
+                    <span className="parseSpark parseSpark4" />
+                    <img src="/callie-mascot.png" alt="" className="parseMascot" />
                   </div>
-                )}
-
-                {parseStatus === "success" && (
-                  <>
-                    <div className="flyerIcon" aria-hidden="true">✅</div>
-                    <p className="flyerHeadline">{parseMessage}</p>
-                    <button type="button" className="btn btnSecondary" onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}>
-                      Upload another image
-                    </button>
-                  </>
-                )}
-
-                {parseStatus === "error" && (
-                  <>
-                    <div className="flyerIcon" aria-hidden="true">📄</div>
-                    <p className="flyerHeadline" style={{ color: "var(--color-error, #c0392b)" }}>
-                      {parseMessage}
-                    </p>
-                    <button type="button" className="btn btnSecondary" onClick={(e) => { e.stopPropagation(); triggerFilePicker(); }}>
-                      Try again
-                    </button>
-                  </>
-                )}
-
-              </div>
+                  <p className="parsePhrase" style={{ opacity: parsePhraseVisible ? 1 : 0 }}>
+                    {parsePhrase}
+                  </p>
+                  <div className="parseDots" aria-label="Loading">
+                    <span className="parseDot" />
+                    <span className="parseDot" />
+                    <span className="parseDot" />
+                  </div>
+                </div>
+              )}
+              {parseStatus === "success" && (
+                <>
+                  <div className="flyerIcon" aria-hidden="true">✅</div>
+                  <div className="manageAddCardHeadline" style={{ fontSize: "0.95rem" }}>{parseMessage}</div>
+                  <button
+                    type="button"
+                    className="btn btnSecondary"
+                    style={{ marginTop: 8 }}
+                    onClick={(e) => { e.stopPropagation(); setParseStatus("idle"); triggerFilePicker(); }}
+                  >
+                    Upload another
+                  </button>
+                </>
+              )}
+              {parseStatus === "error" && (
+                <>
+                  <div className="flyerIcon" aria-hidden="true">📄</div>
+                  <div className="manageAddCardHeadline" style={{ color: "var(--color-error, #c0392b)", fontSize: "0.95rem" }}>
+                    {parseMessage}
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btnSecondary"
+                    style={{ marginTop: 8 }}
+                    onClick={(e) => { e.stopPropagation(); setParseStatus("idle"); triggerFilePicker(); }}
+                  >
+                    Try again
+                  </button>
+                </>
+              )}
             </div>
 
-            <div className="createOrDivider">
-              <span>or add events manually</span>
-            </div>
-          </div>
-
-          {/* ── Event count header with Add action ── */}
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 16,
-          }}>
-            <label className="formLabel" style={{ margin: 0 }}>
-              Events ({eventCount})
-            </label>
+            {/* + Add event manually card */}
             <button
               type="button"
-              className="addEventLink"
-              onClick={addEvent}
-              style={{ padding: 0, fontSize: "0.85rem" }}
+              className="manageAddCard manageAddCardManual"
+              onClick={handleAddManual}
             >
-              + Add
+              <div className="manageAddCardPlus" aria-hidden="true">+</div>
+              <div className="manageAddCardHeadline">Add event manually</div>
+              <div className="manageAddCardSub">Type in the details</div>
             </button>
           </div>
 
-          {parseStatus === "success" && events.some((e) => e.isNew && (e.confidence === "low" || e.confidence === "medium")) && (
-            <p style={{ fontSize: "0.8rem", color: "var(--text-muted, #666)", marginBottom: 12, lineHeight: 1.4 }}>
-              Events marked with ⚠️ had lower confidence — double-check those before saving.
-            </p>
-          )}
-
-          {/* ── Upcoming events ── */}
-          {upcomingEvents.length > 0 ? (
-            upcomingEvents.map((ev) =>
-              renderEventCard(ev, events.indexOf(ev))
-            )
+          {/* ── Upcoming events list ── */}
+          {events.length === 0 ? (
+            <div className="manageEmptyState">
+              <p style={{ fontSize: "1rem", marginBottom: 8 }}>No events yet.</p>
+              <p style={{ fontSize: "0.875rem", color: "#666" }}>
+                Drop a flyer or add events manually to get started.
+              </p>
+            </div>
+          ) : upcomingEvents.length === 0 ? (
+            <div className="manageEmptyState" style={{ padding: "20px 16px" }}>
+              <p style={{ fontSize: "0.9rem", color: "#666", margin: 0 }}>
+                No upcoming events. Drop a flyer or add manually above.
+              </p>
+            </div>
           ) : (
-            <p style={{ fontSize: "0.875rem", color: "var(--text-muted, #999)", marginBottom: 16, fontStyle: "italic" }}>
-              No upcoming events — add one below or upload more events above.
-            </p>
+            <div className="manageEventList">
+              {upcomingEvents.map((ev) =>
+                expandedRows.has(ev.id) ? renderExpandedRow(ev) : renderCollapsedRow(ev)
+              )}
+            </div>
           )}
 
-          <button type="button" className="addEventLink" onClick={addEvent}>
-            + Add event
-          </button>
-
-          {/* ── Past events collapsible ── */}
+          {/* ── Past events (collapsed by default, read-only) ── */}
           {pastEvents.length > 0 && (
             <div style={{ marginTop: 24 }}>
               <button
                 type="button"
                 onClick={() => setPastExpanded((v) => !v)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: "8px 0",
-                  fontSize: "0.875rem",
-                  color: "var(--text-muted, #666)",
-                  fontWeight: 500,
-                }}
+                className="managePastToggle"
               >
-                <span style={{ display: "inline-block", transform: pastExpanded ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▶</span>
-                {pastEvents.length} past event{pastEvents.length !== 1 ? "s" : ""}
-                <span style={{ fontWeight: 400 }}>— {pastExpanded ? "hide" : "show"}</span>
+                <span style={{
+                  display: "inline-block",
+                  transform: pastExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                  transition: "transform 0.2s",
+                }}>
+                  ▶
+                </span>
+                Past events ({pastEvents.length})
               </button>
 
               {pastExpanded && (
-                <div style={{ marginTop: 8 }}>
-                  {pastEvents.map((ev) =>
-                    renderEventCard(ev, events.indexOf(ev))
-                  )}
+                <div className="managePastList">
+                  {pastEvents.map(renderPastRow)}
                 </div>
               )}
             </div>
           )}
         </div>
 
-        <div className="divider" />
-
-        {saveError && <div className="error" style={{ marginBottom: 16 }}>{saveError}</div>}
-        {saveSuccess && (
-          <div style={{ marginBottom: 16, padding: "12px 16px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, color: "#166534", fontSize: "0.9rem" }}>
-            ✓ Changes saved — your calendar is updated.
-          </div>
-        )}
-
-        <button
-          type="button"
-          className="btn btnPrimary createSubmit"
-          onClick={handleSave}
-          disabled={submitting}
-          style={accentStyle}
-        >
-          {submitting ? "Saving…" : "Save changes"}
-        </button>
-
-        {!isPaid && (
-          <>
-            <div className="divider" />
-            <p style={{ textAlign: "center", fontSize: "0.875rem", color: "#666" }}>
-              Want your logo and colors on your calendar page?<br />
-              <a href="/upgrade" style={{ color: "#D4775B", fontWeight: 500 }}>
-                Make it yours — $10/month
-              </a>
-            </p>
-          </>
-        )}
       </div>
+
+      {/* ═══════════════════════════════════════════════════════
+          Toast container
+          ═══════════════════════════════════════════════════════ */}
+      {toasts.length > 0 && (
+        <div className="manageToastContainer">
+          {toasts.map((t) => (
+            <div key={t.id} className="manageToast">
+              {t.message}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          Delete confirm dialog
+          ═══════════════════════════════════════════════════════ */}
+      {deleteConfirmId && (
+        <div
+          className="manageConfirmBackdrop"
+          onClick={() => !deleteSubmitting && setDeleteConfirmId(null)}
+        >
+          <div
+            className="manageConfirmDialog"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="manageConfirmHeadline">Delete this event?</h2>
+            <p className="manageConfirmBody">This can&rsquo;t be undone.</p>
+            <div className="manageConfirmActions">
+              <button
+                type="button"
+                className="manualLink"
+                onClick={() => setDeleteConfirmId(null)}
+                disabled={deleteSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btnPrimary manageConfirmDeleteBtn"
+                onClick={handleDeleteConfirm}
+                disabled={deleteSubmitting}
+              >
+                {deleteSubmitting ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          Inline styles for new manage classes
+          (Lives here for v1; can be moved to globals.css later)
+          ═══════════════════════════════════════════════════════ */}
+      <style jsx>{`
+        :global(.manageUrlStrip) {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          padding: 14px 16px;
+          background: #f8f8fa;
+          border: 1px solid #e5e5ea;
+          border-radius: 10px;
+          margin-bottom: 12px;
+        }
+        :global(.manageUrlText) {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.95rem;
+          color: #1a1a1a;
+          word-break: break-all;
+        }
+        :global(.manageUrlIcon) {
+          flex-shrink: 0;
+        }
+        :global(.manageUrlValue) {
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          font-size: 0.875rem;
+          font-weight: 500;
+          user-select: all;
+        }
+        :global(.manageUrlButtons) {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        :global(.manageUrlBtn) {
+          padding: 8px 14px !important;
+          font-size: 0.875rem !important;
+          flex: 1;
+          min-width: 0;
+          text-align: center;
+          white-space: nowrap;
+          text-decoration: none;
+        }
+        @media (min-width: 640px) {
+          :global(.manageUrlStrip) {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+          }
+          :global(.manageUrlButtons) {
+            flex-shrink: 0;
+          }
+          :global(.manageUrlBtn) {
+            flex: 0 0 auto;
+          }
+        }
+        :global(.manageAtGlance) {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 0.875rem;
+          color: #666;
+          flex-wrap: wrap;
+        }
+        :global(.manageAtGlanceCta) {
+          background: none;
+          border: none;
+          padding: 0;
+          color: #4F6BED;
+          font-weight: 600;
+          font-size: 0.875rem;
+          cursor: pointer;
+        }
+        :global(.manageAtGlanceCta:hover) {
+          text-decoration: underline;
+        }
+
+        /* ── Branding zone (paid) ── */
+        :global(.manageBrandingZone) {
+          margin-bottom: 4px;
+        }
+        :global(.manageBrandingChip) {
+          padding: 14px 16px;
+          background: #f8f8fa;
+          border: 1px solid #e5e5ea;
+          border-radius: 10px;
+        }
+        :global(.manageBrandingChipLabel) {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #666;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 10px;
+        }
+        :global(.manageBrandingChipRow) {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+        :global(.manageBrandingChipLogo) {
+          max-height: 28px;
+          max-width: 60px;
+          object-fit: contain;
+          flex-shrink: 0;
+        }
+        :global(.manageBrandingChipNoLogo) {
+          font-size: 0.8rem;
+          color: #999;
+          font-style: italic;
+        }
+        :global(.manageBrandingChipSwatch) {
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          border: 1px solid rgba(0,0,0,0.1);
+          flex-shrink: 0;
+        }
+        :global(.manageBrandingChipTheme) {
+          font-size: 0.875rem;
+          color: #444;
+        }
+        :global(.manageBrandingChipPrompt) {
+          font-size: 0.875rem;
+          color: #666;
+          flex: 1;
+        }
+        :global(.manageBrandingEditBtn) {
+          margin-left: auto;
+          padding: 6px 14px !important;
+          font-size: 0.875rem !important;
+        }
+        :global(.manageBrandingExpanded) {
+          padding: 16px;
+          background: #f8f8fa;
+          border: 1px solid #e5e5ea;
+          border-radius: 10px;
+        }
+
+        /* ── Upgrade reminder (free) ── */
+        :global(.manageUpgradeReminder) {
+          padding: 14px 16px;
+          background: #fdf6f3;
+          border: 1px solid #f0d9cd;
+          border-radius: 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        :global(.manageUpgradeHeadline) {
+          font-size: 0.95rem;
+          color: #1a1a1a;
+          font-weight: 500;
+        }
+        :global(.manageUpgradeCta) {
+          font-size: 0.95rem;
+          color: #D4775B;
+          font-weight: 600;
+          text-decoration: none;
+        }
+        :global(.manageUpgradeCta:hover) {
+          text-decoration: underline;
+        }
+
+        /* ── Add CTAs (flyer + manual) ── */
+        :global(.manageAddCtas) {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 12px;
+          margin-bottom: 24px;
+        }
+        @media (min-width: 640px) {
+          :global(.manageAddCtas) {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+        :global(.manageAddCard) {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 24px 16px;
+          background: #fff;
+          border: 2px dashed #d0d0d8;
+          border-radius: 12px;
+          text-align: center;
+          transition: all 0.15s;
+          min-height: 140px;
+        }
+        :global(.manageAddCardUpload) {
+          cursor: pointer;
+        }
+        :global(.manageAddCardUpload:hover),
+        :global(.manageAddCardDragOver) {
+          border-color: #4F6BED;
+          background: #f5f7ff;
+        }
+        :global(.manageAddCardParsing) {
+          cursor: wait;
+        }
+        :global(.manageAddCardManual) {
+          background: transparent;
+          border-style: dashed;
+          font-family: inherit;
+          color: inherit;
+          cursor: pointer;
+          width: 100%;
+        }
+        :global(.manageAddCardManual:hover) {
+          border-color: #4F6BED;
+          background: #f5f7ff;
+        }
+        :global(.manageAddMascot) {
+          width: 48px;
+          height: 48px;
+          margin-bottom: 8px;
+        }
+        :global(.manageAddCardPlus) {
+          font-size: 2rem;
+          font-weight: 300;
+          color: #4F6BED;
+          margin-bottom: 4px;
+          line-height: 1;
+        }
+        :global(.manageAddCardHeadline) {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin-bottom: 4px;
+        }
+        :global(.manageAddCardSub) {
+          font-size: 0.8rem;
+          color: #888;
+        }
+
+        /* ── Event list and rows ── */
+        :global(.manageEventList) {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        :global(.manageRowCollapsed) {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 12px 14px;
+          background: #fff;
+          border: 1px solid #e5e5ea;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: background 0.12s, border-color 0.12s;
+        }
+        :global(.manageRowCollapsed:hover) {
+          background: #f8f8fa;
+          border-color: #d0d0d8;
+        }
+        :global(.manageRowContent) {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex: 1;
+          min-width: 0;
+          flex-wrap: wrap;
+          font-size: 0.9rem;
+        }
+        :global(.manageRowDate) {
+          font-weight: 600;
+          color: #1a1a1a;
+          flex-shrink: 0;
+        }
+        :global(.manageRowSep) {
+          color: #c0c0c8;
+        }
+        :global(.manageRowTitle) {
+          color: #1a1a1a;
+          font-weight: 500;
+        }
+        :global(.manageRowMeta) {
+          color: #666;
+          font-size: 0.85rem;
+        }
+        :global(.manageRowActions) {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          flex-shrink: 0;
+        }
+        :global(.manageRowChevron),
+        :global(.manageRowDelete) {
+          background: none;
+          border: none;
+          padding: 6px 8px;
+          font-size: 1rem;
+          color: #666;
+          cursor: pointer;
+          border-radius: 4px;
+          line-height: 1;
+        }
+        :global(.manageRowChevron:hover),
+        :global(.manageRowDelete:hover) {
+          background: #ececf0;
+          color: #1a1a1a;
+        }
+        :global(.manageRowDelete:hover) {
+          color: #c0392b;
+        }
+
+        /* ── Past events ── */
+        :global(.managePastToggle) {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 8px 0;
+          font-size: 0.875rem;
+          color: #666;
+          font-weight: 500;
+        }
+        :global(.managePastToggle:hover) {
+          color: #1a1a1a;
+        }
+        :global(.managePastList) {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          margin-top: 8px;
+        }
+        :global(.managePastRow) {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 14px;
+          font-size: 0.85rem;
+          color: #888;
+          flex-wrap: wrap;
+        }
+        :global(.managePastRow .manageRowDate) {
+          color: #888;
+          font-weight: 500;
+        }
+        :global(.managePastRow .manageRowTitle) {
+          color: #888;
+          font-weight: 400;
+        }
+
+        /* ── Empty state ── */
+        :global(.manageEmptyState) {
+          padding: 32px 16px;
+          text-align: center;
+          background: #f8f8fa;
+          border-radius: 10px;
+          color: #1a1a1a;
+        }
+
+        /* ── Toasts ── */
+        :global(.manageToastContainer) {
+          position: fixed;
+          bottom: 24px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          z-index: 100;
+          pointer-events: none;
+        }
+        :global(.manageToast) {
+          background: #1a1a1a;
+          color: #fff;
+          padding: 10px 18px;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          animation: manageToastIn 0.2s ease-out;
+        }
+        @keyframes manageToastIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Confirm dialog ── */
+        :global(.manageConfirmBackdrop) {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 200;
+          padding: 16px;
+        }
+        :global(.manageConfirmDialog) {
+          background: #fff;
+          border-radius: 12px;
+          padding: 24px;
+          max-width: 380px;
+          width: 100%;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        :global(.manageConfirmHeadline) {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: #1a1a1a;
+          margin: 0 0 8px 0;
+        }
+        :global(.manageConfirmBody) {
+          font-size: 0.9rem;
+          color: #666;
+          margin: 0 0 20px 0;
+        }
+        :global(.manageConfirmActions) {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+        }
+        :global(.manageConfirmDeleteBtn) {
+          background: #c0392b !important;
+          border-color: #c0392b !important;
+          color: #fff !important;
+          min-width: 100px;
+        }
+      `}</style>
     </div>
   );
 }
