@@ -185,6 +185,9 @@ export default function ManagePage({
   // Refs for focus management
   const titleInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
+  // ── Add-events toggle state (mobile only — collapsed by default) ──
+  const [addEventsExpanded, setAddEventsExpanded] = useState(false);
+
   // ── Branding state (paid only) ──
   const [brandingExpanded, setBrandingExpanded] = useState(false);
   const [accentColor, setAccentColor] = useState("");
@@ -721,11 +724,11 @@ export default function ManagePage({
         <div className="manageRowActions" onClick={(e) => e.stopPropagation()}>
           <button
             type="button"
-            className="manageRowChevron"
+            className="manageRowEdit"
             onClick={() => expandRow(ev.id)}
             aria-label="Edit event"
           >
-            ▾
+            Edit
           </button>
           <button
             type="button"
@@ -733,7 +736,7 @@ export default function ManagePage({
             onClick={() => setDeleteConfirmId(ev.id)}
             aria-label="Delete event"
           >
-            ✕
+            🗑
           </button>
         </div>
       </div>
@@ -889,6 +892,7 @@ export default function ManagePage({
         {/* ═══════════════════════════════════════════════════════
             ZONE 1 — Home base
             ═══════════════════════════════════════════════════════ */}
+        <div className="manageSectionHeader">Your calendar</div>
         <div style={{ marginBottom: 8 }}>
           <h1 className="createHeader" style={{ marginBottom: 16 }}>
             {calendar?.name}
@@ -914,7 +918,7 @@ export default function ManagePage({
                 rel="noopener noreferrer"
                 className="btn btnSecondary manageUrlBtn"
               >
-                See what your people see ↗
+                View page ↗
               </a>
             </div>
           </div>
@@ -945,14 +949,15 @@ export default function ManagePage({
         <div className="divider" />
 
         {/* ═══════════════════════════════════════════════════════
-            ZONE 3 — Branding (paid) OR Upgrade reminder (free)
+            ZONE 3 — Branding (paid only)
+            Free tier shows the upgrade reminder at the bottom of the page
             ═══════════════════════════════════════════════════════ */}
-        {isPaid ? (
+        {isPaid && (
           <>
+            <div className="manageSectionHeader">Your branding</div>
             <div className="manageBrandingZone">
               {!brandingExpanded ? (
                 <div className="manageBrandingChip">
-                  <div className="manageBrandingChipLabel">Your branding</div>
                   <div className="manageBrandingChipRow">
                     {hasBranding ? (
                       <>
@@ -992,10 +997,6 @@ export default function ManagePage({
                 </div>
               ) : (
                 <div className="manageBrandingExpanded">
-                  <div className="manageBrandingChipLabel" style={{ marginBottom: 16 }}>
-                    Your branding
-                  </div>
-
                   {!logoUrl && (
                     <p style={{
                       fontSize: "0.8rem",
@@ -1077,18 +1078,6 @@ export default function ManagePage({
             </div>
             <div className="divider" />
           </>
-        ) : (
-          <>
-            <div className="manageUpgradeReminder">
-              <div className="manageUpgradeHeadline">
-                Want your logo and colors here?
-              </div>
-              <a href="/upgrade" className="manageUpgradeCta">
-                Make it yours — $10/month  →
-              </a>
-            </div>
-            <div className="divider" />
-          </>
         )}
 
         {/* ═══════════════════════════════════════════════════════
@@ -1096,8 +1085,29 @@ export default function ManagePage({
             ═══════════════════════════════════════════════════════ */}
         <div className="formGroup">
 
-          {/* ── Add CTAs (Drop a flyer | + Add event manually) ── */}
-          <div className="manageAddCtas" ref={uploadCardRef}>
+          {/* ── Add events: toggle on mobile, always-shown on desktop ── */}
+          <button
+            type="button"
+            className="manageAddToggle"
+            onClick={() => setAddEventsExpanded((v) => !v)}
+            aria-expanded={addEventsExpanded}
+          >
+            <span className="manageAddToggleLabel">+ Add events</span>
+            <span
+              className="manageAddToggleChevron"
+              style={{ transform: addEventsExpanded ? "rotate(180deg)" : "rotate(0deg)" }}
+              aria-hidden="true"
+            >
+              ▾
+            </span>
+          </button>
+
+          {/* ── Add CTAs (Drop a flyer | + Add event manually) ──
+              Hidden on mobile until toggle expanded; always shown on desktop ── */}
+          <div
+            className={`manageAddCtas${addEventsExpanded ? " manageAddCtasExpanded" : ""}`}
+            ref={uploadCardRef}
+          >
 
             {/* Drop a flyer card */}
             <input
@@ -1188,7 +1198,9 @@ export default function ManagePage({
             </button>
           </div>
 
-          {/* ── Upcoming events list ── */}
+          {/* ── Upcoming events ── */}
+          <div className="manageSectionHeader" style={{ marginTop: 8 }}>Upcoming events</div>
+
           {events.length === 0 ? (
             <div className="manageEmptyState">
               <p style={{ fontSize: "1rem", marginBottom: 8 }}>No events yet.</p>
@@ -1208,6 +1220,17 @@ export default function ManagePage({
                 expandedRows.has(ev.id) ? renderExpandedRow(ev) : renderCollapsedRow(ev)
               )}
             </div>
+          )}
+
+          {/* ── Bottom + Add event button (mirrors top manual card, shorthand) ── */}
+          {upcomingEvents.length > 0 && (
+            <button
+              type="button"
+              className="manageBottomAdd"
+              onClick={handleAddManual}
+            >
+              + Add event
+            </button>
           )}
 
           {/* ── Past events (collapsed by default, read-only) ── */}
@@ -1236,6 +1259,21 @@ export default function ManagePage({
             </div>
           )}
         </div>
+
+        {/* ═══════════════════════════════════════════════════════
+            Free-tier upgrade reminder (footer line, restraint mode)
+            ═══════════════════════════════════════════════════════ */}
+        {!isPaid && (
+          <>
+            <div className="divider" />
+            <p className="manageUpgradeFooter">
+              Want your logo and colors on your calendar page?<br />
+              <a href="/upgrade" className="manageUpgradeFooterLink">
+                Make it yours — $10/month
+              </a>
+            </p>
+          </>
+        )}
 
       </div>
 
@@ -1288,437 +1326,6 @@ export default function ManagePage({
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════════════
-          Inline styles for new manage classes
-          (Lives here for v1; can be moved to globals.css later)
-          ═══════════════════════════════════════════════════════ */}
-      <style jsx>{`
-        :global(.manageUrlStrip) {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          padding: 14px 16px;
-          background: #f8f8fa;
-          border: 1px solid #e5e5ea;
-          border-radius: 10px;
-          margin-bottom: 12px;
-        }
-        :global(.manageUrlText) {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 0.95rem;
-          color: #1a1a1a;
-          word-break: break-all;
-        }
-        :global(.manageUrlIcon) {
-          flex-shrink: 0;
-        }
-        :global(.manageUrlValue) {
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-size: 0.875rem;
-          font-weight: 500;
-          user-select: all;
-        }
-        :global(.manageUrlButtons) {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-        :global(.manageUrlBtn) {
-          padding: 8px 14px !important;
-          font-size: 0.875rem !important;
-          flex: 1;
-          min-width: 0;
-          text-align: center;
-          white-space: nowrap;
-          text-decoration: none;
-        }
-        @media (min-width: 640px) {
-          :global(.manageUrlStrip) {
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-          }
-          :global(.manageUrlButtons) {
-            flex-shrink: 0;
-          }
-          :global(.manageUrlBtn) {
-            flex: 0 0 auto;
-          }
-        }
-        :global(.manageAtGlance) {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          font-size: 0.875rem;
-          color: #666;
-          flex-wrap: wrap;
-        }
-        :global(.manageAtGlanceCta) {
-          background: none;
-          border: none;
-          padding: 0;
-          color: #4F6BED;
-          font-weight: 600;
-          font-size: 0.875rem;
-          cursor: pointer;
-        }
-        :global(.manageAtGlanceCta:hover) {
-          text-decoration: underline;
-        }
-
-        /* ── Branding zone (paid) ── */
-        :global(.manageBrandingZone) {
-          margin-bottom: 4px;
-        }
-        :global(.manageBrandingChip) {
-          padding: 14px 16px;
-          background: #f8f8fa;
-          border: 1px solid #e5e5ea;
-          border-radius: 10px;
-        }
-        :global(.manageBrandingChipLabel) {
-          font-size: 0.75rem;
-          font-weight: 700;
-          color: #666;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 10px;
-        }
-        :global(.manageBrandingChipRow) {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          flex-wrap: wrap;
-        }
-        :global(.manageBrandingChipLogo) {
-          max-height: 28px;
-          max-width: 60px;
-          object-fit: contain;
-          flex-shrink: 0;
-        }
-        :global(.manageBrandingChipNoLogo) {
-          font-size: 0.8rem;
-          color: #999;
-          font-style: italic;
-        }
-        :global(.manageBrandingChipSwatch) {
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          border: 1px solid rgba(0,0,0,0.1);
-          flex-shrink: 0;
-        }
-        :global(.manageBrandingChipTheme) {
-          font-size: 0.875rem;
-          color: #444;
-        }
-        :global(.manageBrandingChipPrompt) {
-          font-size: 0.875rem;
-          color: #666;
-          flex: 1;
-        }
-        :global(.manageBrandingEditBtn) {
-          margin-left: auto;
-          padding: 6px 14px !important;
-          font-size: 0.875rem !important;
-        }
-        :global(.manageBrandingExpanded) {
-          padding: 16px;
-          background: #f8f8fa;
-          border: 1px solid #e5e5ea;
-          border-radius: 10px;
-        }
-
-        /* ── Upgrade reminder (free) ── */
-        :global(.manageUpgradeReminder) {
-          padding: 14px 16px;
-          background: #fdf6f3;
-          border: 1px solid #f0d9cd;
-          border-radius: 10px;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        :global(.manageUpgradeHeadline) {
-          font-size: 0.95rem;
-          color: #1a1a1a;
-          font-weight: 500;
-        }
-        :global(.manageUpgradeCta) {
-          font-size: 0.95rem;
-          color: #D4775B;
-          font-weight: 600;
-          text-decoration: none;
-        }
-        :global(.manageUpgradeCta:hover) {
-          text-decoration: underline;
-        }
-
-        /* ── Add CTAs (flyer + manual) ── */
-        :global(.manageAddCtas) {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 12px;
-          margin-bottom: 24px;
-        }
-        @media (min-width: 640px) {
-          :global(.manageAddCtas) {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
-        :global(.manageAddCard) {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 24px 16px;
-          background: #fff;
-          border: 2px dashed #d0d0d8;
-          border-radius: 12px;
-          text-align: center;
-          transition: all 0.15s;
-          min-height: 140px;
-        }
-        :global(.manageAddCardUpload) {
-          cursor: pointer;
-        }
-        :global(.manageAddCardUpload:hover),
-        :global(.manageAddCardDragOver) {
-          border-color: #4F6BED;
-          background: #f5f7ff;
-        }
-        :global(.manageAddCardParsing) {
-          cursor: wait;
-        }
-        :global(.manageAddCardManual) {
-          background: transparent;
-          border-style: dashed;
-          font-family: inherit;
-          color: inherit;
-          cursor: pointer;
-          width: 100%;
-        }
-        :global(.manageAddCardManual:hover) {
-          border-color: #4F6BED;
-          background: #f5f7ff;
-        }
-        :global(.manageAddMascot) {
-          width: 48px;
-          height: 48px;
-          margin-bottom: 8px;
-        }
-        :global(.manageAddCardPlus) {
-          font-size: 2rem;
-          font-weight: 300;
-          color: #4F6BED;
-          margin-bottom: 4px;
-          line-height: 1;
-        }
-        :global(.manageAddCardHeadline) {
-          font-size: 1rem;
-          font-weight: 600;
-          color: #1a1a1a;
-          margin-bottom: 4px;
-        }
-        :global(.manageAddCardSub) {
-          font-size: 0.8rem;
-          color: #888;
-        }
-
-        /* ── Event list and rows ── */
-        :global(.manageEventList) {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        :global(.manageRowCollapsed) {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          padding: 12px 14px;
-          background: #fff;
-          border: 1px solid #e5e5ea;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: background 0.12s, border-color 0.12s;
-        }
-        :global(.manageRowCollapsed:hover) {
-          background: #f8f8fa;
-          border-color: #d0d0d8;
-        }
-        :global(.manageRowContent) {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex: 1;
-          min-width: 0;
-          flex-wrap: wrap;
-          font-size: 0.9rem;
-        }
-        :global(.manageRowDate) {
-          font-weight: 600;
-          color: #1a1a1a;
-          flex-shrink: 0;
-        }
-        :global(.manageRowSep) {
-          color: #c0c0c8;
-        }
-        :global(.manageRowTitle) {
-          color: #1a1a1a;
-          font-weight: 500;
-        }
-        :global(.manageRowMeta) {
-          color: #666;
-          font-size: 0.85rem;
-        }
-        :global(.manageRowActions) {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          flex-shrink: 0;
-        }
-        :global(.manageRowChevron),
-        :global(.manageRowDelete) {
-          background: none;
-          border: none;
-          padding: 6px 8px;
-          font-size: 1rem;
-          color: #666;
-          cursor: pointer;
-          border-radius: 4px;
-          line-height: 1;
-        }
-        :global(.manageRowChevron:hover),
-        :global(.manageRowDelete:hover) {
-          background: #ececf0;
-          color: #1a1a1a;
-        }
-        :global(.manageRowDelete:hover) {
-          color: #c0392b;
-        }
-
-        /* ── Past events ── */
-        :global(.managePastToggle) {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: none;
-          border: none;
-          cursor: pointer;
-          padding: 8px 0;
-          font-size: 0.875rem;
-          color: #666;
-          font-weight: 500;
-        }
-        :global(.managePastToggle:hover) {
-          color: #1a1a1a;
-        }
-        :global(.managePastList) {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          margin-top: 8px;
-        }
-        :global(.managePastRow) {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 14px;
-          font-size: 0.85rem;
-          color: #888;
-          flex-wrap: wrap;
-        }
-        :global(.managePastRow .manageRowDate) {
-          color: #888;
-          font-weight: 500;
-        }
-        :global(.managePastRow .manageRowTitle) {
-          color: #888;
-          font-weight: 400;
-        }
-
-        /* ── Empty state ── */
-        :global(.manageEmptyState) {
-          padding: 32px 16px;
-          text-align: center;
-          background: #f8f8fa;
-          border-radius: 10px;
-          color: #1a1a1a;
-        }
-
-        /* ── Toasts ── */
-        :global(.manageToastContainer) {
-          position: fixed;
-          bottom: 24px;
-          left: 50%;
-          transform: translateX(-50%);
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          z-index: 100;
-          pointer-events: none;
-        }
-        :global(.manageToast) {
-          background: #1a1a1a;
-          color: #fff;
-          padding: 10px 18px;
-          border-radius: 8px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-          animation: manageToastIn 0.2s ease-out;
-        }
-        @keyframes manageToastIn {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ── Confirm dialog ── */
-        :global(.manageConfirmBackdrop) {
-          position: fixed;
-          inset: 0;
-          background: rgba(0,0,0,0.4);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 200;
-          padding: 16px;
-        }
-        :global(.manageConfirmDialog) {
-          background: #fff;
-          border-radius: 12px;
-          padding: 24px;
-          max-width: 380px;
-          width: 100%;
-          box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-        :global(.manageConfirmHeadline) {
-          font-size: 1.1rem;
-          font-weight: 700;
-          color: #1a1a1a;
-          margin: 0 0 8px 0;
-        }
-        :global(.manageConfirmBody) {
-          font-size: 0.9rem;
-          color: #666;
-          margin: 0 0 20px 0;
-        }
-        :global(.manageConfirmActions) {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 12px;
-        }
-        :global(.manageConfirmDeleteBtn) {
-          background: #c0392b !important;
-          border-color: #c0392b !important;
-          color: #fff !important;
-          min-width: 100px;
-        }
-      `}</style>
     </div>
   );
 }
