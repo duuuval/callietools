@@ -3166,3 +3166,500 @@ a:focus, .btn:focus, button:focus{
 [data-theme="dark"] .claimStepBadge{
   color: #fff;
 }
+
+/* ─── /manage redesign — May 2026 ───────────────────────────
+   Styles for the redesigned /manage/[token] page.
+   Reference: wip-2026-05-05-manage-redesign.md
+   These belong with the rest of globals.css.
+   ─────────────────────────────────────────────────────────── */
+/* ── Section headers (uppercase labels above each zone) ── */
+.manageSectionHeader {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+
+.manageUrlStrip {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #f8f8fa;
+  border: 1px solid #e5e5ea;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+.manageUrlText {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  word-break: break-all;
+}
+.manageUrlIcon {
+  flex-shrink: 0;
+}
+.manageUrlValue {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+  user-select: all;
+}
+.manageUrlButtons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.manageUrlBtn {
+  padding: 8px 14px !important;
+  font-size: 0.875rem !important;
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  white-space: nowrap;
+  text-decoration: none;
+}
+@media (min-width: 640px) {
+  .manageUrlStrip {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .manageUrlButtons {
+    flex-shrink: 0;
+  }
+  .manageUrlBtn {
+    flex: 0 0 auto;
+  }
+}
+.manageAtGlance {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: #666;
+  flex-wrap: wrap;
+}
+.manageAtGlanceCta {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #4F6BED;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.manageAtGlanceCta:hover {
+  text-decoration: underline;
+}
+
+/* ── Branding zone (paid) ── */
+.manageBrandingZone {
+  margin-bottom: 4px;
+}
+.manageBrandingChip {
+  padding: 14px 16px;
+  background: #f8f8fa;
+  border: 1px solid #e5e5ea;
+  border-radius: 10px;
+}
+.manageBrandingChipRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.manageBrandingChipLogo {
+  max-height: 28px;
+  max-width: 60px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.manageBrandingChipNoLogo {
+  font-size: 0.8rem;
+  color: #999;
+  font-style: italic;
+}
+.manageBrandingChipSwatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+.manageBrandingChipTheme {
+  font-size: 0.875rem;
+  color: #444;
+}
+.manageBrandingChipPrompt {
+  font-size: 0.875rem;
+  color: #666;
+  flex: 1;
+}
+.manageBrandingEditBtn {
+  margin-left: auto;
+  padding: 6px 14px !important;
+  font-size: 0.875rem !important;
+}
+.manageBrandingExpanded {
+  padding: 16px;
+  background: #f8f8fa;
+  border: 1px solid #e5e5ea;
+  border-radius: 10px;
+}
+
+/* ── Footer upgrade reminder (free, restraint mode) ── */
+.manageUpgradeFooter {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+.manageUpgradeFooterLink {
+  color: #D4775B;
+  font-weight: 500;
+  text-decoration: none;
+}
+.manageUpgradeFooterLink:hover {
+  text-decoration: underline;
+}
+
+/* ── Add events toggle (mobile only — hidden on desktop) ── */
+.manageAddToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: 2px dashed #d0d0d8;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  transition: border-color 0.12s, background 0.12s;
+}
+.manageAddToggle:hover {
+  border-color: #4F6BED;
+  background: #f5f7ff;
+}
+.manageAddToggleLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #4F6BED;
+}
+.manageAddToggleChevron {
+  font-size: 1rem;
+  color: #4F6BED;
+  transition: transform 0.2s;
+  line-height: 1;
+}
+@media (min-width: 640px) {
+  .manageAddToggle {
+    display: none;
+  }
+}
+
+/* ── Add CTAs (flyer + manual) ──
+   Mobile: hidden by default (revealed by toggle).
+   Desktop: always shown as two-column grid. ── */
+.manageAddCtas {
+  display: none;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.manageAddCtasExpanded {
+  display: grid;
+}
+@media (min-width: 640px) {
+  .manageAddCtas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.manageAddCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: #fff;
+  border: 2px dashed #d0d0d8;
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.15s;
+  min-height: 140px;
+}
+.manageAddCardUpload {
+  cursor: pointer;
+}
+.manageAddCardUpload:hover,
+.manageAddCardDragOver {
+  border-color: #4F6BED;
+  background: #f5f7ff;
+}
+.manageAddCardParsing {
+  cursor: wait;
+}
+.manageAddCardManual {
+  background: transparent;
+  border-style: dashed;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+  width: 100%;
+}
+.manageAddCardManual:hover {
+  border-color: #4F6BED;
+  background: #f5f7ff;
+}
+.manageAddMascot {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+}
+.manageAddCardPlus {
+  font-size: 2rem;
+  font-weight: 300;
+  color: #4F6BED;
+  margin-bottom: 4px;
+  line-height: 1;
+}
+.manageAddCardHeadline {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+.manageAddCardSub {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+/* ── Bottom + Add event button (after upcoming list) ── */
+.manageBottomAdd {
+  background: none;
+  border: none;
+  padding: 14px 0;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4F6BED;
+  cursor: pointer;
+  text-align: left;
+  margin-top: 12px;
+}
+.manageBottomAdd:hover {
+  text-decoration: underline;
+}
+
+/* ── Event list and rows ── */
+.manageEventList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.manageRowCollapsed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid #e5e5ea;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.manageRowCollapsed:hover {
+  background: #f8f8fa;
+  border-color: #d0d0d8;
+}
+.manageRowContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+}
+.manageRowDate {
+  font-weight: 600;
+  color: #1a1a1a;
+  flex-shrink: 0;
+}
+.manageRowSep {
+  color: #c0c0c8;
+}
+.manageRowTitle {
+  color: #1a1a1a;
+  font-weight: 500;
+}
+.manageRowMeta {
+  color: #666;
+  font-size: 0.85rem;
+}
+.manageRowActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.manageRowEdit {
+  background: #fff;
+  border: 1px solid #d0d0d8;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4F6BED;
+  cursor: pointer;
+  border-radius: 6px;
+  line-height: 1.2;
+  transition: background 0.12s, border-color 0.12s;
+}
+.manageRowEdit:hover {
+  background: #f5f7ff;
+  border-color: #4F6BED;
+}
+.manageRowDelete {
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  font-size: 1rem;
+  color: #888;
+  cursor: pointer;
+  border-radius: 4px;
+  line-height: 1;
+}
+.manageRowDelete:hover {
+  background: #fdebe9;
+  color: #c0392b;
+}
+
+/* ── Past events ── */
+.managePastToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 0;
+  font-size: 0.875rem;
+  color: #666;
+  font-weight: 500;
+}
+.managePastToggle:hover {
+  color: #1a1a1a;
+}
+.managePastList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+.managePastRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  color: #888;
+  flex-wrap: wrap;
+}
+.managePastRow .manageRowDate {
+  color: #888;
+  font-weight: 500;
+}
+.managePastRow .manageRowTitle {
+  color: #888;
+  font-weight: 400;
+}
+
+/* ── Empty state ── */
+.manageEmptyState {
+  padding: 32px 16px;
+  text-align: center;
+  background: #f8f8fa;
+  border-radius: 10px;
+  color: #1a1a1a;
+}
+
+/* ── Toasts ── */
+.manageToastContainer {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+  pointer-events: none;
+}
+.manageToast {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  animation: manageToastIn 0.2s ease-out;
+}
+@keyframes manageToastIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Confirm dialog ── */
+.manageConfirmBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 16px;
+}
+.manageConfirmDialog {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+.manageConfirmHeadline {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+.manageConfirmBody {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 0 20px 0;
+}
+.manageConfirmActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.manageConfirmDeleteBtn {
+  background: #c0392b !important;
+  border-color: #c0392b !important;
+  color: #fff !important;
+  min-width: 100px;
+}
